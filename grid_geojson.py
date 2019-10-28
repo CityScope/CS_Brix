@@ -110,6 +110,8 @@ class Grid():
         self.grid_coords_ll=[[lon_grid[i], lat_grid[i]] for i in range(len(lon_grid))]
         self.properties['interactive']= orginal_cell_flag
         self.properties['interactive_id']= interactive_ids
+        self.int_to_meta_map={interactive_ids[i]:i for i in 
+                       range(len(interactive_ids)) if interactive_ids[i] is not None}
         self.ncols=cell_width
         self.nrows=cell_height
         
