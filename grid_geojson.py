@@ -32,13 +32,20 @@ def point_in_shape(point, geometry):
         else:
             return False
             
+def flip_geojson_vertical(geojson, n_rows, n_cols):
+    new_features=[]
+    for row in reversed(range(n_rows)):
+        new_features.extend(geojson['features'][row*ncols: (row+1)*ncols])
+    geojson['features']=new_features
+    return geojson
         
+            
 
 wgs=pyproj.Proj("+init=EPSG:4326")
 
 class Grid():
     def __init__(self, top_left_lon, top_left_lat, rotation, crs_epsg, 
-                 cell_size, nrows, ncols):
+                 cell_size, nrows, ncols, flip_y=False):
         """
         Takes the properties of the grid and using the Haversine formula, 
         computes the location of the top-right corner. Then projects
@@ -90,6 +97,12 @@ class Grid():
             'nrows': nrows,
             'cellSize': cell_size,
             'rotation': rotation}
+    
+    def flip_tui_ids_y(self):
+        new_tui_ids=[]
+        for row in reversed(range(self.nrows)):
+            new_tui_ids.extend(self.properties['tui_id'][row*self.ncols: (row+1)*self.ncols])
+        self.properties['tui_id']=new_tui_ids
         
     def add_tui_interactive_cells(self, tui_top_left_row_index, tui_top_left_col_index,
                                   tui_num_interactive_rows, tui_num_interactive_cols):
@@ -162,7 +175,7 @@ class Grid():
                     land_use[cell_num]=lu_feature['properties'][lu_property]
         self.properties['land_use']=land_use
 
-    def get_grid_geojson(self, add_properties={}):
+    def get_grid_geojson(self, add_properties={}, include_global_properties=True):
         """
         Takes the pre-computed locations of the top-left corner of every grid cell
         and creates a corresponding Multi-Polygon geojson object
@@ -188,10 +201,11 @@ class Grid():
                              'geometry':{'type': 'Polygon', 'coordinates': [coords]},
                              'properties': properties})
         geojson_object={'type': 'FeatureCollection',
-                        'properties': {
-                                'geogrid_to_tui_mapping': self.geogrid_to_tui_mapping,
-                                'header': self.header},
                         'features': features}
+        if include_global_properties:
+            geojson_object['properties']={
+                                'geogrid_to_tui_mapping': self.geogrid_to_tui_mapping,
+                                'header': self.header}
         return geojson_object
     
     def plot(self):
