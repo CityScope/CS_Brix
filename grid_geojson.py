@@ -32,12 +32,12 @@ def point_in_shape(point, geometry):
         else:
             return False
             
-def flip_geojson_vertical(geojson, n_rows, n_cols):
-    new_features=[]
-    for row in reversed(range(n_rows)):
-        new_features.extend(geojson['features'][row*ncols: (row+1)*ncols])
-    geojson['features']=new_features
-    return geojson
+#def flip_geojson_vertical(geojson, n_rows, n_cols):
+#    new_features=[]
+#    for row in reversed(range(n_rows)):
+#        new_features.extend(geojson['features'][row*ncols: (row+1)*ncols])
+#    geojson['features']=new_features
+#    return geojson
         
             
 
@@ -100,9 +100,14 @@ class Grid():
     
     def flip_tui_ids_y(self):
         new_tui_ids=[]
+        new_tui_mapping={}
         for row in reversed(range(self.nrows)):
             new_tui_ids.extend(self.properties['tui_id'][row*self.ncols: (row+1)*self.ncols])
+        for grid_cell_id in range(len(new_tui_ids)):
+            if new_tui_ids[grid_cell_id] is not None:
+                new_tui_mapping[grid_cell_id]=  new_tui_ids[grid_cell_id]
         self.properties['tui_id']=new_tui_ids
+        self.geogrid_to_tui_mapping=new_tui_mapping
         
     def add_tui_interactive_cells(self, tui_top_left_row_index, tui_top_left_col_index,
                                   tui_num_interactive_rows, tui_num_interactive_cols):
