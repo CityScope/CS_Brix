@@ -126,46 +126,16 @@ class Grid():
                 self.properties['tui_id'][geogrid_index]=tui_ind
                 self.geogrid_to_tui_mapping[geogrid_index]=tui_ind
                 tui_ind+=1
+                
+    def set_web_interactive_region(self, interactive_zone_geojson):
+        interactive=[False]*len(self.grid_coords_ll)
+        for cell_num in range(len(self.grid_coords_ll)):
+            for lu_feature in interactive_zone_geojson['features']:
+                if point_in_shape(self.grid_coords_ll[cell_num], lu_feature['geometry']):
+                    interactive[cell_num]=True
+        self.properties['interactive']=interactive
         
-#    def extend_int_grid_to_full(self, col_margin_left,  row_margin_top, cell_width, 
-#                                         cell_height):
-#        """
-#        takes an initialised grid which defines an interactive area
-#        adds additional rows and columns in order to create a full_grid area
-#        the original interactive cells are maked as interactive and given a grid_data_id
-#        corresponding to their order in the interactive grid.
-#        
-#        """
-#        dXYdCol=np.array([self.grid_coords_xy[1][0]-self.grid_coords_xy[0][0], 
-#                         self.grid_coords_xy[1][1]-self.grid_coords_xy[0][1]])
-#        dXYdRow=np.array([dXYdCol[1], -dXYdCol[0]]) # rotate the vector 90 degrees
-#        int_grid_origin=np.array(self.grid_coords_xy[0])
-#        full_grid_origin=int_grid_origin-row_margin_top*dXYdRow-col_margin_left*dXYdCol
-#        full_grid_points=np.array([full_grid_origin+j*dXYdCol+i*dXYdRow for i in range(
-#                cell_height) for j in range(cell_width)])
-#        self.original_rows=list(range(row_margin_top, row_margin_top+self.nrows))
-#        self.original_cols=list(range(col_margin_left, col_margin_left+self.ncols))
-#        orginal_cell_flag=[True if (cell_num%cell_width in self.original_cols and 
-#                                    int(cell_num/cell_width) in self.original_rows
-#                                    ) else False for cell_num in range(len(full_grid_points))]
-#        int_id=0
-#        interactive_ids=[]
-#        for ocf in orginal_cell_flag:
-#            if ocf:
-#                interactive_ids.append(int_id)
-#                int_id+=1
-#            else:
-#                interactive_ids.append(None)
-#        self.grid_coords_xy=list(full_grid_points)
-#        lon_grid, lat_grid=pyproj.transform(self.projection,wgs,
-#                                            full_grid_points[:,0],full_grid_points[:,1])
-#        self.grid_coords_ll=[[lon_grid[i], lat_grid[i]] for i in range(len(lon_grid))]
-#        self.properties['interactive']= orginal_cell_flag
-#        self.properties['interactive_id']= interactive_ids
-#        self.int_to_meta_map={int(interactive_ids[i]):i for i in 
-#                       range(len(interactive_ids)) if interactive_ids[i] is not None}
-#        self.ncols=cell_width
-#        self.nrows=cell_height
+        
         
     def get_land_uses(self, lu_geojson, lu_property):
         """
