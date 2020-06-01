@@ -1,4 +1,4 @@
-# CS_Grik_Maker
+# CS_Grid_Maker
 
 This repo provides a class for creating spatial grids for CityScope projects.
 - Create a spatial grid geojson based on an origin point, rotation and numbers of rows/columns
