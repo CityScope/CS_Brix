@@ -137,18 +137,19 @@ class Grid():
         
         
         
-    def get_land_uses(self, lu_geojson, lu_property):
+    def set_grid_properties_from_shapefile(self, ref_geojson, properties):
         """
         Takes a grid with interactive and static cells
         Cross-references each cell to a geojson file of land-use polygons
         Assigns each cell to a land-use
         """
-        land_use=["None"]*len(self.grid_coords_ll)
+        new_properties={attr: [properties[attr]['default']]*len(self.grid_coords_ll) for attr in properties}
         for cell_num in range(len(self.grid_coords_ll)):
-            for lu_feature in lu_geojson['features']:
-                if point_in_shape(self.grid_coords_ll[cell_num], lu_feature['geometry']):
-                    land_use[cell_num]=lu_feature['properties'][lu_property]
-        self.properties['land_use']=land_use
+            for ref_feature in ref_geojson['features']:
+                if point_in_shape(self.grid_coords_ll[cell_num], ref_feature['geometry']):
+                    for attr in properties:
+                        new_properties[attr][cell_num]=ref_feature['properties'][properties[attr]['from']]
+        self.properties.update(new_properties)
 
     def get_grid_geojson(self, add_properties={}, include_global_properties=True):
         """
