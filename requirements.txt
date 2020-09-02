@@ -1,0 +1,6 @@
+requests>=2.22
+pandas>=0.25.3
+Geohash>=1.0
+python-geohash>=0.8.5
+joblib>=0.13.2
+shapely>=1.6.2
