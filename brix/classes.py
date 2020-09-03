@@ -626,12 +626,11 @@ class Indicator:
 		if table_name is None:
 			table_name = self.table_name
 		if isinstance(table_name,Handler):
-			H = table_name
+			self.tableHandler = table_name
 		else:
-			H = Handler(table_name)
-			self.tableHandler = H
-		self.assign_geogrid_props(H)
-
+			self.tableHandler = Handler(table_name)
+		self.tableHandler.add_indicator(self)
+		# self.assign_geogrid_props(H)
 
 	def get_geogrid_data(self,as_df=False):
 		'''
@@ -653,7 +652,6 @@ class Indicator:
 		else:
 			return None
 		
-
 	def assign_geogrid_props(self, handler):
 		'''
 		Assigns the GEOGRID properties to the indicator.
@@ -667,11 +665,16 @@ class Indicator:
 			Instantiated object of the Handler class.
 		'''
 		geogrid_props = handler.get_geogrid_props()
-		self.int_types_def=geogrid_props['types']
+		########################################################################
+		# These lines are creating unnecessary copies of handler.geogrid_props #
+		# We need to drop them and document accordingly, but this will break   #
+		# some corktown indicators                                             #
+		self.int_types_def = geogrid_props['types'] 
 		self.types_def = self.int_types_def.copy()
 		if 'static_types' in geogrid_props:
 			self.types_def.update(geogrid_props['static_types'])
 		self.geogrid_header = geogrid_props['header']
+		########################################################################
 
 	def restructure(self,geogrid_data):
 		geogrid_data_df = self._transform_geogrid_data_to_df(geogrid_data)
