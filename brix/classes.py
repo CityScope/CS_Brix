@@ -35,7 +35,12 @@ class Handler:
 	quietly : boolean (default=True)
 		If True, it will show the status of every API call.
 	'''
-	def __init__(self, table_name, GEOGRIDDATA_varname = 'GEOGRIDDATA', GEOGRID_varname = 'GEOGRID', quietly=True, host_mode ='remote' , reference=None):
+	def __init__(self, table_name, 
+		GEOGRIDDATA_varname = 'GEOGRIDDATA', 
+		GEOGRID_varname = 'GEOGRID', 
+		quietly=True, 
+		host_mode ='remote' , 
+		reference=None):
 
 		if host_mode=='local':
 			self.host = 'http://127.0.0.1:5000/'
@@ -57,15 +62,13 @@ class Handler:
 
 		self.indicators = {}
 		self.grid_hash_id = None
-		self.grid_hash_id = self.get_hash()
+		self.grid_hash_id = self.get_grid_hash()
 
 		self.previous_indicators = None
 		self.previous_access = None
 
 		self.none_character = 0
-        
 		self.geogrid_props=None
-		self.get_geogrid_props()
 
 		self.reference =reference
         
@@ -426,9 +429,10 @@ class Handler:
 			else:
 				warn('Cant access cityIO type definitions')
 				sleep(1)
+		return self.geogrid_props
 
 
-	def get_hash(self):
+	def get_grid_hash(self):
 		'''
 		Retreives the GEOGRID hash from:
 		http://cityio.media.mit.edu/api/table/table_name/meta/hashes
@@ -514,7 +518,7 @@ class Handler:
 			If True, it will append the new indicators to whatever is already there.
 		'''
 		if grid_hash_id is None: 
-			grid_hash_id = self.get_hash()	
+			grid_hash_id = self.get_grid_hash()	
 		geogrid_data = self._get_grid_data()
 		if not self.quietly:
 			print('Updating table with hash:',grid_hash_id)
@@ -569,10 +573,9 @@ class Handler:
 			webbrowser.open(self.front_end_url, new=2)
 		while True:
 			sleep(self.sleep_time)
-			grid_hash_id = self.get_hash()
+			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
 				self.perform_update(grid_hash_id=grid_hash_id,append=append)
-
 
 class Indicator:
 	def __init__(self,*args,**kwargs):
@@ -663,7 +666,7 @@ class Indicator:
 		handler: Handler
 			Instantiated object of the Handler class.
 		'''
-		geogrid_props = handler.geogrid_props
+		geogrid_props = handler.get_geogrid_props()
 		self.int_types_def=geogrid_props['types']
 		self.types_def = self.int_types_def.copy()
 		if 'static_types' in geogrid_props:
