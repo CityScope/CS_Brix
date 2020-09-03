@@ -4,6 +4,7 @@ import json
 import Geohash
 import joblib
 import numpy as np
+import pandas as pd
 from warnings import warn
 from time import sleep
 from collections import defaultdict
@@ -487,7 +488,7 @@ class Handler:
 			warn('FAILED TO RETRIEVE URL: '+url)
 		return r
 
-	def get_geogrid_data(self,include_geometries=False,as_df=False):
+	def get_geogrid_data(self,include_geometries=False,with_properties=False,as_df=False):
 		'''
 		Returns the geogrid data from:
 		http://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA
@@ -500,7 +501,20 @@ class Handler:
 			If True, it will return data as a DataFrame.
 		'''
 		geogrid_data = self._get_grid_data(include_geometries=include_geometries)
+		if with_properties:
+			geogrid_props = self.get_geogrid_props()
+			types_def = geogrid_props['types'].copy()
+			if 'static_types' in geogrid_props:
+				types_def.update(geogrid_props['static_types'])
+			types_def['None'] = None
+			for cell in geogrid_data:
+				cell['properties'] = types_def[cell['name']]
 		if as_df:
+			for cell in geogrid_data:
+				cell_props = cell['properties']
+				for k in cell_props:
+					cell[f'property_{k}'] = cell_props[k]
+				del cell['properties']
 			geogrid_data = pd.DataFrame(geogrid_data)
 			if include_geometries:
 				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
