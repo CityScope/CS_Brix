@@ -5,6 +5,7 @@ import Geohash
 import joblib
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 from warnings import warn
 from time import sleep
 from collections import defaultdict
@@ -452,7 +453,7 @@ class Handler:
 			grid_hash_id=self.grid_hash_id
 		return grid_hash_id
 
-	def _get_grid_data(self,include_geometries=False):
+	def _get_grid_data(self,include_geometries=False,with_properties=False):
 		r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRIDDATA_varname)
 		if r.status_code==200:
 			geogrid_data = r.json()
@@ -471,6 +472,15 @@ class Handler:
 					warn('WARNING: Cant access GEOGRID data')
 			for i in range(len(geogrid_data)):
 				geogrid_data[i]['geometry'] = self.GEOGRID['features'][i]['geometry']
+
+		if with_properties|any([I.requires_geogrid_props for I in self.indicators.values()]):
+			geogrid_props = self.get_geogrid_props()
+			types_def = geogrid_props['types'].copy()
+			if 'static_types' in geogrid_props:
+				types_def.update(geogrid_props['static_types'])
+			types_def['None'] = None
+			for cell in geogrid_data:
+				cell['properties'] = types_def[cell['name']]
 		return geogrid_data
 
 	def _get_url(self,url,params=None):
@@ -500,15 +510,7 @@ class Handler:
 		as_df: boolean (default=False)
 			If True, it will return data as a DataFrame.
 		'''
-		geogrid_data = self._get_grid_data(include_geometries=include_geometries)
-		if with_properties:
-			geogrid_props = self.get_geogrid_props()
-			types_def = geogrid_props['types'].copy()
-			if 'static_types' in geogrid_props:
-				types_def.update(geogrid_props['static_types'])
-			types_def['None'] = None
-			for cell in geogrid_data:
-				cell['properties'] = types_def[cell['name']]
+		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
 		if as_df:
 			for cell in geogrid_data:
 				cell_props = cell['properties']
@@ -597,6 +599,7 @@ class Indicator:
 		self.indicator_type = 'numeric'
 		self.viz_type = 'radar'
 		self.requires_geometry = False
+		self.requires_geogrid_props = False
 		self.model_path = None
 		self.pickled_model = None
 		self.int_types_def=None
@@ -605,7 +608,7 @@ class Indicator:
 		self.is_composite = False
 		self.tableHandler = None
 		self.table_name = None
-		for k in ['name','model_path','requires_geometry','indicator_type','viz_type']:
+		for k in ['name','model_path','requires_geometry','indicator_type','viz_type','requires_geogrid_props']:
 			if k in kwargs.keys():
 				self.name = kwargs[k]
 		if self.indicator_type in ['heatmap','access']:
