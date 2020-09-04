@@ -321,7 +321,7 @@ class Handler:
 			for f in new_value['features']:
 				if f['geometry']['type']=='Point':
 					all_properties = all_properties|set(f['properties'].keys())
-					lat,lon = f['geometry']['coordinates']
+					lon,lat = f['geometry']['coordinates']
 					hashed = Geohash.encode(lat,lon)
 					
 					if hashed in combined_features.keys():
@@ -568,6 +568,18 @@ class Handler:
 		'''
 		r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(self.previous_indicators))
 		r = requests.post(self.cityIO_post_url+'/access', data = json.dumps(self.previous_access))
+
+	def clear_table(self):
+		'''
+		Clears all indicators from tbale
+		'''
+		grid_hash_id = self.get_grid_hash()
+		empty_update = {'numeric': [],'heatmap': {'type': 'FeatureCollection', 'properties': [], 'features': []}}
+		r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(empty_update['numeric']))
+		r = requests.post(self.cityIO_post_url+'/access', data = json.dumps(empty_update['heatmap']))
+		if not self.quietly:
+			print('Cleared table')
+		self.grid_hash_id = grid_hash_id
 
 	def listen(self,showFront=True,append=False):
 		'''
