@@ -229,16 +229,16 @@ class Noise(Indicator):
 
 ### Diversity of land-use indicator - step by step
 
-As an example, we'll build a diversity of land use indicator for the corktown table. The process is the same for any table, provided that it has a GEOGRID variable. Indicators are built as subclasses of the **Indicator** class, with three functions that need to be defined: *setup*, *load_module*, and *return_indicator*. The function *setup* acts like an *__init__* and can take any argument and is run when the object is instantiated. The function *load_module* is also run when the indicator in initialized, but it cannot take any arguments. Any inputs needed for *load_module* should be defined as properties in *setup*. The function *return_indicator* is the only required one and should take in a 'geogrid_data' object and return the value of the indicator either as a number, a dictionary, or a list of dictionaries/numbers. 
+As an example, we'll build a diversity of land use indicator for the test table. The process is the same for any table, provided that it has a GEOGRID variable. Indicators are built as subclasses of the **Indicator** class, with three functions that need to be defined: *setup*, *load_module*, and *return_indicator*. The function *setup* acts like an *__init__* and can take any argument and is run when the object is instantiated. The function *load_module* is also run when the indicator in initialized, but it cannot take any arguments. Any inputs needed for *load_module* should be defined as properties in *setup*. The function *return_indicator* is the only required one and should take in a 'geogrid_data' object and return the value of the indicator either as a number, a dictionary, or a list of dictionaries/numbers. 
 
 To start developing the diversity indicator, you can use the Handler class to get the geogrid_data that is an input of the *return_indicator* function.
 ```
 from brix import Handler
-H = Handler('corktown')
+H = Handler('dungeonmaster')
 geogrid_data = H.geogrid_data()
 ```
 
-The returned *geogrid_data* object depends on the table, but for corktown it looks like this:
+The returned *geogrid_data* object depends on the table, but for dungeonmaster it looks like this:
 ```
 [
 	{
@@ -327,7 +327,7 @@ from brix import Handler
 
 div = Diversity()
 
-H = Handler('corktown', quietly=False)
+H = Handler('dungeonmaster', quietly=False)
 H.add_indicator(div)
 H.listen()
 ```
@@ -342,7 +342,7 @@ First, we load the RandomIndicator and pass it to a Handler.
 from brix import Handler, CompositeIndicator
 from brix.examples import RandomIndicator
 
-H = Handler('corktown')
+H = Handler('dungeonmaster')
 R = RandomIndicator()
 H.add_indicator(R)
 ```
