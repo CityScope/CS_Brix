@@ -60,6 +60,7 @@ class Diversity(Indicator):
 
 
 from numpy import mean
+import random
 class Noise(Indicator):
 	'''
 	Example of Noise heatmap indicator for points centered in each grid cell.
