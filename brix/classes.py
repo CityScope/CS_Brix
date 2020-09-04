@@ -36,13 +36,15 @@ class Handler:
 		Name of variable with geometries.
 	quietly : boolean (default=True)
 		If True, it will show the status of every API call.
+	reference : dict (optional)
+		Dictionary for reference values for each indicator.
 	'''
 	def __init__(self, table_name, 
 		GEOGRIDDATA_varname = 'GEOGRIDDATA', 
 		GEOGRID_varname = 'GEOGRID', 
 		quietly=True, 
 		host_mode ='remote' , 
-		reference=None):
+		reference = None):
 
 		if host_mode=='local':
 			self.host = 'http://127.0.0.1:5000/'
@@ -146,9 +148,14 @@ class Handler:
 			indicatorName = I.name
 		else:
 			indicatorName = ('0000'+str(len(self.indicators)+1))[-4:]
-		I.link_table(self)
+
+		if I.tableHandler is not None:
+			warn(f'Indicator {indicatorName} has a table linked to it. Remember you do not need to link_table when using the Handler class')
+		# I.link_table(self)
+
 		if indicatorName in self.indicators.keys():
-			warn('Indicator {} already exists and will be overwritten'.format(indicatorName))
+			warn(f'Indicator {indicatorName} already exists and will be overwritten')
+
 		self.indicators[indicatorName] = I
 		if test:
 			geogrid_data = self._get_grid_data()
@@ -390,9 +397,10 @@ class Handler:
 				new_values_numeric += self._new_value(indicator_values,indicator_name)
 
 		# add ref values if they exist
-		for new_value in new_values_numeric:
-			if new_value['name'] in self.reference:
-				new_value['ref_value']=self.reference[new_value['name']]
+		if self.reference is not None:
+			for new_value in new_values_numeric:
+				if new_value['name'] in self.reference:
+					new_value['ref_value']=self.reference[new_value['name']]
 		
 		if append:
 			if len(new_values_numeric)!=0:
@@ -602,9 +610,9 @@ class Indicator:
 		self.requires_geogrid_props = False
 		self.model_path = None
 		self.pickled_model = None
-		self.int_types_def=None
-		self.types_def=None
-		self.geogrid_header=None
+		# self.int_types_def=None
+		# self.types_def=None
+		# self.geogrid_header=None
 		self.is_composite = False
 		self.tableHandler = None
 		self.table_name = None
@@ -625,7 +633,7 @@ class Indicator:
 			geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 		return geogrid_data
 
-	def link_table(self,table_name=None):
+	def link_table(self,table_name):
 		'''
 		Function used for developing the indicator.
 		It retrieves the properties from GEOGRID/properties and links the table Handler.
@@ -646,12 +654,12 @@ class Indicator:
 			self.tableHandler = table_name
 		else:
 			self.tableHandler = Handler(table_name)
-		self.tableHandler.add_indicator(self)
-		# self.assign_geogrid_props(H)
 
-	def get_geogrid_data(self,as_df=False):
+	def get_geogrid_data(self,as_df=False,include_geometries=None,with_properties=None):
 		'''
 		Returns the geogrid data from the linked table if there is any.
+		Function used for testing the indicator. 
+		It returns the exact object that will be passed to return_indicator
 		(see link_table)
 
 		Parameters
@@ -659,39 +667,45 @@ class Indicator:
 		as_df: boolean (default=False)
 			If True, it will return data as a DataFrame.
 		'''
-		if self.tableHandler is not None:
-			geogrid_data = self.tableHandler._get_grid_data(include_geometries=self.requires_geometry)
-			if as_df:
-				geogrid_data = pd.DataFrame(geogrid_data)
-				if include_geometries:
-					geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
-			return geogrid_data
-		else:
-			return None
-		
-	def assign_geogrid_props(self, handler):
-		'''
-		Assigns the GEOGRID properties to the indicator.
-		Takes care of filling
-			self.types_def
-			self.geogrid_header
+		include_geometries = self.requires_geometry if include_geometries is None else include_geometries
+		with_properties    = self.requires_geogrid_props if with_properties is None else with_properties
+		if self.tableHandler is None:
+			if self.table_name is not None:
+				self.link_table(table_name=self.table_name)
+			else:
+				warn('To use this function, please link a table first:\n> Indicator.link_table(table_name)')
+				return None
 
-		Parameters
-		----------
-		handler: Handler
-			Instantiated object of the Handler class.
-		'''
-		geogrid_props = handler.get_geogrid_props()
-		########################################################################
-		# These lines are creating unnecessary copies of handler.geogrid_props #
-		# We need to drop them and document accordingly, but this will break   #
-		# some corktown indicators                                             #
-		self.int_types_def = geogrid_props['types'] 
-		self.types_def = self.int_types_def.copy()
-		if 'static_types' in geogrid_props:
-			self.types_def.update(geogrid_props['static_types'])
-		self.geogrid_header = geogrid_props['header']
-		########################################################################
+		geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
+		if as_df:
+			geogrid_data = pd.DataFrame(geogrid_data)
+			if include_geometries:
+				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
+		return geogrid_data
+		
+	# def assign_geogrid_props(self, handler):
+	# 	'''
+	# 	Assigns the GEOGRID properties to the indicator.
+	# 	Takes care of filling
+	# 		self.types_def
+	# 		self.geogrid_header
+
+	# 	Parameters
+	# 	----------
+	# 	handler: Handler
+	# 		Instantiated object of the Handler class.
+	# 	'''
+	# 	geogrid_props = handler.get_geogrid_props()
+	# 	########################################################################
+	# 	# These lines are creating unnecessary copies of handler.geogrid_props #
+	# 	# We need to drop them and document accordingly, but this will break   #
+	# 	# some corktown indicators                                             #
+	# 	self.int_types_def = geogrid_props['types'] 
+	# 	self.types_def = self.int_types_def.copy()
+	# 	if 'static_types' in geogrid_props:
+	# 		self.types_def.update(geogrid_props['static_types'])
+	# 	self.geogrid_header = geogrid_props['header']
+	# 	########################################################################
 
 	def restructure(self,geogrid_data):
 		geogrid_data_df = self._transform_geogrid_data_to_df(geogrid_data)
