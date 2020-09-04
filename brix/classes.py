@@ -94,8 +94,10 @@ class Handler:
 			('access' and 'heatmap' refer to the same type)
 		'''
 		if indicator_type in ['numeric']:
+			print(self.cityIO_get_url+'/indicators')
 			r = self._get_url(self.cityIO_get_url+'/indicators')
 		elif indicator_type in ['heatmap','access']:
+			print(self.cityIO_get_url+'/access')
 			r = self._get_url(self.cityIO_get_url+'/access')
 		else:
 			raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(indicator_type))
