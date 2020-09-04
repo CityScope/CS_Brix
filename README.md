@@ -1,14 +1,156 @@
 # CS_Brix
+
 A python library for CityScope modules which handles communication with City I/O
 
-## Custom GEOGRID indicator (tldr)
+## Introduction
+
+What is this library for? If you have never heard of a CityScope table before, you might want to stop reading and learn about them [here](https://cityscope.media.mit.edu/). They are an awesome way of displaying urban information in a way that can be accessed by multiple people with different backgrouns. If you know what they are, please keep reading. 
+
+What is an indicator? An indicator is the result of running a module for CityScope. Indicators work by listening for updated from the CityScope table they are linked to, calculating some values by using a model, some function of the data, or a simulation, and then post the result of the calculations to CityIO to be displayed in the table.
+
+What are the types of indicators you can build? Indicators can be anything that could be displayed on a CityScope table, including the supporting screens associated to it. For the purpose of this library, we distinguish three types of indicator: simple, heatmap, simulation.
+
+* Simple: Simple indicators are just a number or set of numbers. They are usually displayed in a chart (bar chart, radar chart, etc) next to the table. The most common simple indicator are the numbers that go in the radar plot, which display information about density, diversity, and proximity. 
+* Heatmap: These indicators are geodata. They are made up of geometries (points, lines, or polygons) and properties associated to them. These indicators are displayed as layers directly on the CityScope table.
+* Simulation: These type of indicators are also displayed on the table but they are the result of an agent based simulation and are therefore displayed as a dynamic layer. They change over time like a short movie. These are not yet supported by this library.
+
+
+## Tutorial
+
+### Basics of building a CityScope indicator
+
+Let's get to it. First, what table are you building for? If you don't have a specific table, that is totally okay and you can create one [here](https://cityscope.media.mit.edu/CS_cityscopeJS/). For this tutorial, we crated one called `dungeonmaster`.
+
+An indicator will basically take in data, and produce a result. Each new indicator is built as an subclass of the `Indicator` class provided in this library. Make sure you define three funcions: `setup`, `load_module`, and `return_indicator`. Here's a barebones example of an indicator:
+```
+from brix import Indicator
+class MyIndicator(Indicator):
+	'''
+	Write a description for your indicator here.
+	'''
+	def setup(self):
+		'''
+		Think of this as your __init__. 
+		Here you will define the properties of your indicator.
+		Although there are no required properties, be nice and give your indicator a name.
+		'''
+		self.name = 'Alfonso'
+
+	def load_module(self):
+		'''
+		This function is not strictly necessary, but we recommend that you define it if you want to load something from memory. It will make your code more readable. 
+		'''
+		pass
+
+	def return_indicator(self, geogrid_data):
+		'''
+		This is the main course of your indicator. 
+		This function takes in `geogrid_data` and returns the value of your indicator.
+		The library is flexible enough to handle indicators that return a number or a dictionary.
+		'''
+		return 1
+```
+
+
+### Let's talk input/data
+
+What is `geogrid_data`? 
+`geogrid_data` is a dictionary that contains all the data that your indicator will need to run. What comes in it really depends on the specific table you are building for and on the properties assigned to you indicator. There are two options that will control what `geogrid_data` contains which are: `Indicator.requires_geometry` and `Indicator.requires_geogrid_props`. These two properties are set to `False` by default, but you can change them inside the `setup` function depending on the needs of your indicator. 
+
+Go ahead, take a look at how this object looks like by instantiating your class and linking it to a table:
+```
+I = MyIndicator()
+I.link_table('dungeonmaster')
+I.get_geogrid_data()
+```
+
+Please note that the `link_table` should only be used when developing the indicator. For deployment, we'll use the `Handler` class that is more efficient. You can also skip the `link_table` step by defining the `Indicator.table_name='dungeonmaster'` property in your `setup` function. You will also notice that as you change the `Indicator.requires_geometry` and `Indicator.requires_geogrid_props` parameters in `setup`, the output of `get_geogrid_data` will change. 
+
+If you are testing and are curious how `geogrid_data` would look like if you set `requires_geometry=True`, you can pass the argument to `get_geogrid_data`:
+```
+I.get_geogrid_data(include_geometries=True)
+```
+
+### Build and test your indicator
+
+This library ensures that you can focus on what you do best: writing a kick ass `return_indicator` function that will make everyone's urban planning life better. 
+
+To test your function while debugging it, you can use the object returned by `get_geogrid_data`:
+```
+geogrid_data = I.get_geogrid_data()
+I.return_indicator(geogrid_data)
+```
+
+
+### Deploy your indicator
+
+Finally, once you have build a series of indicators, the right way to deploy them is to use the `Handler` class. A `Handler` object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are `add_indicators` which takes a list of `Indicator` objects and connects them to the table, and `listen` that is a method that runs continuously waiting for updates in the CityScope table.
+
+```
+from brix import Handler
+from myindicators import Density, Diversity, Proximity
+
+dens = Density()
+divs = Diversity()
+prox = Proximity()
+
+H = Handler('dungeonmaster', quietly=False)
+H.add_indicators([
+	dens,
+	divs,
+	prox
+])
+H.listen()
+```
+
+To see the indicators in the handler you can use `H.list_indicators()` to list the indicator names, and use `H.return_indicator(<indicator_name>)` to see the value of the indicator. Finally, the function `H.update_package()` will return the data that will be posted on CityIO. 
+
+
+## Other examples
+
+
+## Composite indicator
+
+In some settings, it might be useful to aggregate different indicators to get a average feel of what the neighborhood looks like. For this use case, `brix` provides a simplified `CompositeIndicator` class that only needs an aggregation function. 
+
+Let's create an indicator that averages Innovation Potential, Mobility Inmpact, and Economic Impact. We use the `CompositeIndicator` class for this. This class takes an aggregate function as input. This function should take the result of `Handler.get_indicator_values()` as input and returns a number. If you want to have more control over what the `CompositeIndicator` does you can always extend the class.
+
+Here is the simplest example that averages the values of three indicators:
+```
+from brix import Handler, CompositeIndicator
+from brix.examples import RandomIndicator
+
+def innovation_average(indicator_values):
+    avg = (indicator_values['Innovation Potential']+indicator_values['Mobility Impact']+indicator_values['Economic Impact'])/3
+    return avg
+
+H = Handler('dungeonmaster')
+R = RandomIndicator()
+avg_I = CompositeIndicator(innovation_average,name='Composite')
+H.add_indicators([R,avg_I])
+```
+
+In some cases, the aggregation function is too simple to write it again. In the example before, you can also pass it a pre-existing function, such as `np.mean`, making sure that you select the indicators that will be passed as input, by their name.
+```
+from brix import Handler, CompositeIndicator
+from brix.examples import RandomIndicator
+import numpy as np
+
+H = Handler('dungeonmaster')
+R = RandomIndicator()
+avg_I = CompositeIndicator(np.mean,selected_indicators=['Innovation Potential','Mobility Impact','Economic Impact'],name='Composite')
+H.add_indicators([R,avg_I])
+```
+
+
+## Custom GEOGRID indicator
 
 Indicators are built as subclasses of the **Indicator** class, with three functions that need to be defined: *setup*, *load_module*, and *return_indicator*. The function *setup* acts like an *__init__* and can take any argument and is run when the object is instantiated. The function *load_module* is also run when the indicator in initialized, but it cannot take any arguments. Any inputs needed for *load_module* should be defined as properties in *setup*. The function *return_indicator* is the only required one and should take in a 'geogrid_data' object and return the value of the indicator either as a number, a dictionary, or a list of dictionaries/numbers. Sometimes, the indicator requires geographic information from the table to calculate it. To get geographic information from the table, set the property *requires_geometry* to True (see Noise heatmap as an example). 
 
 The following example implements a diversity-of-land-use indicator:
 ```
-from toolbox import Indicator
-from toolbox import Handler
+from brix import Indicator
+from brix import Handler
 
 from numpy import log
 from collections import Counter
@@ -36,40 +178,9 @@ class Diversity(Indicator):
 
 div = Diversity()
 
-H = Handler('corktown', quietly=False)
+H = Handler('dungeonmaster', quietly=False)
 H.add_indicator(div)
 H.listen()
-```
-
-
-## Custom Composite indicator (tldr)
-
-Let's create an indicator that averages Innovation Potential, Mobility Inmpact, and Economic Impact. We use the `CompositeIndicator` class for this. This class takes an aggregate function as input. This function takes in the result of `Handler.get_indicator_values()` as input and returns a number. If you want to have more control over what the `CompositeIndicator` does you can always extend the class.
-
-```
-from toolbox import Handler, CompositeIndicator
-from examples import RandomIndicator
-
-def innovation_average(indicator_values):
-    avg = (indicator_values['Innovation Potential']+indicator_values['Mobility Impact']+indicator_values['Economic Impact'])/3
-    return avg
-
-H = Handler('corktown')
-R = RandomIndicator()
-avg_I = CompositeIndicator(innovation_average,name='Composite')
-H.add_indicators([R,avg_I])
-```
-
-You can also pass it a pre-existing function, such as `np.mean`. 
-```
-from toolbox import Handler, CompositeIndicator
-from examples import RandomIndicator
-import numpy as np
-
-H = Handler('corktown')
-R = RandomIndicator()
-avg_I = CompositeIndicator(np.mean,selected_indicators=['Innovation Potential','Mobility Impact','Economic Impact'],name='Composite')
-H.add_indicators([R,avg_I])
 ```
 
 
