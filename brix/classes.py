@@ -295,6 +295,10 @@ class Handler:
 							new_value[i] = {'value':val}
 						except:
 							warn('Indicator return invalid type:'+str(indicator_name))
+					if ('indicator_type' not in val.keys())&(I.indicator_type is not None):
+						val['indicator_type'] = I.indicator_type
+					if ('viz_type' not in val.keys())&(I.viz_type is not None):
+						val['viz_type'] = I.viz_type
 				return list(new_value)
 			else:
 				if not isinstance(new_value,dict):
@@ -309,6 +313,7 @@ class Handler:
 					new_value['indicator_type'] = I.indicator_type
 				if ('viz_type' not in new_value.keys())&(I.viz_type is not None):
 					new_value['viz_type'] = I.viz_type
+				print(new_value)
 				return [new_value]
 
 
@@ -696,30 +701,6 @@ class Indicator:
 			if include_geometries:
 				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 		return geogrid_data
-		
-	# def assign_geogrid_props(self, handler):
-	# 	'''
-	# 	Assigns the GEOGRID properties to the indicator.
-	# 	Takes care of filling
-	# 		self.types_def
-	# 		self.geogrid_header
-
-	# 	Parameters
-	# 	----------
-	# 	handler: Handler
-	# 		Instantiated object of the Handler class.
-	# 	'''
-	# 	geogrid_props = handler.get_geogrid_props()
-	# 	########################################################################
-	# 	# These lines are creating unnecessary copies of handler.geogrid_props #
-	# 	# We need to drop them and document accordingly, but this will break   #
-	# 	# some corktown indicators                                             #
-	# 	self.int_types_def = geogrid_props['types'] 
-	# 	self.types_def = self.int_types_def.copy()
-	# 	if 'static_types' in geogrid_props:
-	# 		self.types_def.update(geogrid_props['static_types'])
-	# 	self.geogrid_header = geogrid_props['header']
-	# 	########################################################################
 
 	def restructure(self,geogrid_data):
 		geogrid_data_df = self._transform_geogrid_data_to_df(geogrid_data)
