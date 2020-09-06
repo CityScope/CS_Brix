@@ -83,8 +83,23 @@ I.return_indicator(geogrid_data)
 
 The property `Indicator.indicator_type` will toggle between a Heatmap indicator or a numeric indicator (`numeric` for nueric and `heatmap` for heatmap).
 
+For numeric indicators, there are multiple ways in which the front end can display them (e.g. bar chart, radar plot, etc.). This is controled by the `viz_type` property of the class. The default value is set to `Indicator.viz_type=radar` which means that unless it is specificed otherwise, all numeric indicators will be added to the radar plot. When building an indicator that returns a single number you can just change the value of this parameter in the `setup()`. When building an indicator that returns multiple numbers it will just assume every number should be displayed in the same front end visualizaiton. If you want to have more fine control of where each indicator is displayed, we recommend building your `return_indicator` function such that it returns a dictionary with the following structure:
+```
+{
+	'name': 'Social Wellbeing', 
+	'value': random.random(),
+	'viz_type': 'bar'
+}
+```
 
-
+The `viz_type` defined in the return object of `return_indicator` will overwrite any default property defined in `setup`. Remember that your `return_indicator` function can also return a list of indicators. In the following example of a return value for the `return_indicator` function, the indicator returns two numbers that should be displayed in the radar plot, and one to be displayed as a bar chart. 
+```
+[
+	{'name': 'Social Wellbeing', 'value': 0.3, 'viz_type': 'radar'},
+	{'name': 'Environmental Impact', 'value': 0.1, 'viz_type': 'radar'},
+	{'name': 'Mobility Impact', 'value': 0.5, 'viz_type': 'bar'}
+]
+```
 
 ### Deploy your indicator
 
