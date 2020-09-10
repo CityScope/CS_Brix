@@ -1,27 +1,31 @@
-# CS_Brix
+# Brix
 
 A python library for CityScope modules which handles communication with City I/O
 
 ## Introduction
 
-What is this library for? If you have never heard of a CityScope table before, you might want to stop reading and learn about them [here](https://cityscope.media.mit.edu/). They are an awesome way of displaying urban information in a way that can be accessed by multiple people with different backgrouns. If you know what they are, please keep reading. 
+What is this library for? If you have never heard of a CityScope before, you might want to stop reading and learn about them [here](https://cityscope.media.mit.edu/). CityScope is an awesome way to interact, explore, and co-create urban interventions in a way that can be accessed by multiple people with different background. If you know what they are, please keep reading.
+
+What is a CityScope table? a 'table' is our way of describing a CityScope project. Why table then? Since historically, most CityScope instances were composed of a mesh between a physical table-top 3D model of a city, augmented with projections, software, and other interface hardware. So a table => project.
 
 What is an indicator? An indicator is the result of running a module for CityScope. Indicators work by listening for updated from the CityScope table they are linked to, calculating some values by using a model, some function of the data, or a simulation, and then post the result of the calculations to CityIO to be displayed in the table.
 
 What are the types of indicators you can build? Indicators can be anything that could be displayed on a CityScope table, including the supporting screens associated to it. For the purpose of this library, we distinguish three types of indicator: numeric, heatmap, simulation.
 
-* Numeric: Numeric indicators are just a number or set of numbers. They are usually displayed in a chart (bar chart, radar chart, etc) next to the table. The most common numeric indicator are the numbers that go in the radar plot, which display information about density, diversity, and proximity. 
-* Heatmap: These indicators are geodata. They are made up of geometries (points, lines, or polygons) and properties associated to them. These indicators are displayed as layers directly on the CityScope table.
-* Simulation: These type of indicators are also displayed on the table but they are the result of an agent based simulation and are therefore displayed as a dynamic layer. They change over time like a short movie. These are not yet supported by this library.
+-   Numeric: Numeric indicators are just a number or set of numbers. They are usually displayed in a chart (bar chart, radar chart, etc) next to the table. The most common numeric indicator are the numbers that go in the radar plot, which display information about density, diversity, and proximity.
 
+-   Heatmap: These indicators are geodata. They are made up of geometries (points, lines, or polygons) and properties associated to them. These indicators are displayed as layers directly on the CityScope table.
+-   Simulation: These type of indicators are also displayed on the table but they are the result of an agent based simulation and are therefore displayed as a dynamic layer. They change over time like a short movie. These are not yet supported by this library.
 
 ## Tutorial
 
 ### Basics of building a CityScope indicator
 
-Let's get to it. First, what table are you building for? If you don't have a specific table, that is totally okay and you can create one [here](https://cityscope.media.mit.edu/CS_cityscopeJS/). For this tutorial, we crated one called `dungeonmaster`.
+Let's get to it. First, what table are you building for? If you don't have a specific table, that is totally okay and you can create one [here](https://cityscope.media.mit.edu/CS_cityscopeJS/). Note: by the time you read this, CityScope might pose some limitations on new projects ('tables'). Please follow instructions in the link above. 
+For this tutorial, we crated one called `dungeonmaster`.
 
-An indicator will basically take in data, and produce a result. Each new indicator is built as an subclass of the `Indicator` class provided in this library. Make sure you define three funcions: `setup`, `load_module`, and `return_indicator`. Here's a barebones example of an indicator:
+An indicator will basically take in data, and produce a result. Each new indicator is built as an subclass of the `Indicator` class provided in this library. Make sure you define three functions: `setup`, `load_module`, and `return_indicator`. Here's a barebones example of an indicator:
+
 ```
 from brix import Indicator
 class MyIndicator(Indicator):
@@ -30,7 +34,7 @@ class MyIndicator(Indicator):
 	'''
 	def setup(self):
 		'''
-		Think of this as your __init__. 
+		Think of this as your __init__.
 		Here you will define the properties of your indicator.
 		Although there are no required properties, be nice and give your indicator a name.
 		'''
@@ -38,44 +42,46 @@ class MyIndicator(Indicator):
 
 	def load_module(self):
 		'''
-		This function is not strictly necessary, but we recommend that you define it if you want to load something from memory. It will make your code more readable. 
+		This function is not strictly necessary, but we recommend that you define it if you want to load something from memory. It will make your code more readable.
 		'''
 		pass
 
 	def return_indicator(self, geogrid_data):
 		'''
-		This is the main course of your indicator. 
+		This is the main course of your indicator.
 		This function takes in `geogrid_data` and returns the value of your indicator.
 		The library is flexible enough to handle indicators that return a number or a dictionary.
 		'''
 		return 1
 ```
 
-
 ### Let's talk input/data
 
-What is `geogrid_data`? 
-`geogrid_data` is a dictionary that contains all the data that your indicator will need to run. What comes in it really depends on the specific table you are building for and on the properties assigned to you indicator. There are two options that will control what `geogrid_data` contains which are: `Indicator.requires_geometry` and `Indicator.requires_geogrid_props`. These two properties are set to `False` by default, but you can change them inside the `setup` function depending on the needs of your indicator. 
+What is `geogrid_data`?
+`geogrid_data` is a dictionary that contains the minimal data that your indicator will need to run. What comes in it really depends on the specific table you are building for and on the properties assigned to you indicator. There are two options that will control what `geogrid_data` contains which are: `Indicator.requires_geometry` and `Indicator.requires_geogrid_props`. These two properties are set to `False` by default, but you can change them inside the `setup` function depending on the needs of your indicator.
 
 Go ahead, take a look at how this object looks like by instantiating your class and linking it to a table:
+
 ```
 I = MyIndicator()
 I.link_table('dungeonmaster')
 I.get_geogrid_data()
 ```
 
-Please note that the `link_table` should only be used when developing the indicator. For deployment, we'll use the `Handler` class that is more efficient. You can also skip the `link_table` step by defining the `Indicator.table_name='dungeonmaster'` property in your `setup` function. You will also notice that as you change the `Indicator.requires_geometry` and `Indicator.requires_geogrid_props` parameters in `setup`, the output of `get_geogrid_data` will change. 
+Please note that the `link_table` should only be used when developing the indicator. For deployment, we'll use the `Handler` class that is more efficient. You can also skip the `link_table` step by defining the `Indicator.table_name='dungeonmaster'` property in your `setup` function. You will also notice that as you change the `Indicator.requires_geometry` and `Indicator.requires_geogrid_props` parameters in `setup`, the output of `get_geogrid_data` will change.
 
 If you are testing and are curious how `geogrid_data` would look like if you set `requires_geometry=True`, you can pass the argument to `get_geogrid_data`:
+
 ```
 I.get_geogrid_data(include_geometries=True)
 ```
 
 ### Build and test your indicator (output)
 
-This library ensures that you can focus on what you do best: writing a kick ass `return_indicator` function that will make everyone's urban planning life better. 
+This library ensures that you can focus on what you do best: writing a kick ass `return_indicator` function that will make everyone's urban planning life better.
 
 To test your function while debugging it, you can use the object returned by `get_geogrid_data`:
+
 ```
 geogrid_data = I.get_geogrid_data()
 I.return_indicator(geogrid_data)
@@ -83,16 +89,18 @@ I.return_indicator(geogrid_data)
 
 The property `Indicator.indicator_type` will toggle between a Heatmap indicator or a numeric indicator (`numeric` for nueric and `heatmap` for heatmap).
 
-For numeric indicators, there are multiple ways in which the front end can display them (e.g. bar chart, radar plot, etc.). This is controled by the `viz_type` property of the class. The default value is set to `Indicator.viz_type=radar` which means that unless it is specificed otherwise, all numeric indicators will be added to the radar plot. When building an indicator that returns a single number you can just change the value of this parameter in the `setup()`. When building an indicator that returns multiple numbers it will just assume every number should be displayed in the same front end visualizaiton. If you want to have more fine control of where each indicator is displayed, we recommend building your `return_indicator` function such that it returns a dictionary with the following structure:
+For numeric indicators, there are multiple ways in which the front end can display them (e.g. bar chart, radar plot, etc.). This is controlled by the `viz_type` property of the class. The default value is set to `Indicator.viz_type=radar` which means that unless it is specified otherwise, all numeric indicators will be added to the radar plot. When building an indicator that returns a single number you can just change the value of this parameter in the `setup()`. When building an indicator that returns multiple numbers it will just assume every number should be displayed in the same front end visualization. If you want to have more fine control of where each indicator is displayed, we recommend building your `return_indicator` function such that it returns a dictionary with the following structure:
+
 ```
 {
-	'name': 'Social Wellbeing', 
+	'name': 'Social Wellbeing',
 	'value': random.random(),
 	'viz_type': 'bar'
 }
 ```
 
-The `viz_type` defined in the return object of `return_indicator` will overwrite any default property defined in `setup`. Remember that your `return_indicator` function can also return a list of indicators. In the following example of a return value for the `return_indicator` function, the indicator returns two numbers that should be displayed in the radar plot, and one to be displayed as a bar chart. 
+The `viz_type` defined in the return object of `return_indicator` will overwrite any default property defined in `setup`. Remember that your `return_indicator` function can also return a list of indicators. In the following example of a return value for the `return_indicator` function, the indicator returns two numbers that should be displayed in the radar plot, and one to be displayed as a bar chart.
+
 ```
 [
 	{'name': 'Social Wellbeing', 'value': 0.3, 'viz_type': 'radar'},
@@ -122,16 +130,16 @@ H.add_indicators([
 H.listen()
 ```
 
-To see the indicators in the handler you can use `H.list_indicators()` to list the indicator names, and use `H.return_indicator(<indicator_name>)` to see the value of the indicator. Finally, the function `H.update_package()` will return the data that will be posted on CityIO. 
-
+To see the indicators in the handler you can use `H.list_indicators()` to list the indicator names, and use `H.return_indicator(<indicator_name>)` to see the value of the indicator. Finally, the function `H.update_package()` will return the data that will be posted on CityIO.
 
 ## Examples
 
 ### Numeric indicator: diversity
 
-Indicators are built as subclasses of the **Indicator** class, with three functions that need to be defined: *setup*, *load_module*, and *return_indicator*. The function *setup* acts like an *__init__* and can take any argument and is run when the object is instantiated. The function *load_module* is also run when the indicator in initialized, but it cannot take any arguments. Any inputs needed for *load_module* should be defined as properties in *setup*. The function *return_indicator* is the only required one and should take in a 'geogrid_data' object and return the value of the indicator either as a number, a dictionary, or a list of dictionaries/numbers. Sometimes, the indicator requires geographic information from the table to calculate it. To get geographic information from the table, set the property *requires_geometry* to True (see Noise heatmap as an example). 
+Indicators are built as subclasses of the **Indicator** class, with three functions that need to be defined: _setup_, _load_module_, and _return_indicator_. The function _setup_ acts like an _**init**_ and can take any argument and is run when the object is instantiated. The function _load_module_ is also run when the indicator in initialized, but it cannot take any arguments. Any inputs needed for _load_module_ should be defined as properties in _setup_. The function _return_indicator_ is the only required one and should take in a 'geogrid*data' object and return the value of the indicator either as a number, a dictionary, or a list of dictionaries/numbers. Sometimes, the indicator requires geographic information from the table to calculate it. To get geographic information from the table, set the property \_requires_geometry* to True (see Noise heatmap as an example).
 
 The following example implements a diversity-of-land-use indicator:
+
 ```
 from brix import Indicator
 from brix import Handler
@@ -167,14 +175,14 @@ H.add_indicator(div)
 H.listen()
 ```
 
-
 ### Composite indicator: average
 
-In some settings, it might be useful to aggregate different indicators to get a average feel of what the neighborhood looks like. For this use case, `brix` provides a simplified `CompositeIndicator` class that only needs an aggregation function. 
+In some settings, it might be useful to aggregate different indicators to get a average feel of what the neighborhood looks like. For this use case, `brix` provides a simplified `CompositeIndicator` class that only needs an aggregation function.
 
 Let's create an indicator that averages Innovation Potential, Mobility Inmpact, and Economic Impact. We use the `CompositeIndicator` class for this. This class takes an aggregate function as input. This function should take the result of `Handler.get_indicator_values()` as input and returns a number. If you want to have more control over what the `CompositeIndicator` does you can always extend the class.
 
 Here is the simplest example that averages the values of three indicators:
+
 ```
 from brix import Handler, CompositeIndicator
 from brix.examples import RandomIndicator
@@ -190,6 +198,7 @@ H.add_indicators([R,avg_I])
 ```
 
 In some cases, the aggregation function is too simple to write it again. In the example before, you can also pass it a pre-existing function, such as `np.mean`, making sure that you select the indicators that will be passed as input, by their name.
+
 ```
 from brix import Handler, CompositeIndicator
 from brix.examples import RandomIndicator
@@ -204,9 +213,9 @@ H.add_indicators([R,avg_I])
 ### Heatmap indicator
 
 The same class can be used to define a heatmap or accessiblity indicator, as opposed to a numeric indicator.
-First, set the class property *indicator_type* equal to 'heatmap' or to 'access'. This will flag the indicator as a heatmap and will tell the Handler class what to do with it.
-Second, make sure that the *return_indicator* function returns a list of features or a geojson. 
-The example below shows an indicator that returns noise for every point in the center of a grid cell. Because this indicator needs the coordinates of table to return the geojson, it sets the property *requires_geometry* to True.
+First, set the class property _indicator_type_ equal to 'heatmap' or to 'access'. This will flag the indicator as a heatmap and will tell the Handler class what to do with it.
+Second, make sure that the _return_indicator_ function returns a list of features or a geojson.
+The example below shows an indicator that returns noise for every point in the center of a grid cell. Because this indicator needs the coordinates of table to return the geojson, it sets the property _requires_geometry_ to True.
 
 ```
 from brix import Indicator
@@ -239,21 +248,22 @@ class Noise(Indicator):
         return out
 ```
 
-
 ## Step by step examples
 
 ### Diversity of land-use indicator - step by step
 
-As an example, we'll build a diversity of land use indicator for the test table. The process is the same for any table, provided that it has a GEOGRID variable. Indicators are built as subclasses of the **Indicator** class, with three functions that need to be defined: *setup*, *load_module*, and *return_indicator*. The function *setup* acts like an *__init__* and can take any argument and is run when the object is instantiated. The function *load_module* is also run when the indicator in initialized, but it cannot take any arguments. Any inputs needed for *load_module* should be defined as properties in *setup*. The function *return_indicator* is the only required one and should take in a 'geogrid_data' object and return the value of the indicator either as a number, a dictionary, or a list of dictionaries/numbers. 
+As an example, we'll build a diversity of land use indicator for the test table. The process is the same for any table, provided that it has a GEOGRID variable. Indicators are built as subclasses of the **Indicator** class, with three functions that need to be defined: _setup_, _load_module_, and _return_indicator_. The function _setup_ acts like an _**init**_ and can take any argument and is run when the object is instantiated. The function _load_module_ is also run when the indicator in initialized, but it cannot take any arguments. Any inputs needed for _load_module_ should be defined as properties in _setup_. The function _return_indicator_ is the only required one and should take in a 'geogrid_data' object and return the value of the indicator either as a number, a dictionary, or a list of dictionaries/numbers.
 
-To start developing the diversity indicator, you can use the Handler class to get the geogrid_data that is an input of the *return_indicator* function.
+To start developing the diversity indicator, you can use the Handler class to get the geogrid*data that is an input of the \_return_indicator* function.
+
 ```
 from brix import Handler
 H = Handler('dungeonmaster')
 geogrid_data = H.geogrid_data()
 ```
 
-The returned *geogrid_data* object depends on the table, but for dungeonmaster it looks like this:
+The returned _geogrid_data_ object depends on the table, but for dungeonmaster it looks like this:
+
 ```
 [
 	{
@@ -290,6 +300,7 @@ The returned *geogrid_data* object depends on the table, but for dungeonmaster i
 ```
 
 We build the diversity indicator by delecting the 'land_use' variable in each cell and calculating the Shannon Entropy for this:
+
 ```
 from numpy import log
 from collections import Counter
@@ -305,7 +316,8 @@ for key in frequencies:
 	entropy += -p*log(p)
 ```
 
-Now, we wrap this calculation in the *return_indicator* in a Diversity class that inherits the properties from the Indicator module: 
+Now, we wrap this calculation in the _return_indicator_ in a Diversity class that inherits the properties from the Indicator module:
+
 ```
 from brix import Indicator
 from numpy import log
@@ -334,9 +346,10 @@ class Diversity(Indicator):
 		return entropy
 ```
 
-Because this indicator is very simple, it does not need any parameters or data to calculate the value, which is why the *load_module* function is empty. The *setup* function defines the properties of the module, which in this case is just the name. 
+Because this indicator is very simple, it does not need any parameters or data to calculate the value, which is why the _load_module_ function is empty. The _setup_ function defines the properties of the module, which in this case is just the name.
 
 Finally, we run the indicator by instantiating the new class and passing it to a Handler object:
+
 ```
 from brix import Handler
 
@@ -346,7 +359,6 @@ H = Handler('dungeonmaster', quietly=False)
 H.add_indicator(div)
 H.listen()
 ```
-
 
 ### Composite indicator -- step by step tutorial
 
@@ -363,11 +375,13 @@ H.add_indicator(R)
 ```
 
 To develop the aggregate function, we use the `get_indicator_values()` function from the handler class. We need to make sure our aggregate function works with that the Handler is returning:
+
 ```
 indicator_values = H.get_indicator_values()
 ```
 
 In this case, the `indicator_values` is a dictionary with the following elements:
+
 ```
 {
 	'Social Wellbeing': 0.9302328967423512,
@@ -380,7 +394,8 @@ In this case, the `indicator_values` is a dictionary with the following elements
 
 We do not need to use all of the values returned by the Handler for our indicator. \
 
-Next, we write our simple average function that takes `indicator_values` as input and returns a value, and pass it as an argument to the `CompositeIndicator` class constructor. 
+Next, we write our simple average function that takes `indicator_values` as input and returns a value, and pass it as an argument to the `CompositeIndicator` class constructor.
+
 ```
 def innovation_average(indicator_values):
     avg = (indicator_values['Innovation Potential']+indicator_values['Mobility Impact']+indicator_values['Economic Impact'])/3
@@ -390,11 +405,13 @@ avg_I = CompositeIndicator(innovation_average,name='Composite')
 ```
 
 To make sure it is running, we can test it as usual:
+
 ```
 avg_I.return_indicator(indicator_values)
 ```
 
 We finally add it to the Handler:
+
 ```
 H.add_indicator(avg_I)
 ```
