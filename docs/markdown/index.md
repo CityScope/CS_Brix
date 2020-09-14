@@ -1,6 +1,9 @@
 # Documentation for cs-brix library
 
 
+* Tutorial
+
+
 * Classes
 
 
