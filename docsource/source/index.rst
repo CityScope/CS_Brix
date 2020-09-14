@@ -8,7 +8,6 @@ Documentation for cs-brix library
    classes
    examples
 
-
 Indices and tables
 ==================
 
