@@ -1,33 +1,15 @@
-<<<<<<< HEAD
 Documentation for cs-brix library
 *********************************
-=======
-.. cs-brix documentation master file, created by
-   sphinx-quickstart on Mon Sep 14 12:26:16 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to cs-brix's documentation!
-===================================
->>>>>>> 853b31858d3183da5bd3d9c1384698e046ab8d33
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-<<<<<<< HEAD
    classes
    examples
-=======
->>>>>>> 853b31858d3183da5bd3d9c1384698e046ab8d33
-
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-<<<<<<< HEAD
-=======
-* :ref:`modindex`
->>>>>>> 853b31858d3183da5bd3d9c1384698e046ab8d33
 * :ref:`search`

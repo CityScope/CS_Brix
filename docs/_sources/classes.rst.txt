@@ -24,4 +24,3 @@ Indicator sub-classes
     :members:
     :undoc-members:
     :inherited-members:
-
