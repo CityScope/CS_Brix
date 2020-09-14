@@ -448,6 +448,12 @@ class Handler:
 				sleep(1)
 		return self.geogrid_props
 
+	def get_table_properties(self):
+		'''
+		Gets table properties.
+		This info can also be accessed through self.get_geogrid_props()
+		'''
+		return self.get_geogrid_props()['header']
 
 	def get_grid_hash(self):
 		'''
@@ -625,7 +631,7 @@ class Indicator:
 		self.name = None
 		self.indicator_type = 'numeric'
 		self.viz_type = 'radar'
-		self.requires_geometry = False
+		self.requires_geometry = None
 		self.requires_geogrid_props = False
 		self.model_path = None
 		self.pickled_model = None
@@ -642,6 +648,11 @@ class Indicator:
 			self.viz_type = None
 		self.setup(*args,**kwargs)
 		self.load_module()
+		if (self.requires_geometry is None):
+			if (self.indicator_type in ['heatmap','access']):
+				self.requires_geometry = True
+			else:
+				self.requires_geometry = False
 
 	def _transform_geogrid_data_to_df(self,geogrid_data):
 		'''
@@ -673,6 +684,17 @@ class Indicator:
 			self.tableHandler = table_name
 		else:
 			self.tableHandler = Handler(table_name)
+
+	def get_table_properties(self):
+		'''
+		Gets table properties.
+		'''
+		if (self.tableHandler is None)& (self.table_name is None):
+			raise NameError('No table linked: use Indicator.link_table(table_name)')
+		elif (self.tableHandler is None)& (self.table_name is not None):
+			self.tableHandler = Handler(table_name)
+		return self.tableHandler.get_geogrid_props()['header']
+
 
 	def get_geogrid_data(self,as_df=False,include_geometries=None,with_properties=None):
 		'''
