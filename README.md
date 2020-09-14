@@ -58,7 +58,7 @@ class MyIndicator(Indicator):
 ### Let's talk input/data
 
 What is `geogrid_data`?
-`geogrid_data` is a dictionary that contains the minimal data that your indicator will need to run. What comes in it really depends on the specific table you are building for and on the properties assigned to you indicator. There are two options that will control what `geogrid_data` contains which are: `Indicator.requires_geometry` and `Indicator.requires_geogrid_props`. These two properties are set to `False` by default, but you can change them inside the `setup` function depending on the needs of your indicator.
+Every time we create a CityScope table, we define a regularly spaced grid which is overlaid on the city district we're modelling. These grid cells are the basic unit of analysis for the CityScope modules. Every grid cell has properties such as the 'Type' which represents the land use and 'Height' which represents the number of floors. These data are dynamic and are updated each time a user interacts with the CityScope table, experimenting with the spatial organisation of land uses and infrastructure. These dynamic data are stored the variable `geogrid_data`. This is a list of ojects: one for each grid cell in the CityScope table. The contents of each object really depends on the specific table you are building for and on the properties assigned to your indicator. There are two options that will control what `geogrid_data` contains which are: `Indicator.requires_geometry` and `Indicator.requires_geogrid_props`. These two properties are set to `False` by default, but you can change them inside the `setup` function depending on the needs of your indicator.
 
 Go ahead, take a look at how this object looks like by instantiating your class and linking it to a table:
 
@@ -111,7 +111,7 @@ The `viz_type` defined in the return object of `return_indicator` will overwrite
 
 ### Deploy your indicator
 
-Finally, once you have build a series of indicators, the right way to deploy them is to use the `Handler` class. A `Handler` object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are `add_indicators` which takes a list of `Indicator` objects and connects them to the table, and `listen` that is a method that runs continuously waiting for updates in the CityScope table.
+Finally, once you have build a series of indicators, the right way to deploy them is to use the `Handler` class. A `Handler` object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are `add_indicators` which takes a list of `Indicator` objects and connects them to the table, and `listen` that is a method that runs continuously waiting for updates in the CityScope table. The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named myindicators.py.
 
 ```
 from brix import Handler
