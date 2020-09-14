@@ -5,6 +5,7 @@ Documentation for cs-brix library
    :maxdepth: 2
    :caption: Contents:
 
+   tutorial
    classes
    examples
 
