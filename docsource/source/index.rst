@@ -10,6 +10,8 @@ Welcome to cs-brix's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   classes
+
 
 
 Indices and tables
