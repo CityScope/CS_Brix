@@ -5,3 +5,4 @@ python-geohash>=0.8.5
 joblib>=0.13.2
 shapely>=1.6.2
 geopandas>=0.6.2
+geopy>=1.20.0
