@@ -6,6 +6,7 @@
 
 # RUN USING:
 # sphinx-build -b html . ../../docs
+# sphinx-build -M markdown ./ build
 
 # -- Path setup --------------------------------------------------------------
 
@@ -21,7 +22,7 @@ sys.path.insert(0, os.path.abspath('../../brix'))
 # -- Project information -----------------------------------------------------
 
 project = 'cs-brix'
-copyright = '2020, Cristian Jara-Figueroa and Ronan Doorley'
+copyright = '2020, CityScience group at the MIT Media Lab'
 author = 'Cristian Jara-Figueroa and Ronan Doorley'
 
 # The full version, including alpha/beta/rc tags
@@ -36,7 +37,9 @@ release = '0.0.1'
 extensions = [
 	'sphinx.ext.autodoc',
 	'sphinx.ext.viewcode',
-	'sphinx.ext.autosummary'
+	'sphinx.ext.autosummary',
+	'sphinx.ext.napoleon'
+	# 'sphinx.ext.autosectionlabel'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
