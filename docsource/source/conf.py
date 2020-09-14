@@ -5,8 +5,8 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # RUN USING:
-# sphinx-build -b html . ../../docs
-# sphinx-build -M markdown ./ build
+# sphinx-build -b html ./ ../../docs
+# sphinx-build -M markdown ./ ../../docs
 
 # -- Path setup --------------------------------------------------------------
 
