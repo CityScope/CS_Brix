@@ -417,3 +417,110 @@ H.add_indicator(avg_I)
 ```
 
 ### Heatmap indicator -- step by step tutorial
+
+This section will show you step by step how to build a proximity to parks indicator.
+
+Let's start by setting up a simple subclass of the Indicator class, give it a name, and set it as a `heatmap` indicator:
+```
+from brix import Indicator
+class ProximityIndicator(Indicator):
+	def setup(self):
+		self.name = 'Parks'
+		self.indicator_type = 'heatmap'
+
+	def return_indicator(self, geogrid_data):
+		pass
+```
+
+Next, we link it to the table. This step is only for building the indicator as we use a `Handler` object when deploying it. 
+
+```
+P = ProximityIndicator()
+P.link_table('dungeonmaster')
+P.get_geogrid_data()
+```
+When running `get_geogrid_data` we see that every cell has a `name` property and some cells are classified as `Park`. You'll also notice that by default, when building a `heatmap` indicator, `geogrid_data` returns the geometries. You can change this behavior by setting `self.requires_geometry=False` in your `setup`.
+
+Next, we define the `return_indicator` function. For debugging and testing you can define this function as stand alone function before adding it as a method to the ProximityIndicator. Some useful functions for debugging are `P.get_geogrid_data()` and `P.get_table_properties()` that will list general properties of the linked table. 
+
+In this example, the proximity indicator is defined as one over the distance to the closest park. When the cell is a park, we define the proximity as 1/(half size of each cell) to avoid dividing by zero.
+
+```
+import numpy as np
+from geopy.distance import distance as geodistance # Function for distance between coordinates
+
+def return_indicator(self,geogrid_data):
+	parks = [cell for cell in geogrid_data if cell['name']=='Park'] # Find all parks
+	parks_locations = [np.mean(cell['geometry']['coordinates'][0],0) for cell in parks] # Filter out the center of all park locations (locations are lon,lat format)
+
+	features = []
+	for cell in geogrid_data: # Calculate a value for the indicator for each cell
+		cell_coords = np.mean(cell['geometry']['coordinates'][0],0) # Calculate center of cell (locations are lon,lat format)
+		if cell['name']=='Park': # If cell is park, set distance to zero
+			park_distance = 25 # This is based on half the cell size (see P.get_table_properties()) 
+		else:
+			distances = [geodistance(cell_coords[::-1],park_loc[::-1]).m for park_loc in parks_locations] # Distance between cell and each park. Notice that we reverse the coordinates for geodistance.
+			park_distance = min(distances) # get distance to closest park
+
+		proximity = 1/park_distance
+		scaled_proximity = (proximity-0.002)/(0.03-0.002) # this ensures the indicator is between zero and one
+
+		# Generate feature with points (lon,lat format) and properties.
+		feature = {} 
+		feature['geometry'] = {'coordinates': list(cell_coords),'type': 'Point'} # cell_coords should be a list
+		feature['properties'] = {self.name: scaled_proximity} # Use the indicator name to tag the value
+
+		features.append(feature) # add to features list for export
+
+	out = {'type':'FeatureCollection','features':features}
+	return out
+```
+
+You can test your function by running: `return_indicator(P,geogrid_data)`.
+
+Finally, let's put it all together:
+```
+from brix import Indicator
+import numpy as np
+from geopy.distance import distance as geodistance
+
+class ProximityIndicator(Indicator):
+	def setup(self):
+		self.name = 'Parks'
+		self.indicator_type = 'heatmap'
+
+	def return_indicator(self,geogrid_data):
+		parks = [cell for cell in geogrid_data if cell['name']=='Park']
+		parks_locations = [np.mean(cell['geometry']['coordinates'][0],0) for cell in parks]
+
+		features = []
+		for cell in geogrid_data: 
+			cell_coords = list(np.mean(cell['geometry']['coordinates'][0],0) )
+			if cell['name']=='Park': 
+				park_distance = 45 
+			else:
+				distances = [geodistance(cell_coords[::-1],park_loc[::-1]).m for park_loc in parks_locations]
+				park_distance = min(distances) 
+
+			proximity = 1/park_distance
+			scaled_proximity = (proximity-0.002)/(0.03-0.002) 
+
+			feature = {} 
+			feature['geometry'] = {'coordinates': cell_coords,'type': 'Point'}
+			feature['properties'] = {self.name: scaled_proximity} 
+
+			features.append(feature)
+
+		out = {'type':'FeatureCollection','features':features}
+		return out
+```
+
+And to deploy it:
+```
+from brix import Handler
+H = Handler('dungeonmaster')
+P = ProximityIndicator()
+H.add_indicator(P)
+H.listen()
+```
+
