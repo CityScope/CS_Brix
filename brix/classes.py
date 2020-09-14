@@ -13,30 +13,23 @@ from shapely.geometry import shape
 
 
 class Handler:
-	'''
-	Class to handle the connection for indicators built based on data from the GEOGRID.
-
-	The simplest usage is:
-	> I = Indicator()
-	> H = Handler('table_name')
-	> H.add_indicator(I)
-	> H.listen()
+	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
 
 	Parameters
 	----------
 	table_name : str
 		Table name to lisen to.
 		https://cityio.media.mit.edu/api/table/table_name
-	GEOGRIDDATA_varname : str (default='GEOGRIDDATA')
+	GEOGRIDDATA_varname : str, defaults to `GEOGRIDDATA`
 		Name of geogrid-data variable in the table API.
 		The object located at:
 		https://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA_varname
 		will be used as input for the return_indicator function in each indicator class.
-	GEOGRID_varname : str (default='GEOGRID')
+	GEOGRID_varname : str, defaults to `GEOGRID`
 		Name of variable with geometries.
-	quietly : boolean (default=True)
+	quietly : boolean, defaults to `True`
 		If True, it will show the status of every API call.
-	reference : dict (optional)
+	reference : dict, optional
 		Dictionary for reference values for each indicator.
 	'''
 	def __init__(self, table_name, 
@@ -76,22 +69,35 @@ class Handler:
 
 		self.reference =reference
         
-	def check_table(self):
-		'''
-		Prints the front end url for the table.
-		'''
-		print(self.front_end_url)
-
-	def see_current(self,indicator_type='numeric'):
-		'''
-		Returns the current values of the indicators posted for the table.
+	def check_table(self,return_value=False):
+		'''Prints the front end url for the table. 
 
 		Parameters
 		----------
-		indicator_type : str (default='numeric')
-			Type of the indicator.
-			Choose either 'numeric', 'access', or 'heatmap'
-			('access' and 'heatmap' refer to the same type)
+		return_value : boolean, defaults to `False`
+			If `True` it will print and return the front end url.
+
+		Returns
+		-------
+		front_end_url : str
+			Onlye if `return_value=True`.
+		'''
+		print(self.front_end_url)
+		if return_value:
+			return self.front_end_url
+
+	def see_current(self,indicator_type='numeric'):
+		'''Returns the current values of the indicators posted for the table.
+
+		Parameters
+		----------
+		indicator_type : str, defaults to `numeric`
+			Type of the indicator. Choose either `numeric`, `access`, or `heatmap` (`access` and `heatmap` refer to the same type).
+
+		Returns
+		-------
+		current_status: dict
+			Current value of selected indicators.
 		'''
 		if indicator_type in ['numeric']:
 			print(self.cityIO_get_url+'/indicators')
@@ -108,41 +114,50 @@ class Handler:
 			return {}
 
 	def list_indicators(self):
-		'''
-		Returns list of all indicator names.
+		'''Returns list of all indicator names.
+		
+		Returns
+		-------
+		indicators_names : list
+			List of indicator names.
 		'''
 		return [name for name in self.indicators]
 
 	def indicator(self,name):
-		'''
-		Returns the indicator with the given name.
+		'''Returns the :class:`brix.Indicator` with the given name.
 
 		Parameters
 		----------
 		name : str
-			Name of the indicator
-			See list_indicators()
+			Name of the indicator. See :func:`brix.Handler.list_indicators`.
+
+		Returns
+		-------
+		selected_indicator : :class:`brix.Indicator`
+			Selected indicator object.
 		'''
 		return self.indicators[name]
 
 	def add_indicators(self,indicator_list,test=True):
-		'''
-		Same as add_indicator but it takes in a list of Indicator objects
+		'''Same as :func:`brix.Handler.add_indicator` but it takes in a list of :class:`brix.Indicator` objects.
+
+		Parameters
+		----------
+		indicator_list : list
+			List of :class:`brix.Indicator` objects.
 		'''
 		for I in indicator_list:
 			self.add_indicator(I,test=test)
 
-
 	def add_indicator(self,I,test=True):
-		'''
-		Adds indicator to handler object.
+		'''Adds indicator to handler object.
 
 		Parameters
 		----------
-		I : Indicator object
-			Indicator object to handle.
-			If indicator has name, this will use as identifier. 
-			If indicator has no name, it will generate identifier.
+		I : :class:`brix.Indicator`
+			Indicator object to handle. If indicator has name, this will use as identifier. If indicator has no name, it will generate an identifier.
+		test : boolean, defaults to `True`
+			If `True` it will ensure the indicator runs before adding it to the :class:`brix.Handler`. 
 		'''
 		if not isinstance(I,Indicator):
 			raise NameError('Indicator must be instance of Indicator class')
@@ -153,7 +168,6 @@ class Handler:
 
 		if I.tableHandler is not None:
 			warn(f'Indicator {indicatorName} has a table linked to it. Remember you do not need to link_table when using the Handler class')
-		# I.link_table(self)
 
 		if indicatorName in self.indicators.keys():
 			warn(f'Indicator {indicatorName} already exists and will be overwritten')
@@ -173,14 +187,17 @@ class Handler:
 				warn('Indicator not working: '+indicatorName)
 
 	def return_indicator(self,indicator_name):
-		'''
-		Returns the value returned by return_indicator function of the selected indicator.
+		'''Returns the value returned by :func:`brix.Indicator.return_indicator` function of the selected indicator.
 
 		Parameters
 		----------
 		indicator_name : str
-			Name of the indicator. See:
-			> self.list_indicators()
+			Name or identifier of the indicator. See :func:`brix.Handler.list_indicators()`
+
+		Returns
+		-------
+		indicator_value : dict or float
+			Result of :func:`brix.Indicator.return_indicator` function for the selected indicator.
 		'''
 		geogrid_data = self._get_grid_data()
 		I = self.indicators[indicator_name]
@@ -193,7 +210,6 @@ class Handler:
 	def _format_geojson(self,new_value):
 		'''
 		Formats the result of the return_indicator function into a valid geojson (not a cityIO geojson)
-
 		'''
 		if isinstance(new_value,dict) and ('properties' in new_value.keys()) and ('features' in new_value.keys()):
 			if (len(new_value['properties'])==1) and all([((not isinstance(f['properties'],dict))) and (is_number(f['properties'])) for f in new_value['features']]):
@@ -347,9 +363,17 @@ class Handler:
 
 	def get_indicator_values(self,include_composite=False):
 		'''
-		Calculates the current values of the indicators.
-		Used for developing a composite indicator
-		Only for numeric indicators
+		Returns the current values of numeric indicators. Used for developing a composite indicator.
+
+		Parameters
+		----------
+		include_composite : boolean, defaults to `False`
+			If `True` it will also include the composite indicators, using the :class:`brix.Indicator` `is_composite` parameter. 
+
+		Returns
+		-------
+		indicator_values : dict
+			Dictionary with values for each indicator formatted as: ``{indicator_name: indicator_value, ...}``
 		'''
 		geogrid_data = self.get_geogrid_data()
 		new_values_numeric = []
@@ -372,9 +396,9 @@ class Handler:
 
 		Parameters
 		----------
-		geogrid_data : dict (optional)
-			Result of self.get_geogrid_data(). If not provided, it will be retrieved. 
-		append : boolean (dafault=False)
+		geogrid_data : dict, optional
+			Result of :func:`brix.Handler.get_geogrid_data`. If not provided, it will be retrieved. 
+		append : boolean, defaults to `False`
 			If True, it will append the new indicators to whatever is already there.
 
 		Returns
@@ -426,6 +450,7 @@ class Handler:
 		return {'numeric':new_values_numeric,'heatmap':new_values_heatmap}
 		
 	def test_indicators(self):
+		'''Dry run over all indicators.'''
 		geogrid_data = self._get_grid_data()
 		for indicator_name in self.indicators:
 			if self.indicators[indicator_name].is_composite:
@@ -436,8 +461,12 @@ class Handler:
             
 	def get_geogrid_props(self):
 		'''
-		Gets the GEOGRID properties defined for the table.
-		These properties are not dynamic and include things such as the NAICS and LBCS composition of each lego type.
+		Gets the `GEOGRID` properties defined for the table. These properties are not dynamic and include things such as the NAICS and LBCS composition of each lego type.
+
+		Returns
+		-------
+		geogrid_props : dict
+			Table GEOGRID properties.
 		'''
 		if self.geogrid_props is None:
 			r = self._get_url(self.cityIO_get_url+'/GEOGRID')
@@ -450,8 +479,7 @@ class Handler:
 
 	def get_table_properties(self):
 		'''
-		Gets table properties.
-		This info can also be accessed through self.get_geogrid_props()
+		Gets table properties. This info can also be accessed through :func:`brix.Handler.get_geogrid_props`.
 		'''
 		return self.get_geogrid_props()['header']
 
@@ -526,10 +554,15 @@ class Handler:
 
 		Parameters
 		----------
-		include_geometries : boolean (default=False)
-			If True it will also add the geometry information for each grid unit.
-		as_df: boolean (default=False)
-			If True, it will return data as a DataFrame.
+		include_geometries : boolean, defaults to `False`
+			If `True` it will also add the geometry information for each grid unit.
+		as_df: boolean, defaults to `False`
+			If `True` it will return data as a pandas.DataFrame.
+
+		Returns
+		-------
+		geogrid_data : dict
+			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.
 		'''
 		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
 		if as_df:
@@ -549,10 +582,10 @@ class Handler:
 
 		Parameters
 		----------
-		grid_hash_id : str (optional)
+		grid_hash_id : str, optional
 			Current grid hash id. If not provided, it will retrieve it.
-		append : boolean (dafault=True)
-			If True, it will append the new indicators to whatever is already there.
+		append : boolean, defaults to `True`
+			If `True`, it will append the new indicators to whatever is already there.
 		'''
 		if grid_hash_id is None: 
 			grid_hash_id = self.get_grid_hash()	
@@ -572,20 +605,14 @@ class Handler:
 		self.grid_hash_id = grid_hash_id
 
 	def rollback(self):
-		'''
-		Handler class keeps track of the previous value of the indicators and access values.
-		This function rollsback the current values to whatever the locally stored values are.
-		See:
-			> self.previous_indicators
-			> self.previous_access
+		''':class:`brix.Handler` keeps track of the previous value of the indicators and access values.This function rollsback the current values to whatever the locally stored values are.
+		See also :func:`brix.Handler.previous_indicators` and :func:`brix.Handler.previous_access`.
 		'''
 		r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(self.previous_indicators))
 		r = requests.post(self.cityIO_post_url+'/access', data = json.dumps(self.previous_access))
 
 	def clear_table(self):
-		'''
-		Clears all indicators from tbale
-		'''
+		'''Clears all indicators from the table.'''
 		grid_hash_id = self.get_grid_hash()
 		empty_update = {'numeric': [],'heatmap': {'type': 'FeatureCollection', 'properties': [], 'features': []}}
 		r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(empty_update['numeric']))
@@ -602,10 +629,10 @@ class Handler:
 
 		Parameters
 		----------
-		showFront : boolean (default=True)
-			If True, it will open the front-end URL in a webbrowser at start.
-		append : boolean (dafault=False)
-			If True, it will append the new indicators to whatever is already there.
+		showFront : boolean, defaults to `True`
+			If `True` it will open the front-end URL in a webbrowser at start.
+		append : boolean, defaults to `False`
+			If `True` it will append the new indicators to whatever is already there.
 		'''
 		if not self.quietly:
 			print('Table URL:',self.front_end_url)
@@ -627,6 +654,7 @@ class Handler:
 				self.perform_update(grid_hash_id=grid_hash_id,append=append)
 
 class Indicator:
+	'''Parent class to build indicators from. To use, you need to define a subclass than inherets properties from this class. Doing so, ensures your indicator inherets the necessary methods and properties to connect with a CityScipe table.'''
 	def __init__(self,*args,**kwargs):
 		self.name = None
 		self.indicator_type = 'numeric'
@@ -654,6 +682,41 @@ class Indicator:
 			else:
 				self.requires_geometry = False
 
+
+	def setup(self):
+		'''User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an `__init__` method.'''
+		pass
+
+	def return_indicator(self,geogrid_data):
+		'''User defined function. This function defines the value of the indicator as a function of the table state passed as `geogrid_data`. Function must return either a dictionary, a list, or a number. When returning a dict follow the format: ``{'name': 'Indicator_NAME', 'value': 1.00}``. 
+
+		Parameters
+		----------
+		geogrid_data : dict
+			Current state of the table. See :func:`brix.Indicator.get_geogrid_data` and :func:`brix.Handler.get_geogrid_data`. The content of this object will depend on the needs of the indicator. In particular, the values of :attr:`brix.Indicator.requires_geometry` and :attr:`brix.Indicator.requires_geogrid_props`.
+
+		Returns
+		-------
+		indicator_value : list, dict, or float
+			Value of indicator or list of values. When returning a dict, please use the format ``{'name': 'Indicator Name', 'value': indicator_value}``. When returning a list, please return a list of dictionaries in the same format. 
+		'''
+		return {}
+
+
+	def load_module(self):
+		'''User defined function. Used to load any data necessary for the indicator to run. In principle, you could do everything using :func:`brix.Indicator.setup` but we encourage to separte data loading and module definition into two functions.'''
+		if self.model_path is not None:
+			self.pickled_model = joblib.load(self.model_path)
+			if self.name is None:
+				self.name = self.model_path.split('/')[-1].split('.')[0]
+
+	def return_baseline(self,geogrid_data):
+		'''User defined function. Used to return a baseline value.
+		[This function might get deprecated]
+		'''
+		return None
+
+
 	def _transform_geogrid_data_to_df(self,geogrid_data):
 		'''
 		Transform the geogrid_data to a DataFrame to be used by a pickled model.
@@ -665,15 +728,11 @@ class Indicator:
 
 	def link_table(self,table_name):
 		'''
-		Function used for developing the indicator.
-		It retrieves the properties from GEOGRID/properties and links the table Handler.
-		This should not be used for deploying the indicator.
-		If the table_name is passed as a string, it will create an individual Handler for this indicator.
-		The Handler will use this function to pass only the GEOGRID/properties
+		Creates a :class:`brix.Handler` and links the table to the indicator. This function should be used only for developing the indicator. 
 
 		Parameters
 		----------
-		table_name: str or Handler
+		table_name: str or :class:`brix.Handler`
 			Name of the table or Handler object.
 		'''
 		if (table_name is None) & (self.table_name is None):
@@ -686,9 +745,7 @@ class Indicator:
 			self.tableHandler = Handler(table_name)
 
 	def get_table_properties(self):
-		'''
-		Gets table properties.
-		'''
+		'''Gets table properties from the linked table. See :func:`brix.Indicator.link_table` and :func:`brix.Handler.get_table_properties`.'''
 		if (self.tableHandler is None)& (self.table_name is None):
 			raise NameError('No table linked: use Indicator.link_table(table_name)')
 		elif (self.tableHandler is None)& (self.table_name is not None):
@@ -698,15 +755,18 @@ class Indicator:
 
 	def get_geogrid_data(self,as_df=False,include_geometries=None,with_properties=None):
 		'''
-		Returns the geogrid data from the linked table if there is any.
-		Function used for testing the indicator. 
-		It returns the exact object that will be passed to return_indicator
-		(see link_table)
+		Returns the geogrid data from the linked table. Function mainly used for development. See :func:`brix.Indicator.link_table`. It returns the exact object that will be passed to return_indicator
+
 
 		Parameters
 		----------
-		as_df: boolean (default=False)
-			If True, it will return data as a DataFrame.
+		as_df: boolean, defaults to `False`
+			If `True` it will return data as a pandas.DataFrame.
+
+		Returns
+		-------
+		geogrid_data : str or pandas.DataFrame
+			Data that will be passed to the :func:`brix.Indicator.return_indicator` function by the :class:`brix.Handler` when deployed.
 		'''
 		include_geometries = self.requires_geometry if include_geometries is None else include_geometries
 		with_properties    = self.requires_geogrid_props if with_properties is None else with_properties
@@ -724,47 +784,36 @@ class Indicator:
 				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 		return geogrid_data
 
-	def restructure(self,geogrid_data):
-		geogrid_data_df = self._transform_geogrid_data_to_df(geogrid_data)
-		return geogrid_data_df
-
-	def return_indicator(self,geogrid_data):
-		'''
-		Function must return either a dictionary, a list, or a number.
-		When returning a dict follow the format:
-		{'name': 'Sea-Shell','value': 1.00}
-		'''
-		if self.pickled_model is not None:
-			geogrid_data_df = self.restructure(geogrid_data_df)
-			return {'name': self.name, 'value': self.pickled_model.predict(geogrid_data_df)[0]}
-		else:
-			return {}
-
-	def return_baseline(self,geogrid_data):
-		'''
-		In general, the baseline might want to use the geogrid_data, as it might need to access some information.
-		For example, the baseline might be a heatmap that needs the coordinates of the table.
-		'''
-		return None
-
-
-	def setup(self):
-		pass
-
-	def load_module(self):
-		if self.model_path is not None:
-			self.pickled_model = joblib.load(self.model_path)
-			if self.name is None:
-				self.name = self.model_path.split('/')[-1].split('.')[0]
-
 
 class CompositeIndicator(Indicator):
+	'''Subclass used to define composite indicators. Composite indicators are functions of already defined indicators. By defining :func:`brix.Indicator.setup` and :func:`brix.Indicator.return_indicator`, this class allows you to define a composite indicator by just passing an aggregation function.'''
 	def setup(self,compose_function,selected_indicators=[],*args,**kwargs):
+		'''Indicator setup. This function is called upon `__init__` so user does not need to call it independently.
+
+		Parameters
+		----------
+		compose_function : function
+			Function to aggregate values of selected indicators. The function should be build to accept a dictionary with indicator values. See :func:`brix.Handler.get_indicator_values`. 
+		selected_indicators : list, optional
+			List of indicators to use to aggregate. 
+		'''
 		self.compose_function = compose_function
 		self.is_composite = True
 		self.selected_indicators = selected_indicators
 
 	def return_indicator(self, indicator_values):
+		'''Applies :attr:`brix.CompositeIndicator.compose_function` to the indicator values to return the composite indicator. 
+
+		Parameters
+		----------
+		indicator_values : dict
+			Dictionary with indicator values. See :func:`brix.Handler.get_indicator_values`. 
+
+		Returns
+		-------
+		indicator_values : list
+			List of one indicator.
+		'''
 		if len(self.selected_indicators)!=0:
 			indicator_values = {k:indicator_values[k] for k in indicator_values if k in self.selected_indicators}
 		try:
