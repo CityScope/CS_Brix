@@ -1,8 +1,4 @@
-# Documentation for cs-brix library
-
-Brix is a python library for CityScope modules which handles communication with City I/O
-
-## Introduction
+# Introduction
 
 What is this library for? If you have never heard of a CityScope before, you might want to stop reading and learn about them [here]([https://cityscope.media.mit.edu/](https://cityscope.media.mit.edu/)). CityScope is an awesome way to interact, explore, and co-create urban interventions in a way that can be accessed by multiple people with different background. If you know what they are, please keep reading.
 
@@ -20,48 +16,3 @@ What are the types of indicators you can build? Indicators can be anything that 
 
 
 * Simulation: These type of indicators are also displayed on the table but they are the result of an agent based simulation and are therefore displayed as a dynamic layer. They change over time like a short movie. These are not yet supported by this library.
-
-
-* Tutorial
-
-
-    * Basics of building a CityScope indicator
-
-
-    * Let’s talk data (input)
-
-
-    * Build and test your indicator (output)
-
-
-    * Deploy your indicator
-
-
-* Classes
-
-
-    * Handler class
-
-
-    * Indicator class
-
-
-    * Indicator sub-classes
-
-
-* Examples
-
-
-    * Short examples
-
-
-    * Step by step examples
-
-
-## Indices and tables
-
-
-* Index
-
-
-* Search Page

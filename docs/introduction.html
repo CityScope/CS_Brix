@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Documentation for cs-brix library &mdash; cs-brix 0.0.1 documentation</title>
+  <title>Introduction &mdash; cs-brix 0.0.1 documentation</title>
   
 
   
@@ -35,8 +35,7 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorial" href="tutorial.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -50,7 +49,7 @@
           
 
           
-            <a href="#" class="icon icon-home" alt="Documentation Home"> cs-brix
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> cs-brix
           
 
           
@@ -101,7 +100,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">cs-brix</a>
+          <a href="index.html">cs-brix</a>
         
       </nav>
 
@@ -130,15 +129,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Documentation for cs-brix library</li>
+      <li>Introduction</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/introduction.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -151,11 +150,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="documentation-for-cs-brix-library">
-<h1>Documentation for cs-brix library<a class="headerlink" href="#documentation-for-cs-brix-library" title="Permalink to this headline">¶</a></h1>
-<p>Brix is a python library for CityScope modules which handles communication with City I/O</p>
-<div class="section" id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
 <p>What is this library for? If you have never heard of a CityScope before, you might want to stop reading and learn about them [here](<a class="reference external" href="https://cityscope.media.mit.edu/">https://cityscope.media.mit.edu/</a>). CityScope is an awesome way to interact, explore, and co-create urban interventions in a way that can be accessed by multiple people with different background. If you know what they are, please keep reading.</p>
 <p>What is a CityScope table? a ‘table’ is our way of describing a CityScope project. Why table then? Since historically, most CityScope instances were composed of a mesh between a physical table-top 3D model of a city, augmented with projections, software, and other interface hardware. So a table =&gt; project.</p>
 <p>What is an indicator? An indicator is the result of running a module for CityScope. Indicators work by listening for updated from the CityScope table they are linked to, calculating some values by using a model, some function of the data, or a simulation, and then post the result of the calculations to CityIO to be displayed in the table.</p>
@@ -165,37 +161,6 @@
 <li><p>Heatmap: These indicators are geodata. They are made up of geometries (points, lines, or polygons) and properties associated to them. These indicators are displayed as layers directly on the CityScope table.</p></li>
 <li><p>Simulation: These type of indicators are also displayed on the table but they are the result of an agent based simulation and are therefore displayed as a dynamic layer. They change over time like a short movie. These are not yet supported by this library.</p></li>
 </ul>
-<div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#basics-of-building-a-cityscope-indicator">Basics of building a CityScope indicator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#let-s-talk-data-input">Let’s talk data (input)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#build-and-test-your-indicator-output">Build and test your indicator (output)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#deploy-your-indicator">Deploy your indicator</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="classes.html#handler-class">Handler class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes.html#indicator-class">Indicator class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classes.html#indicator-sub-classes">Indicator sub-classes</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#short-examples">Short examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#step-by-step-examples">Step by step examples</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
-<div class="section" id="indices-and-tables">
-<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
-</ul>
-</div>
 </div>
 
 
@@ -203,13 +168,6 @@
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-    </div>
   
 
   <hr/>
