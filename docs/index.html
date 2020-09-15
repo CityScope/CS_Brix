@@ -153,17 +153,38 @@
             
   <div class="section" id="documentation-for-cs-brix-library">
 <h1>Documentation for cs-brix library<a class="headerlink" href="#documentation-for-cs-brix-library" title="Permalink to this headline">¶</a></h1>
+<p>Brix is a python library for CityScope modules which handles communication with City I/O</p>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#basics-of-building-a-cityscope-indicator">Basics of building a CityScope indicator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#let-s-talk-input-data">Let’s talk input/data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#deploy-your-indicator">Deploy your indicator</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="classes.html#handler-class">Handler class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classes.html#indicator-class">Indicator class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classes.html#indicator-sub-classes">Indicator sub-classes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#numeric-indicator-diversity">Numeric indicator: diversity</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>What is this library for? If you have never heard of a CityScope before, you might want to stop reading and learn about them [here](<a class="reference external" href="https://cityscope.media.mit.edu/">https://cityscope.media.mit.edu/</a>). CityScope is an awesome way to interact, explore, and co-create urban interventions in a way that can be accessed by multiple people with different background. If you know what they are, please keep reading.</p>
+<p>What is a CityScope table? a ‘table’ is our way of describing a CityScope project. Why table then? Since historically, most CityScope instances were composed of a mesh between a physical table-top 3D model of a city, augmented with projections, software, and other interface hardware. So a table =&gt; project.</p>
+<p>What is an indicator? An indicator is the result of running a module for CityScope. Indicators work by listening for updated from the CityScope table they are linked to, calculating some values by using a model, some function of the data, or a simulation, and then post the result of the calculations to CityIO to be displayed in the table.</p>
+<p>What are the types of indicators you can build? Indicators can be anything that could be displayed on a CityScope table, including the supporting screens associated to it. For the purpose of this library, we distinguish three types of indicator: numeric, heatmap, simulation.</p>
+<ul class="simple">
+<li><p>Numeric: Numeric indicators are just a number or set of numbers. They are usually displayed in a chart (bar chart, radar chart, etc) next to the table. The most common numeric indicator are the numbers that go in the radar plot, which display information about density, diversity, and proximity.</p></li>
+<li><p>Heatmap: These indicators are geodata. They are made up of geometries (points, lines, or polygons) and properties associated to them. These indicators are displayed as layers directly on the CityScope table.</p></li>
+<li><p>Simulation: These type of indicators are also displayed on the table but they are the result of an agent based simulation and are therefore displayed as a dynamic layer. They change over time like a short movie. These are not yet supported by this library.</p></li>
 </ul>
 </div>
 <div class="section" id="indices-and-tables">
