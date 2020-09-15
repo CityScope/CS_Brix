@@ -86,16 +86,14 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#basics-of-building-a-cityscope-indicator">Basics of building a CityScope indicator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#let-s-talk-input-data">Let’s talk input/data</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id9">}</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id12">]</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#let-s-talk-data-input">Let’s talk data (input)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-and-test-your-indicator-output">Build and test your indicator (output)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#deploy-your-indicator">Deploy your indicator</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html#step-by-step-examples">Step by step examples</a></li>
 </ul>
 
             
@@ -165,108 +163,100 @@
 <h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="basics-of-building-a-cityscope-indicator">
 <h2>Basics of building a CityScope indicator<a class="headerlink" href="#basics-of-building-a-cityscope-indicator" title="Permalink to this headline">¶</a></h2>
-<p>Let’s get to it. First, what table are you building for? If you don’t have a specific table, that is totally okay and you can create one [here](<a class="reference external" href="https://cityscope.media.mit.edu/CS_cityscopeJS/">https://cityscope.media.mit.edu/CS_cityscopeJS/</a>). Note: by the time you read this, CityScope might pose some limitations on new projects (‘tables’). Please follow instructions in the link above.
-For this tutorial, we crated one called <cite>dungeonmaster</cite>.</p>
-<p>An indicator will basically take in data, and produce a result. Each new indicator is built as an subclass of the <cite>Indicator</cite> class provided in this library. Make sure you define three functions: <cite>setup</cite>, <cite>load_module</cite>, and <cite>return_indicator</cite>. Here’s a barebones example of an indicator:</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
-from brix import Indicator
-class MyIndicator(Indicator):</p>
-<blockquote>
-<div><p>‘’’
-Write a description for your indicator here.
-‘’’
-def setup(self):</p>
-<blockquote>
-<div><p>‘’’
-Think of this as your __init__.
-Here you will define the properties of your indicator.
-Although there are no required properties, be nice and give your indicator a name.
-‘’’
-self.name = ‘Alfonso’</p>
-</div></blockquote>
-<dl class="simple">
-<dt>def load_module(self):</dt><dd><p>‘’’
-This function is not strictly necessary, but we recommend that you define it if you want to load something from memory. It will make your code more readable.
-‘’’
-pass</p>
-</dd>
-<dt>def return_indicator(self, geogrid_data):</dt><dd><p>‘’’
-This is the main course of your indicator.
-This function takes in <cite>geogrid_data</cite> and returns the value of your indicator.
-The library is flexible enough to handle indicators that return a number or a dictionary.
-‘’’
-return 1</p>
-</dd>
-</dl>
-</div></blockquote>
-<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+<p>Let’s get to it. First, what table are you building for? If you don’t have a specific table, that is totally okay and you can create one <a class="reference external" href="https://cityscope.media.mit.edu/CS_cityscopeJS/">here</a>. Note: by the time you read this, CityScope might pose some limitations on new projects (<code class="docutils literal notranslate"><span class="pre">tables</span></code>). Please follow instructions in the link above.
+For this tutorial, we crated one called <code class="docutils literal notranslate"><span class="pre">dungeonmaster</span></code>.</p>
+<p>An indicator will basically take in data, and produce a result. Each new indicator is built as an subclass of the <a class="reference internal" href="classes.html#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a> class provided in this library. Make sure you define three functions: <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a>, <a class="reference internal" href="classes.html#brix.Indicator.load_module" title="brix.Indicator.load_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.load_module()</span></code></a>, and <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a>. Here’s a barebones example of an indicator:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Indicator</span>
+<span class="k">class</span> <span class="nc">MyIndicator</span><span class="p">(</span><span class="n">Indicator</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Write a description for your indicator here.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                Think of this as your __init__.</span>
+<span class="sd">                Here you will define the properties of your indicator.</span>
+<span class="sd">                Although there are no required properties, be nice and give your indicator a name.</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Alfonso&#39;</span>
+
+        <span class="k">def</span> <span class="nf">load_module</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                This function is not strictly necessary, but we recommend that you define it if you want to load something from memory. It will make your code more readable.</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+                <span class="k">pass</span>
+
+        <span class="k">def</span> <span class="nf">return_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="p">):</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                This is the main course of your indicator.</span>
+<span class="sd">                This function takes in `geogrid_data` and returns the value of your indicator.</span>
+<span class="sd">                The library is flexible enough to handle indicators that return a number or a dictionary.</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+                <span class="k">return</span> <span class="mi">1</span>
+</pre></div>
 </div>
-<div class="section" id="let-s-talk-input-data">
-<h2>Let’s talk input/data<a class="headerlink" href="#let-s-talk-input-data" title="Permalink to this headline">¶</a></h2>
-<p>What is <cite>geogrid_data</cite>?
-Every time we create a CityScope table, we define a regularly spaced grid which is overlaid on the city district we’re modelling. These grid cells are the basic unit of analysis for the CityScope modules. Every grid cell has properties such as the ‘Type’ which represents the land use and ‘Height’ which represents the number of floors. These data are dynamic and are updated each time a user interacts with the CityScope table, experimenting with the spatial organisation of land uses and infrastructure. These dynamic data are stored the variable <cite>geogrid_data</cite>. This is a list of ojects: one for each grid cell in the CityScope table. The contents of each object really depends on the specific table you are building for and on the properties assigned to your indicator. There are two options that will control what <cite>geogrid_data</cite> contains which are: <cite>Indicator.requires_geometry</cite> and <cite>Indicator.requires_geogrid_props</cite>. These two properties are set to <cite>False</cite> by default, but you can change them inside the <cite>setup</cite> function depending on the needs of your indicator.</p>
+</div>
+<div class="section" id="let-s-talk-data-input">
+<h2>Let’s talk data (input)<a class="headerlink" href="#let-s-talk-data-input" title="Permalink to this headline">¶</a></h2>
+<p>What is <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code>?
+Every time we create a CityScope table, we define a regularly spaced grid which is overlaid on the city district we’re modelling. These grid cells are the basic unit of analysis for the CityScope modules. Every grid cell has properties such as the <code class="docutils literal notranslate"><span class="pre">Type</span></code> which represents the land use and <code class="docutils literal notranslate"><span class="pre">Height</span></code> which represents the number of floors. These data are dynamic and are updated each time a user interacts with the CityScope table, experimenting with the spatial organisation of land uses and infrastructure. These dynamic data are stored the variable <cite>geogrid_data</cite>. This is a list of ojects: one for each grid cell in the CityScope table. The contents of each object really depends on the specific table you are building for and on the properties assigned to your indicator. There are two options that will control what <cite>geogrid_data</cite> contains which are: <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>. These two properties are set to <code class="docutils literal notranslate"><span class="pre">False</span></code> by default, but you can change them inside the <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a> function depending on the needs of your indicator.</p>
 <p>Go ahead, take a look at how this object looks like by instantiating your class and linking it to a table:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">I</span> <span class="pre">=</span> <span class="pre">MyIndicator()</span>
-<span class="pre">I.link_table('dungeonmaster')</span>
-<span class="pre">I.get_geogrid_data()</span>
-<span class="pre">`</span></code></p>
-<p>Please note that the <cite>link_table</cite> should only be used when developing the indicator. For deployment, we’ll use the <cite>Handler</cite> class that is more efficient. You can also skip the <cite>link_table</cite> step by defining the <cite>Indicator.table_name=’dungeonmaster’</cite> property in your <cite>setup</cite> function. You will also notice that as you change the <cite>Indicator.requires_geometry</cite> and <cite>Indicator.requires_geogrid_props</cite> parameters in <cite>setup</cite>, the output of <cite>get_geogrid_data</cite> will change.</p>
-<p>If you are testing and are curious how <cite>geogrid_data</cite> would look like if you set <cite>requires_geometry=True</cite>, you can pass the argument to <cite>get_geogrid_data</cite>:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">I.get_geogrid_data(include_geometries=True)</span>
-<span class="pre">`</span></code></p>
-<p>### Build and test your indicator (output)</p>
-<p>This library ensures that you can focus on what you do best: writing a kick ass <cite>return_indicator</cite> function that will make everyone’s urban planning life better.</p>
-<p>To test your function while debugging it, you can use the object returned by <cite>get_geogrid_data</cite>:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">geogrid_data</span> <span class="pre">=</span> <span class="pre">I.get_geogrid_data()</span>
-<span class="pre">I.return_indicator(geogrid_data)</span>
-<span class="pre">`</span></code></p>
-<p>The property <cite>Indicator.indicator_type</cite> will toggle between a Heatmap indicator or a numeric indicator (<cite>numeric</cite> for nueric and <cite>heatmap</cite> for heatmap).</p>
-<p>For numeric indicators, there are multiple ways in which the front end can display them (e.g. bar chart, radar plot, etc.). This is controlled by the <cite>viz_type</cite> property of the class. The default value is set to <cite>Indicator.viz_type=radar</cite> which means that unless it is specified otherwise, all numeric indicators will be added to the radar plot. When building an indicator that returns a single number you can just change the value of this parameter in the <cite>setup()</cite>. When building an indicator that returns multiple numbers it will just assume every number should be displayed in the same front end visualization. If you want to have more fine control of where each indicator is displayed, we recommend building your <cite>return_indicator</cite> function such that it returns a dictionary with the following structure:</p>
-<p><a href="#id7"><span class="problematic" id="id8">``</span></a>`
-{</p>
-<blockquote>
-<div><p>‘name’: ‘Social Wellbeing’,
-‘value’: random.random(),
-‘viz_type’: ‘bar’</p>
-</div></blockquote>
-<div class="section" id="id9">
-<h3>}<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
-<p>The <cite>viz_type</cite> defined in the return object of <cite>return_indicator</cite> will overwrite any default property defined in <cite>setup</cite>. Remember that your <cite>return_indicator</cite> function can also return a list of indicators. In the following example of a return value for the <cite>return_indicator</cite> function, the indicator returns two numbers that should be displayed in the radar plot, and one to be displayed as a bar chart.</p>
-<p><a href="#id10"><span class="problematic" id="id11">``</span></a>`
-[</p>
-<blockquote>
-<div><p>{‘name’: ‘Social Wellbeing’, ‘value’: 0.3, ‘viz_type’: ‘radar’},
-{‘name’: ‘Environmental Impact’, ‘value’: 0.1, ‘viz_type’: ‘radar’},
-{‘name’: ‘Mobility Impact’, ‘value’: 0.5, ‘viz_type’: ‘bar’}</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">I</span> <span class="o">=</span> <span class="n">MyIndicator</span><span class="p">()</span>
+<span class="n">I</span><span class="o">.</span><span class="n">link_table</span><span class="p">(</span><span class="s1">&#39;dungeonmaster&#39;</span><span class="p">)</span>
+<span class="n">I</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
+</pre></div>
 </div>
-<div class="section" id="id12">
-<h3>]<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<p>Please note that the <a class="reference internal" href="classes.html#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a> should only be used when developing the indicator. For deployment, we’ll use the <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> class that is more efficient. You can also skip the <a class="reference internal" href="classes.html#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a> step by defining the <code class="docutils literal notranslate"><span class="pre">Indicator.table_name='dungeonmaster'</span></code> property in your <code class="docutils literal notranslate"><span class="pre">setup</span></code> function. You will also notice that as you change the <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code> parameters in <code class="docutils literal notranslate"><span class="pre">setup</span></code>, the output of <a class="reference internal" href="classes.html#brix.Indicator.get_geogrid_data" title="brix.Indicator.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.get_geogrid_data()</span></code></a> will change.</p>
+<p>If you are testing and are curious how <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code> would look like if you set <code class="docutils literal notranslate"><span class="pre">requires_geometry=True</span></code>, you can pass the argument to <code class="docutils literal notranslate"><span class="pre">get_geogrid_data</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">I</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="build-and-test-your-indicator-output">
+<h2>Build and test your indicator (output)<a class="headerlink" href="#build-and-test-your-indicator-output" title="Permalink to this headline">¶</a></h2>
+<p>This library ensures that you can focus on what you do best: writing a kick ass <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function that will make everyone’s urban planning life better.</p>
+<p>To test your function while debugging it, you can use the object returned by <a class="reference internal" href="classes.html#brix.Indicator.get_geogrid_data" title="brix.Indicator.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.get_geogrid_data()</span></code></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
+<span class="n">I</span><span class="o">.</span><span class="n">return_indicator</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The property <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.indicator_type</span></code> will toggle between a Heatmap indicator or a numeric indicator (<code class="docutils literal notranslate"><span class="pre">numeric</span></code> for nueric and <code class="docutils literal notranslate"><span class="pre">heatmap</span></code> for heatmap).</p>
+<p>For numeric indicators, there are multiple ways in which the front end can display them (e.g. bar chart, radar plot, etc.). This is controlled by the <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.viz_type</span></code> property of the class. The default value is set to <code class="docutils literal notranslate"><span class="pre">self.viz_type=radar</span></code> which means that unless it is specified otherwise, all numeric indicators will be added to the radar plot. When building an indicator that returns a single number you can just change the value of this parameter in the <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a>. When building an indicator that returns multiple numbers it will just assume every number should be displayed in the same front end visualization. If you want to have more fine control of where each indicator is displayed, we recommend building your <cite>return_indicator</cite> function such that it returns a dictionary with the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Social Wellbeing&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(),</span>
+        <span class="s1">&#39;viz_type&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Note that if you define <code class="docutils literal notranslate"><span class="pre">viz_type</span></code> in the return dictionary of <code class="docutils literal notranslate"><span class="pre">return_indicator</span></code>, it will overwrite any default property defined in <code class="docutils literal notranslate"><span class="pre">setup</span></code>. Remember that your <code class="docutils literal notranslate"><span class="pre">return_indicator</span></code> function can also return a list of indicators. In the following example of a return value for the <code class="docutils literal notranslate"><span class="pre">return_indicator</span></code> function, the indicator returns two numbers that should be displayed in the radar plot, and one to be displayed as a bar chart.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Social Wellbeing&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s1">&#39;viz_type&#39;</span><span class="p">:</span> <span class="s1">&#39;radar&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Environmental Impact&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;viz_type&#39;</span><span class="p">:</span> <span class="s1">&#39;radar&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Mobility Impact&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;viz_type&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
 </div>
 </div>
 <div class="section" id="deploy-your-indicator">
 <h2>Deploy your indicator<a class="headerlink" href="#deploy-your-indicator" title="Permalink to this headline">¶</a></h2>
-<p>Finally, once you have build a series of indicators, the right way to deploy them is to use the <cite>Handler</cite> class. A <cite>Handler</cite> object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are <cite>add_indicators</cite> which takes a list of <cite>Indicator</cite> objects and connects them to the table, and <cite>listen</cite> that is a method that runs continuously waiting for updates in the CityScope table. The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named myindicators.py.</p>
-<p><a href="#id13"><span class="problematic" id="id14">``</span></a>`
-from brix import Handler
-from myindicators import Density, Diversity, Proximity</p>
-<p>dens = Density()
-divs = Diversity()
-prox = Proximity()</p>
-<p>H = Handler(‘dungeonmaster’, quietly=False)
-H.add_indicators([</p>
-<blockquote>
-<div><p>dens,
-divs,
-prox</p>
-</div></blockquote>
-<p>])
-H.listen()
-<a href="#id15"><span class="problematic" id="id16">``</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a></p>
-<p>To see the indicators in the handler you can use <cite>H.list_indicators()</cite> to list the indicator names, and use <cite>H.return_indicator(&lt;indicator_name&gt;)</cite> to see the value of the indicator. Finally, the function <cite>H.update_package()</cite> will return the data that will be posted on CityIO.</p>
+<p>Finally, once you have build a series of indicators, the right way to deploy them is to use the <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> class. A <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are <a class="reference internal" href="classes.html#brix.Handler.add_indicators" title="brix.Handler.add_indicators"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.add_indicators()</span></code></a> which takes a list of <a class="reference internal" href="classes.html#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a> objects and connects them to the table, and <a class="reference internal" href="classes.html#brix.Handler.listen" title="brix.Handler.listen"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.listen()</span></code></a> that is a method that runs continuously waiting for updates in the CityScope table. The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named <code class="docutils literal notranslate"><span class="pre">myindicators.py</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span>
+<span class="kn">from</span> <span class="nn">myindicators</span> <span class="kn">import</span> <span class="n">Density</span><span class="p">,</span> <span class="n">Diversity</span><span class="p">,</span> <span class="n">Proximity</span>
+
+<span class="n">dens</span> <span class="o">=</span> <span class="n">Density</span><span class="p">()</span>
+<span class="n">divs</span> <span class="o">=</span> <span class="n">Diversity</span><span class="p">()</span>
+<span class="n">prox</span> <span class="o">=</span> <span class="n">Proximity</span><span class="p">()</span>
+
+<span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;dungeonmaster&#39;</span><span class="p">,</span> <span class="n">quietly</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">H</span><span class="o">.</span><span class="n">add_indicators</span><span class="p">([</span>
+        <span class="n">dens</span><span class="p">,</span>
+        <span class="n">divs</span><span class="p">,</span>
+        <span class="n">prox</span>
+<span class="p">])</span>
+<span class="n">H</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To see the indicators in the handler you can use <code class="docutils literal notranslate"><span class="pre">H.list_indicators()</span></code> to list the indicator names, and use <code class="docutils literal notranslate"><span class="pre">H.return_indicator(&lt;indicator_name&gt;)</span></code> to see the value of the indicator. Finally, the function <code class="docutils literal notranslate"><span class="pre">H.update_package()</span></code> will return the data that will be posted on CityIO.</p>
 </div>
 </div>
 

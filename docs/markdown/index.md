@@ -9,7 +9,10 @@ Brix is a python library for CityScope modules which handles communication with 
     * Basics of building a CityScope indicator
 
 
-    * Let’s talk input/data
+    * Let’s talk data (input)
+
+
+    * Build and test your indicator (output)
 
 
     * Deploy your indicator
@@ -31,6 +34,24 @@ Brix is a python library for CityScope modules which handles communication with 
 
 
     * Numeric indicator: diversity
+
+
+    * Composite indicator: average
+
+
+    * Heatmap indicator
+
+
+* Step by step examples
+
+
+    * Diversity of land-use indicator - step by step
+
+
+    * Composite indicator – step by step tutorial
+
+
+    * Heatmap indicator – step by step tutorial
 
 
 ## Introduction
