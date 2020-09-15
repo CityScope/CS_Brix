@@ -1,8 +1,11 @@
 Examples
 ========
 
+Short examples
+--------------
+
 Numeric indicator: diversity
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Indicators are built as subclasses of the :class"`brix.Indicator` class, with three functions that need to be defined: :func:`brix.Indicator.setup`, :func:`brix.Indicator.load_module`, and :func:`brix.Indicator.return_indicator`. The function :func:`brix.Indicator.setup` acts like an **init**. It can take any argument and runs when the object is instantiated. The function :func:`brix.Indicator.load_module` is also run when the indicator in initialized, but it cannot take any arguments. Any inputs needed to run :func:`brix.Indicator.load_module` should be passed to :func:`brix.Indicator.setup` and defined as class attributes. The function :func:`brix.Indicator.return_indicator` is the only required one and should take in a `geogrid_data` object (returned from :func:`brix.Handler.get_geogrid_data` or from :func:`brix.Indicator.get_geogrid_data`) and return the value of the indicator either as a number, a dictionary, or a list of dictionaries/numbers. Sometimes, the indicator requires geographic information from the table to calculate it. To get geographic information from the table, set the property :attr:`brix.Indicator.requires_geometry` to `True` (see Noise heatmap as an example).
 
@@ -41,7 +44,7 @@ The following example implements a diversity-of-land-use indicator
 
 
 Composite indicator: average
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In some settings, it might be useful to aggregate different indicators to get a average feel of what the neighborhood looks like. For this use case, `brix` provides a simplified `CompositeIndicator` class that only needs an aggregation function.
 
@@ -78,7 +81,7 @@ In some cases, the aggregation function is too simple to write it again. In the 
 
 
 Heatmap indicator
------------------
+^^^^^^^^^^^^^^^^^
 
 The same class can be used to define a heatmap or accessiblity indicator, as opposed to a numeric indicator. First, set the class property :attr:`brix.Indicator.indicator_type` equal to `heatmap` or to `access`. This will flag the indicator as a heatmap and will tell the Handler class what to do with it.
 Second, make sure that the :func:`brix.Indicator.return_indicator` function returns a list of features or a geojson.
@@ -116,10 +119,10 @@ The example below shows an indicator that returns noise for every point in the c
 			return out
 
 Step by step examples
-=====================
+---------------------
 
 Diversity of land-use indicator - step by step
-----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As an example, we'll build a diversity of land use indicator for the test table. The process is the same for any table, provided that it has a GEOGRID variable. Indicators are built as subclasses of the :class:`brix.Indicator` class, with three functions that need to be defined: :func:`brix.Indicator.setup`, :func:`brix.Indicator.load_module`, and :func:`brix.Indicator.return_indicator`. The function :func:`brix.Indicator.setup` acts like an **init**. It can take any argument and runs when the object is instantiated. The function :func:`brix.Indicator.load_module` is also run when the indicator in initialized, but it cannot take any arguments. Any inputs needed to run :func:`brix.Indicator.load_module` should be passed to :func:`brix.Indicator.setup` and defined as class attributes. The function :func:`brix.Indicator.return_indicator` is the only required one and should take in a `geogrid_data` object (returned from :func:`brix.Handler.get_geogrid_data` or from :func:`brix.Indicator.get_geogrid_data`) and return the value of the indicator either as a number, a dictionary, or a list of dictionaries/numbers. 
 
@@ -231,7 +234,7 @@ Finally, we run the indicator by instantiating the new class and passing it to a
 	H.listen()
 
 Composite indicator -- step by step tutorial
---------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let's create an indicator that averages Innovation Potential, Mobility Inmpact, and Economic Impact.
 First, we load the RandomIndicator and pass it to a Handler.
@@ -292,7 +295,7 @@ We finally add it to the Handler:
 
 
 Heatmap indicator -- step by step tutorial
-------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This section will show you step by step how to build a proximity to parks indicator.
 
