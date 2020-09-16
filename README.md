@@ -1,6 +1,8 @@
 # Brix
 
-Brix is a python library for CityScope modules which handles communication with City I/O
+Brix is a python library for CityScope modules which handles communication with City I/O.
+
+Full documentation can be found [here](https://cityscope.media.mit.edu/CS_Brix/).
 
 ## Introduction
 
