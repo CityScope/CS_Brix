@@ -4,7 +4,7 @@ Brix is a python library for CityScope modules which handles communication with 
 
 ## Introduction
 
-What is this library for? If you have never heard of a CityScope before, you might want to stop reading and learn about them [here]([https://cityscope.media.mit.edu/](https://cityscope.media.mit.edu/)). CityScope is an awesome way to interact, explore, and co-create urban interventions in a way that can be accessed by multiple people with different background. If you know what they are, please keep reading.
+What is this library for? If you have never heard of a CityScope before, you might want to stop reading and learn about them [here](https://cityscope.media.mit.edu/). CityScope is an awesome way to interact, explore, and co-create urban interventions in a way that can be accessed by multiple people with different background. If you know what they are, please keep reading.
 
 What is a CityScope table? a ‘table’ is our way of describing a CityScope project. Why table then? Since historically, most CityScope instances were composed of a mesh between a physical table-top 3D model of a city, augmented with projections, software, and other interface hardware. So a table => project.
 
