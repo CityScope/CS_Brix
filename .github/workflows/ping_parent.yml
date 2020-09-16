@@ -1,0 +1,21 @@
+name: Alert parent repository on push
+
+on: 
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Dispatch to action-target
+    runs-on: ubuntu-latest
+    steps:
+      - name: Emit repository_dispatch
+        uses: mvasigh/dispatch-action@main
+        with:
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+          repo: action-target
+          owner: crisjf
+          event_type: docs_update
