@@ -37,7 +37,7 @@ jobs:
         uses: mvasigh/dispatch-action@main
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
-          repo: action-target
-          owner: crisjf
+          repo: cityscope.github.io
+          owner: CityScope
           event_type: docs_update
 
