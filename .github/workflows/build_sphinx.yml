@@ -1,0 +1,41 @@
+name: Build Sphinx docs & Ping parent
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Sphinx docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Build html documentation
+        uses: ammaraskar/sphinx-action@master
+        with:
+          build-command: "sphinx-build -b html ./ ../../docs"
+          docs-folder: "docsource/source"
+      - name: Build markdown documentation
+        uses: ammaraskar/sphinx-action@master
+        with:
+          build-command: "sphinx-build -M markdown ./ ../../docs"
+          docs-folder: "docsource/source"
+          pre-build-command: "pip3 install setuptools && pip3 install sphinx-markdown-builder"
+      - name: Move README and prepare docusaurus
+        run: cp docs/markdown/README.md README.md && printf "\n\n" >> README.md && cat README.md  docs/markdown/classes.md > docs/markdown/docusaurus.md && sudo rm docs/markdown/README.md
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v4
+        with:
+          author_name: crisjf
+          author_email: crisjf@mit.edu
+          message: "Commit documentation changes"
+          add: "."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Alert parent repo
+        uses: mvasigh/dispatch-action@main
+        with:
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+          repo: action-target
+          owner: crisjf
+          event_type: docs_update
