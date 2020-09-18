@@ -1,4 +1,4 @@
-name: Build Sphinx docs & Ping parent
+name: Build Sphinx docs
 
 on: 
   workflow_dispatch:
@@ -49,10 +49,3 @@ jobs:
           ref: 'master'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Alert parent repo
-        uses: mvasigh/dispatch-action@main
-        with:
-          token: ${{ secrets.API_TOKEN_GITHUB }}
-          repo: cityscope.github.io
-          owner: CityScope
-          event_type: docs_update
