@@ -11,6 +11,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+        with: 
+          ref: 'docs-pages'
+      - name: Rebase from master
+        uses: peter-evans/rebase@v1
+        with:
+          base: master
       - name: Build html documentation
         uses: ammaraskar/sphinx-action@master
         with:
