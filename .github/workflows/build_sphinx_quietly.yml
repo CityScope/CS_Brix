@@ -38,6 +38,8 @@ jobs:
           ref: 'docs-pages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Switch branch to commit README to master
+        run: git checkout master && git checkout docs-pages README.md
       - name: Commit README to master
         uses: EndBug/add-and-commit@v4
         with:
