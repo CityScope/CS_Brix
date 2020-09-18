@@ -31,6 +31,17 @@ jobs:
           author_email: crisjf@mit.edu
           message: "Documentation automatically updated by GitHub action"
           add: "."
+          ref: 'docs-pages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v4
+        with:
+          author_name: crisjf
+          author_email: crisjf@mit.edu
+          message: "Documentation automatically updated by GitHub action"
+          add: "README.md"
+          ref: 'master'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Alert parent repo
