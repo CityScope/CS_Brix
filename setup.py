@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="cs-brix",
     version="0.0.1",
-    license='GNU GENERAL PUBLIC LICENSE',
+    license='GNU General Public License v3.0 only (GPL-3.0-only)',
     author="CityScience MIT",
     author_email="csadmin@media.mit.edu",
     description="Brix is a python library for CityScope modules which handles communication with City I/O.",
@@ -28,7 +28,7 @@ setuptools.setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        "License :: GNU GENERAL PUBLIC LICENSE",
+        "License :: OSI Approved :: GNU General Public License v3.0 only (GPL-3.0-only)",
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         "Operating System :: OS Independent"
