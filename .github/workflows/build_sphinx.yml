@@ -1,6 +1,10 @@
 name: Build Sphinx docs & Ping parent
 
 on: 
+  push:
+    branches:
+      - master
+      - docs-config
   workflow_dispatch:
 
 jobs:
@@ -23,7 +27,7 @@ jobs:
           docs-folder: "docsource/source"
           pre-build-command: "pip3 install setuptools && pip3 install sphinx_rtd_theme && pip3 install sphinx-markdown-builder"
       - name: Move README and prepare docusaurus
-        run: cp docs/markdown/README.md README.md && printf "\n\n" >> README.md && cat README.md  docs/markdown/classes.md > docs/markdown/docusaurus.md && sudo rm docs/markdown/README.md
+        run: cp docs/markdown/README.md README.md && printf "\n\n" >> README.md && cat README.md docs/markdown/classes.md > docs/markdown/docusaurus.md && sudo rm docs/markdown/README.md
       - name: Commit changes
         uses: EndBug/add-and-commit@v4
         with:
@@ -40,4 +44,3 @@ jobs:
           repo: cityscope.github.io
           owner: CityScope
           event_type: docs_update
-
