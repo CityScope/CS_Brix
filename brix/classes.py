@@ -10,6 +10,7 @@ from warnings import warn
 from time import sleep
 from collections import defaultdict
 from shapely.geometry import shape
+from .helpers import is_number
 
 
 class Handler:
