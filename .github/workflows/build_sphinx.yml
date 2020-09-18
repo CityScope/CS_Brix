@@ -13,10 +13,8 @@ jobs:
         uses: actions/checkout@v2
         with: 
           ref: 'docs-pages'
-      - name: Rebase from master
-        uses: peter-evans/rebase@v1
-        with:
-          base: master
+      - name: Getting code updates from master
+        run: git checkout origin/master brix/.
       - name: Build html documentation
         uses: ammaraskar/sphinx-action@master
         with:
