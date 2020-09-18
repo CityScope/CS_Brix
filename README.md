@@ -1,6 +1,6 @@
 # Brix
 
-Brix is a python library for CityScope modules which handles communication with City I/O.
+Brix is a python library for CityScope modules which handles communication with [City I/O](http://cityio.media.mit.edu/).
 
 Full documentation can be found [here](https://cityscope.media.mit.edu/CS_Brix/).
 
@@ -25,7 +25,6 @@ What are the types of indicators you can build? Indicators can be anything that 
 
 ## Tutorial
 
-<!-- For now, full tutorial can be found at `README <https://github.com/CityScope/CS_Brix/blob/master/README.md>`_. -->
 ### Basics of building a CityScope indicator
 
 Let’s get to it. First, what table are you building for? If you don’t have a specific table, that is totally okay and you can create one [here](https://cityscope.media.mit.edu/CS_cityscopeJS/). Note: by the time you read this, CityScope might pose some limitations on new projects (`tables`). Please follow instructions in the link above.
