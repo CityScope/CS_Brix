@@ -2,6 +2,7 @@ name: Build Sphinx docs & Ping parent
 
 on: 
   workflow_dispatch:
+  page_build:
 
 jobs:
   build:
