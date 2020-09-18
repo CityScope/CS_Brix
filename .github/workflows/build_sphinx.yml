@@ -1,10 +1,6 @@
 name: Build Sphinx docs & Ping parent
 
 on: 
-  push:
-    branches:
-      - master
-      - docs-config
   workflow_dispatch:
 
 jobs:
