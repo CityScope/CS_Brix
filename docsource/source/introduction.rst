@@ -13,3 +13,13 @@ What are the types of indicators you can build? Indicators can be anything that 
 
 -   Heatmap: These indicators are geodata. They are made up of geometries (points, lines, or polygons) and properties associated to them. These indicators are displayed as layers directly on the CityScope table.
 -   Simulation: These type of indicators are also displayed on the table but they are the result of an agent based simulation and are therefore displayed as a dynamic layer. They change over time like a short movie. These are not yet supported by this library.
+
+Installation
+============
+
+Brix is now on pip. Just do:
+
+::
+
+	pip install cs-brix
+
