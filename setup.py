@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="brix",
+    name="cs-brix",
     version="0.0.1",
     license='GNU GENERAL PUBLIC LICENSE',
     author="CityScience MIT",
