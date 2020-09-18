@@ -13,7 +13,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/CityScope/CS_Brix",
-    download_url = '',
+    download_url = 'https://github.com/CityScope/CS_Brix/archive/v_0.0.1.tar.gz',
     packages=setuptools.find_packages(),
     install_requires=[
         'requests>=2.22',
