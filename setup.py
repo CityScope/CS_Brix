@@ -18,8 +18,7 @@ setuptools.setup(
     install_requires=[
         'requests>=2.22',
         'pandas>=0.25.3',
-        'Geohash>=1.0',
-        'python-geohash>=0.8.5',
+        'pygeohash>=1.2.0',
         'joblib>=0.13.2',
         'shapely>=1.6.2',
         'geopandas>=0.6.2',
