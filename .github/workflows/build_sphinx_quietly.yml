@@ -13,7 +13,7 @@ jobs:
         with: 
           ref: 'docs-pages'
       - name: Getting code updates from master
-        run: git branch -a && git fetch && git checkout origin/master brix/. && git checkout origin/master setup.py
+        run: git branch -a && git fetch && git checkout origin/master brix/. && git checkout origin/master setup.py && git checkout origin/master requirements.txt
       - name: Build html documentation
         uses: ammaraskar/sphinx-action@master
         with:
