@@ -1,7 +1,7 @@
 import requests
 import webbrowser
 import json
-import Geohash
+import pygeohash as pgh
 import joblib
 import numpy as np
 import pandas as pd
@@ -346,13 +346,13 @@ class Handler:
 				if f['geometry']['type']=='Point':
 					all_properties = all_properties|set(f['properties'].keys())
 					lon,lat = f['geometry']['coordinates']
-					hashed = Geohash.encode(lat,lon)
+					hashed = pgh.encode(lat,lon)
 					
 					if hashed in combined_features.keys():
 						combined_features[hashed]['properties'] = {**combined_features[hashed]['properties'], **f['properties']} 
 						combined_features[hashed]['properties'] = defaultdict(lambda: self.none_character,combined_features[hashed]['properties'])
 					else:
-						combined_features[Geohash.encode(lat,lon)] = f
+						combined_features[pgh.encode(lat,lon)] = f
 				else:
 					raise NameError('Only Points supported at this point')
 		all_properties = list(all_properties)

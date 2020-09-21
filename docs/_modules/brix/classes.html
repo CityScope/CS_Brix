@@ -152,7 +152,7 @@
 <span></span><span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">webbrowser</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">Geohash</span>
+<span class="kn">import</span> <span class="nn">pygeohash</span> <span class="k">as</span> <span class="nn">pgh</span>
 <span class="kn">import</span> <span class="nn">joblib</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -161,6 +161,7 @@
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">shape</span>
+<span class="kn">from</span> <span class="nn">.helpers</span> <span class="kn">import</span> <span class="n">is_number</span>
 
 
 <div class="viewcode-block" id="Handler"><a class="viewcode-back" href="../../classes.html#brix.Handler">[docs]</a><span class="k">class</span> <span class="nc">Handler</span><span class="p">:</span>
@@ -318,10 +319,10 @@
 			<span class="n">indicatorName</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;0000&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">))[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
 
 		<span class="k">if</span> <span class="n">I</span><span class="o">.</span><span class="n">tableHandler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-			<span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Indicator </span><span class="si">{</span><span class="n">indicatorName</span><span class="si">}</span><span class="s1"> has a table linked to it. Remember you do not need to link_table when using the Handler class&#39;</span><span class="p">)</span>
+			<span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Indicator </span><span class="si">{indicatorName}</span><span class="s1"> has a table linked to it. Remember you do not need to link_table when using the Handler class&#39;</span><span class="p">)</span>
 
 		<span class="k">if</span> <span class="n">indicatorName</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-			<span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Indicator </span><span class="si">{</span><span class="n">indicatorName</span><span class="si">}</span><span class="s1"> already exists and will be overwritten&#39;</span><span class="p">)</span>
+			<span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Indicator </span><span class="si">{indicatorName}</span><span class="s1"> already exists and will be overwritten&#39;</span><span class="p">)</span>
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="p">[</span><span class="n">indicatorName</span><span class="p">]</span> <span class="o">=</span> <span class="n">I</span>
 		<span class="k">if</span> <span class="n">test</span><span class="p">:</span>
@@ -496,13 +497,13 @@
 				<span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;Point&#39;</span><span class="p">:</span>
 					<span class="n">all_properties</span> <span class="o">=</span> <span class="n">all_properties</span><span class="o">|</span><span class="nb">set</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 					<span class="n">lon</span><span class="p">,</span><span class="n">lat</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;coordinates&#39;</span><span class="p">]</span>
-					<span class="n">hashed</span> <span class="o">=</span> <span class="n">Geohash</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span><span class="n">lon</span><span class="p">)</span>
+					<span class="n">hashed</span> <span class="o">=</span> <span class="n">pgh</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span><span class="n">lon</span><span class="p">)</span>
 					
 					<span class="k">if</span> <span class="n">hashed</span> <span class="ow">in</span> <span class="n">combined_features</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
 						<span class="n">combined_features</span><span class="p">[</span><span class="n">hashed</span><span class="p">][</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">combined_features</span><span class="p">[</span><span class="n">hashed</span><span class="p">][</span><span class="s1">&#39;properties&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]}</span> 
 						<span class="n">combined_features</span><span class="p">[</span><span class="n">hashed</span><span class="p">][</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_character</span><span class="p">,</span><span class="n">combined_features</span><span class="p">[</span><span class="n">hashed</span><span class="p">][</span><span class="s1">&#39;properties&#39;</span><span class="p">])</span>
 					<span class="k">else</span><span class="p">:</span>
-						<span class="n">combined_features</span><span class="p">[</span><span class="n">Geohash</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span><span class="n">lon</span><span class="p">)]</span> <span class="o">=</span> <span class="n">f</span>
+						<span class="n">combined_features</span><span class="p">[</span><span class="n">pgh</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span><span class="n">lon</span><span class="p">)]</span> <span class="o">=</span> <span class="n">f</span>
 				<span class="k">else</span><span class="p">:</span>
 					<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Only Points supported at this point&#39;</span><span class="p">)</span>
 		<span class="n">all_properties</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">all_properties</span><span class="p">)</span>
@@ -720,7 +721,7 @@
 			<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
 				<span class="n">cell_props</span> <span class="o">=</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
 				<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cell_props</span><span class="p">:</span>
-					<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;property_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+					<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;property_</span><span class="si">{k}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
 				<span class="k">del</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
 			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
 			<span class="k">if</span> <span class="n">include_geometries</span><span class="p">:</span>
