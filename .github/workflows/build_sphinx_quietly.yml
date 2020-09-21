@@ -19,13 +19,13 @@ jobs:
         with:
           build-command: "sphinx-build -b html ./ ../../docs"
           docs-folder: "docsource/source"
-          pre-build-command: "pip3 install setuptools && pip3 install sphinx_rtd_theme"
+          pre-build-command: "pip3 install setuptools && pip3 install -r requirements.txt && python3 setup.py install && pip3 install sphinx_rtd_theme"
       - name: Build markdown documentation
         uses: ammaraskar/sphinx-action@master
         with:
           build-command: "sphinx-build -M markdown ./ ../../docs"
           docs-folder: "docsource/source"
-          pre-build-command: "pip3 install setuptools && pip3 install sphinx_rtd_theme && pip3 install sphinx-markdown-builder"
+          pre-build-command: "pip3 install setuptools && pip3 install -r requirements.txt && python3 setup.py install && pip3 install sphinx_rtd_theme && pip3 install sphinx-markdown-builder"
       - name: Move README and prepare docusaurus
         run: cp docs/markdown/README.md README.md && printf "\n\n" >> README.md && cat README.md docs/markdown/classes.md > docs/markdown/docusaurus.md && sudo rm docs/markdown/README.md
       - name: Commit changes to docs-pages
