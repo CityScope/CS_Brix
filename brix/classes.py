@@ -763,6 +763,10 @@ class Indicator:
 		----------
 		as_df: boolean, defaults to `False`
 			If `True` it will return data as a pandas.DataFrame.
+		include_geometries: boolean, defaults to :attr:`brix.Indicator.requires_geometry`
+			If `True`, it will override the default parameter of the Indicator.
+		with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`
+			If `True`, it will override the default parameter of the Indicator.
 
 		Returns
 		-------
