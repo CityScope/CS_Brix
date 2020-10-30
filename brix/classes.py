@@ -470,9 +470,9 @@ class Handler:
 			Table GEOGRID properties.
 		'''
 		if self.geogrid_props is None:
-			r = self._get_url(self.cityIO_get_url+'/GEOGRID')
+			r = self._get_url(self.cityIO_get_url+'/GEOGRID/properties')
 			if r.status_code==200:
-				self.geogrid_props = r.json()['properties']
+				self.geogrid_props = r.json()
 			else:
 				warn('Cant access cityIO type definitions')
 				sleep(1)
