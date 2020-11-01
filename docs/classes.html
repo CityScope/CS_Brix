@@ -229,6 +229,22 @@ will be used as input for the return_indicator function in each indicator class.
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.daemon">
+<em class="property">property </em><code class="sig-name descname">daemon</code><a class="headerlink" href="#brix.Handler.daemon" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean value indicating whether this thread is a daemon thread.</p>
+<p>This must be set before start() is called, otherwise RuntimeError is
+raised. Its initial value is inherited from the creating thread; the
+main thread is not a daemon thread and therefore all threads created in
+the main thread default to daemon = False.</p>
+<p>The entire Python program exits when only daemon threads are left.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.getName">
+<code class="sig-name descname">getName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.getName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.get_geogrid_data">
 <code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">include_geometries=False</em>, <em class="sig-param">with_properties=False</em>, <em class="sig-param">as_df=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the geogrid data from:
@@ -294,6 +310,15 @@ will be used as input for the return_indicator function in each indicator class.
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.ident">
+<em class="property">property </em><code class="sig-name descname">ident</code><a class="headerlink" href="#brix.Handler.ident" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thread identifier of this thread or None if it has not been started.</p>
+<p>This is a nonzero integer. See the get_ident() function. Thread
+identifiers may be recycled when a thread exits and another thread is
+created. The identifier is available even after the thread has exited.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.indicator">
 <code class="sig-name descname">indicator</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.indicator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the <a class="reference internal" href="#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a> with the given name.</p>
@@ -308,6 +333,48 @@ will be used as input for the return_indicator function in each indicator class.
 <dd class="field-odd"><p><a class="reference internal" href="#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.isAlive">
+<code class="sig-name descname">isAlive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.isAlive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the thread is alive.</p>
+<p>This method is deprecated, use is_alive() instead.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.isDaemon">
+<code class="sig-name descname">isDaemon</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.isDaemon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.is_alive">
+<code class="sig-name descname">is_alive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.is_alive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the thread is alive.</p>
+<p>This method returns True just before the run() method starts until just
+after the run() method terminates. The module function enumerate()
+returns a list of all alive threads.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.join">
+<code class="sig-name descname">join</code><span class="sig-paren">(</span><em class="sig-param">timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait until the thread terminates.</p>
+<p>This blocks the calling thread until the thread whose join() method is
+called terminates – either normally or through an unhandled exception
+or until the optional timeout occurs.</p>
+<p>When the timeout argument is present and not None, it should be a
+floating point number specifying a timeout for the operation in seconds
+(or fractions thereof). As join() always returns None, you must call
+is_alive() after join() to decide whether a timeout happened – if the
+thread is still alive, the join() call timed out.</p>
+<p>When the timeout argument is not present or None, the operation will
+block until the thread terminates.</p>
+<p>A thread can be join()ed many times.</p>
+<p>join() raises a RuntimeError if an attempt is made to join the current
+thread as that would cause a deadlock. It is also an error to join() a
+thread before it has been started and attempts to do so raises the same
+exception.</p>
 </dd></dl>
 
 <dl class="method">
@@ -326,18 +393,39 @@ will be used as input for the return_indicator function in each indicator class.
 
 <dl class="method">
 <dt id="brix.Handler.listen">
-<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param">showFront=True</em>, <em class="sig-param">append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.listen" title="Permalink to this definition">¶</a></dt>
-<dd><p>Listen for changes in the table’s geogrid and update all indicators accordingly.
+<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param">new_thread=True</em>, <em class="sig-param">showFront=True</em>, <em class="sig-param">append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.listen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Listens for changes in the table’s geogrid and update all indicators accordingly.
 You can use the update_package method to see the object that will be posted to the table.
-This method starts with an update before listening.</p>
+This method starts with an update before listening.
+This runs in a separate thread by default.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>showFront</strong> (boolean, defaults to <cite>True</cite>) – If <cite>True</cite> it will open the front-end URL in a webbrowser at start.</p></li>
-<li><p><strong>append</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will append the new indicators to whatever is already there.</p></li>
+<li><p><strong>new_thread</strong> (boolean, defaults to <cite>True</cite>.) – If <cite>True</cite> it will run in a separate thread, freeing up the main thread for other tables.
+We recommend setting this to <cite>False</cite> when debugging, to avoid needed to recreate the object.</p></li>
+<li><p><strong>showFront</strong> (boolean, defaults to <cite>True</cite>) – If <cite>True</cite> it will open the front-end URL in a webbrowser at start.
+Only works if <cite>new_tread=False</cite>.</p></li>
+<li><p><strong>append</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will append the new indicators to whatever is already there.
+This option will be deprecated soon. We recommend not using it unless strictly necessary.</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.name">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#brix.Handler.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string used for identification purposes only.</p>
+<p>It has no semantics. Multiple threads may be given the same name. The
+initial name is set by the constructor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.native_id">
+<em class="property">property </em><code class="sig-name descname">native_id</code><a class="headerlink" href="#brix.Handler.native_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Native integral thread ID of this thread, or None if it has not been started.</p>
+<p>This is a non-negative integer. See the get_native_id() function.
+This represents the Thread ID as reported by the kernel.</p>
 </dd></dl>
 
 <dl class="method">
@@ -379,6 +467,13 @@ See also <code class="xref py py-func docutils literal notranslate"><span class=
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run method to be called by <code class="xref py py-func docutils literal notranslate"><span class="pre">Thread.start()</span></code>.
+It runs <code class="xref py py-func docutils literal notranslate"><span class="pre">Handler._listen()</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.see_current">
 <code class="sig-name descname">see_current</code><span class="sig-paren">(</span><em class="sig-param">indicator_type='numeric'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.see_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.see_current" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the current values of the indicators posted for the table.</p>
@@ -393,6 +488,26 @@ See also <code class="xref py py-func docutils literal notranslate"><span class=
 <dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.setDaemon">
+<code class="sig-name descname">setDaemon</code><span class="sig-paren">(</span><em class="sig-param">daemonic</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.setDaemon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.setName">
+<code class="sig-name descname">setName</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.setName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start the thread’s activity.</p>
+<p>It must be called at most once per thread object. It arranges for the
+object’s run() method to be invoked in a separate thread of control.</p>
+<p>This method will raise a RuntimeError if called more than once on the
+same thread object.</p>
 </dd></dl>
 
 <dl class="method">
@@ -436,7 +551,11 @@ See also <code class="xref py py-func docutils literal notranslate"><span class=
 <dd><p>Returns the geogrid data from the linked table. Function mainly used for development. See <a class="reference internal" href="#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a>. It returns the exact object that will be passed to return_indicator</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>as_df</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will return data as a pandas.DataFrame.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>as_df</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will return data as a pandas.DataFrame.</p></li>
+<li><p><strong>include_geometries</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
+<li><p><strong>with_properties</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>geogrid_data</strong> – Data that will be passed to the <a class="reference internal" href="#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function by the <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> when deployed.</p>
@@ -515,7 +634,11 @@ See also <code class="xref py py-func docutils literal notranslate"><span class=
 <dd><p>Returns the geogrid data from the linked table. Function mainly used for development. See <a class="reference internal" href="#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a>. It returns the exact object that will be passed to return_indicator</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>as_df</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will return data as a pandas.DataFrame.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>as_df</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will return data as a pandas.DataFrame.</p></li>
+<li><p><strong>include_geometries</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
+<li><p><strong>with_properties</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>geogrid_data</strong> – Data that will be passed to the <a class="reference internal" href="#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function by the <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> when deployed.</p>

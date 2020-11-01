@@ -41,6 +41,7 @@ class Diversity(Indicator):
 	'''
 	def setup(self):
 		self.name = 'Entropy'
+		self.requires_geogrid_props = False
 
 	def load_module(self):
 		pass

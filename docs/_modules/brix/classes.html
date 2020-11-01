@@ -162,9 +162,10 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">shape</span>
 <span class="kn">from</span> <span class="nn">.helpers</span> <span class="kn">import</span> <span class="n">is_number</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
 
 
-<div class="viewcode-block" id="Handler"><a class="viewcode-back" href="../../classes.html#brix.Handler">[docs]</a><span class="k">class</span> <span class="nc">Handler</span><span class="p">:</span>
+<div class="viewcode-block" id="Handler"><a class="viewcode-back" href="../../classes.html#brix.Handler">[docs]</a><span class="k">class</span> <span class="nc">Handler</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.</span>
 
 <span class="sd">	Parameters</span>
@@ -200,6 +201,7 @@
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span> <span class="o">=</span> <span class="mf">0.5</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">nAttempts</span> <span class="o">=</span> <span class="mi">5</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">append_on_post</span> <span class="o">=</span> <span class="kc">False</span>
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">front_end_url</span>   <span class="o">=</span> <span class="s1">&#39;https://cityscope.media.mit.edu/CS_cityscopeJS/?cityscope=&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="o">+</span><span class="s1">&#39;api/table/&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span>
@@ -621,9 +623,9 @@
 <span class="sd">			Table GEOGRID properties.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-			<span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/GEOGRID&#39;</span><span class="p">)</span>
+			<span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/GEOGRID/properties&#39;</span><span class="p">)</span>
 			<span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="o">==</span><span class="mi">200</span><span class="p">:</span>
-				<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 			<span class="k">else</span><span class="p">:</span>
 				<span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Cant access cityIO type definitions&#39;</span><span class="p">)</span>
 				<span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -773,9 +775,12 @@
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Cleared table&#39;</span><span class="p">)</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">grid_hash_id</span> <span class="o">=</span> <span class="n">grid_hash_id</span></div>
 
-<div class="viewcode-block" id="Handler.listen"><a class="viewcode-back" href="../../classes.html#brix.Handler.listen">[docs]</a>	<span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">showFront</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">_listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">showFront</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Listen for changes in the table&#39;s geogrid and update all indicators accordingly. </span>
+<span class="sd">		Lower level listen. Should only be called directly for debugging purposes. </span>
+<span class="sd">		Use :func:`Handler.listen` instead.</span>
+
+<span class="sd">		Listens for changes in the table&#39;s geogrid and update all indicators accordingly. </span>
 <span class="sd">		You can use the update_package method to see the object that will be posted to the table.</span>
 <span class="sd">		This method starts with an update before listening.</span>
 
@@ -783,8 +788,6 @@
 <span class="sd">		----------</span>
 <span class="sd">		showFront : boolean, defaults to `True`</span>
 <span class="sd">			If `True` it will open the front-end URL in a webbrowser at start.</span>
-<span class="sd">		append : boolean, defaults to `False`</span>
-<span class="sd">			If `True` it will append the new indicators to whatever is already there.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Table URL:&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">front_end_url</span><span class="p">)</span>
@@ -795,7 +798,7 @@
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Performing initial update&#39;</span><span class="p">)</span>
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Update package example:&#39;</span><span class="p">)</span>
 			<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_package</span><span class="p">())</span>
-		<span class="bp">self</span><span class="o">.</span><span class="n">perform_update</span><span class="p">(</span><span class="n">append</span><span class="o">=</span><span class="n">append</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">perform_update</span><span class="p">(</span><span class="n">append</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">append_on_post</span><span class="p">)</span>
 
 		<span class="k">if</span> <span class="n">showFront</span><span class="p">:</span>
 			<span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">front_end_url</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -803,7 +806,40 @@
 			<span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span><span class="p">)</span>
 			<span class="n">grid_hash_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_hash</span><span class="p">()</span>
 			<span class="k">if</span> <span class="n">grid_hash_id</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_hash_id</span><span class="p">:</span>
-				<span class="bp">self</span><span class="o">.</span><span class="n">perform_update</span><span class="p">(</span><span class="n">grid_hash_id</span><span class="o">=</span><span class="n">grid_hash_id</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="n">append</span><span class="p">)</span></div></div>
+				<span class="bp">self</span><span class="o">.</span><span class="n">perform_update</span><span class="p">(</span><span class="n">grid_hash_id</span><span class="o">=</span><span class="n">grid_hash_id</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">append_on_post</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Handler.run"><a class="viewcode-back" href="../../classes.html#brix.Handler.run">[docs]</a>	<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Run method to be called by :func:`Thread.start`. </span>
+<span class="sd">		It runs :func:`Handler._listen`.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_listen</span><span class="p">(</span><span class="n">showFront</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Handler.listen"><a class="viewcode-back" href="../../classes.html#brix.Handler.listen">[docs]</a>	<span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">new_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">showFront</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Listens for changes in the table&#39;s geogrid and update all indicators accordingly. </span>
+<span class="sd">		You can use the update_package method to see the object that will be posted to the table.</span>
+<span class="sd">		This method starts with an update before listening.</span>
+<span class="sd">		This runs in a separate thread by default.</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		new_thread : boolean, defaults to `True`.</span>
+<span class="sd">			If `True` it will run in a separate thread, freeing up the main thread for other tables.</span>
+<span class="sd">			We recommend setting this to `False` when debugging, to avoid needed to recreate the object. </span>
+<span class="sd">		showFront : boolean, defaults to `True`</span>
+<span class="sd">			If `True` it will open the front-end URL in a webbrowser at start.</span>
+<span class="sd">			Only works if `new_tread=False`.</span>
+<span class="sd">		append : boolean, defaults to `False`</span>
+<span class="sd">			If `True` it will append the new indicators to whatever is already there.</span>
+<span class="sd">			This option will be deprecated soon. We recommend not using it unless strictly necessary.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">append_on_post</span> <span class="o">=</span> <span class="n">append</span>
+		<span class="k">if</span> <span class="n">new_thread</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_listen</span><span class="p">(</span><span class="n">showFront</span><span class="o">=</span><span class="n">showFront</span><span class="p">)</span></div></div>
+
 
 <div class="viewcode-block" id="Indicator"><a class="viewcode-back" href="../../classes.html#brix.Indicator">[docs]</a><span class="k">class</span> <span class="nc">Indicator</span><span class="p">:</span>
 	<span class="sd">&#39;&#39;&#39;Parent class to build indicators from. To use, you need to define a subclass than inherets properties from this class. Doing so, ensures your indicator inherets the necessary methods and properties to connect with a CityScipe table.&#39;&#39;&#39;</span>
@@ -914,6 +950,10 @@
 <span class="sd">		----------</span>
 <span class="sd">		as_df: boolean, defaults to `False`</span>
 <span class="sd">			If `True` it will return data as a pandas.DataFrame.</span>
+<span class="sd">		include_geometries: boolean, defaults to :attr:`brix.Indicator.requires_geometry`</span>
+<span class="sd">			If `True`, it will override the default parameter of the Indicator.</span>
+<span class="sd">		with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`</span>
+<span class="sd">			If `True`, it will override the default parameter of the Indicator.</span>
 
 <span class="sd">		Returns</span>
 <span class="sd">		-------</span>

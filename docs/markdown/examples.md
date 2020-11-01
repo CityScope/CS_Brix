@@ -110,6 +110,27 @@ class Noise(Indicator):
                 return out
 ```
 
+### Multiple tables simultaneously
+
+The following examples instantiates three `brix.Handler` objects for three different tables (dungeonA, dungeonB, and dungeonC) and adds a diversity of land use indicator to each. It then runs `brix.Handler.listen()` for each table in its own separate thread.
+
+```
+from brix import Handler
+from brix.examples import Diversity
+
+table_list = ['dungeonA','dungeonB','dungeonC']
+
+handler_list = []
+for table_name in table_list:
+        H = Handler(table_name)
+        div = Diversity()
+        H.add_indicator(div)
+        handler_list.append(H)
+
+for h in handler_list:
+        h.listen()
+```
+
 ## Step by step examples
 
 ### Diversity of land-use indicator - step by step
