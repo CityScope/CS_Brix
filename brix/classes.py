@@ -627,7 +627,7 @@ class Handler(Thread):
 	def _listen(self,showFront=True):
 		'''
 		Lower level listen. Should only be called directly for debugging purposes. 
-		Use :func:`Handler.listen` instead.
+		Use :func:`brix.Handler.listen` instead.
 
 		Listens for changes in the table's geogrid and update all indicators accordingly. 
 		You can use the update_package method to see the object that will be posted to the table.
@@ -659,8 +659,8 @@ class Handler(Thread):
 
 	def run(self):
 		'''
-		Run method to be called by :func:`Thread.start`. 
-		It runs :func:`Handler._listen`.
+		Run method to be called by :func:`threading.Thread.start`. 
+		It runs :func:`brix.Handler._listen`.
 		'''
 		self._listen(showFront=False)
 
