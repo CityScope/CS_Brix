@@ -102,7 +102,7 @@ Note that if you define ``viz_type`` in the return dictionary of ``return_indica
 Deploy your indicator
 ---------------------
 
-Finally, once you have build a series of indicators, the right way to deploy them is to use the :class:`brix.Handler` class. A :class:`brix.Handler` object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are :func:`brix.Handler.add_indicators` which takes a list of :class:`brix.Indicator` objects and connects them to the table, and :func:`brix.Handler.listen` that is a method that runs continuously waiting for updates in the CityScope table. The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named ``myindicators.py``.
+Finally, once you have build a series of indicators, the right way to deploy them is to use the :class:`brix.Handler` class. A :class:`brix.Handler` object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are :func:`brix.Handler.add_indicators` which takes a list of :class:`brix.Indicator` objects and connects them to the table, and :func:`brix.Handler.listen` that is a method that runs continuously waiting for updates in the CityScope table. This method creates its own thread by default, to free up the main thread in case the user needs to connect to other tables. The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named ``myindicators.py``.
 
 ::
 
