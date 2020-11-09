@@ -127,15 +127,16 @@ The following examples instantiates three :class:`brix.Handler` objects for thre
 ::
 
 	from brix import Handler
-	from brix.examples import Diversity
+	from brix.examples import Diversity, RandomIndicator
 
-	table_list = ['dungeonA','dungeonB','dungeonC']
+	table_list = ['dungeona','dungeonb','dungeonc']
 
 	handler_list = []
 	for table_name in table_list:
 		H = Handler(table_name)
 		div = Diversity()
-		H.add_indicator(div)
+		rand = RandomIndicator()
+		H.add_indicators([div,rand])
 		handler_list.append(H)
 	    
 	for h in handler_list:
