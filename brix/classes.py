@@ -11,9 +11,10 @@ from time import sleep
 from collections import defaultdict
 from shapely.geometry import shape
 from .helpers import is_number
+from threading import Thread
 
 
-class Handler:
+class Handler(Thread):
 	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
 
 	Parameters
@@ -49,6 +50,7 @@ class Handler:
 
 		self.sleep_time = 0.5
 		self.nAttempts = 5
+		self.append_on_post = False
 
 		self.front_end_url   = 'https://cityscope.media.mit.edu/CS_cityscopeJS/?cityscope='+self.table_name
 		self.cityIO_get_url  = self.host+'api/table/'+self.table_name
@@ -470,9 +472,9 @@ class Handler:
 			Table GEOGRID properties.
 		'''
 		if self.geogrid_props is None:
-			r = self._get_url(self.cityIO_get_url+'/GEOGRID')
+			r = self._get_url(self.cityIO_get_url+'/GEOGRID/properties')
 			if r.status_code==200:
-				self.geogrid_props = r.json()['properties']
+				self.geogrid_props = r.json()
 			else:
 				warn('Cant access cityIO type definitions')
 				sleep(1)
@@ -622,9 +624,12 @@ class Handler:
 			print('Cleared table')
 		self.grid_hash_id = grid_hash_id
 
-	def listen(self,showFront=True,append=False):
+	def _listen(self,showFront=True):
 		'''
-		Listen for changes in the table's geogrid and update all indicators accordingly. 
+		Lower level listen. Should only be called directly for debugging purposes. 
+		Use :func:`Handler.listen` instead.
+
+		Listens for changes in the table's geogrid and update all indicators accordingly. 
 		You can use the update_package method to see the object that will be posted to the table.
 		This method starts with an update before listening.
 
@@ -632,8 +637,6 @@ class Handler:
 		----------
 		showFront : boolean, defaults to `True`
 			If `True` it will open the front-end URL in a webbrowser at start.
-		append : boolean, defaults to `False`
-			If `True` it will append the new indicators to whatever is already there.
 		'''
 		if not self.quietly:
 			print('Table URL:',self.front_end_url)
@@ -644,7 +647,7 @@ class Handler:
 			print('Performing initial update')
 			print('Update package example:')
 			print(self.update_package())
-		self.perform_update(append=append)
+		self.perform_update(append=self.append_on_post)
 
 		if showFront:
 			webbrowser.open(self.front_end_url, new=2)
@@ -652,7 +655,40 @@ class Handler:
 			sleep(self.sleep_time)
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
-				self.perform_update(grid_hash_id=grid_hash_id,append=append)
+				self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
+
+	def run(self):
+		'''
+		Run method to be called by :func:`Thread.start`. 
+		It runs :func:`Handler._listen`.
+		'''
+		self._listen(showFront=False)
+
+	def listen(self,new_thread=True,showFront=True,append=False):
+		'''
+		Listens for changes in the table's geogrid and update all indicators accordingly. 
+		You can use the update_package method to see the object that will be posted to the table.
+		This method starts with an update before listening.
+		This runs in a separate thread by default.
+
+		Parameters
+		----------
+		new_thread : boolean, defaults to `True`.
+			If `True` it will run in a separate thread, freeing up the main thread for other tables.
+			We recommend setting this to `False` when debugging, to avoid needed to recreate the object. 
+		showFront : boolean, defaults to `True`
+			If `True` it will open the front-end URL in a webbrowser at start.
+			Only works if `new_tread=False`.
+		append : boolean, defaults to `False`
+			If `True` it will append the new indicators to whatever is already there.
+			This option will be deprecated soon. We recommend not using it unless strictly necessary.
+		'''
+		self.append_on_post = append
+		if new_thread:
+			self.start()
+		else:
+			self._listen(showFront=showFront)
+
 
 class Indicator:
 	'''Parent class to build indicators from. To use, you need to define a subclass than inherets properties from this class. Doing so, ensures your indicator inherets the necessary methods and properties to connect with a CityScipe table.'''
@@ -763,6 +799,10 @@ class Indicator:
 		----------
 		as_df: boolean, defaults to `False`
 			If `True` it will return data as a pandas.DataFrame.
+		include_geometries: boolean, defaults to :attr:`brix.Indicator.requires_geometry`
+			If `True`, it will override the default parameter of the Indicator.
+		with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`
+			If `True`, it will override the default parameter of the Indicator.
 
 		Returns
 		-------

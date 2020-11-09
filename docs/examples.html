@@ -90,6 +90,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#numeric-indicator-diversity">Numeric indicator: diversity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#composite-indicator-average">Composite indicator: average</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#heatmap-indicator">Heatmap indicator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multiple-tables-simultaneously">Multiple tables simultaneously</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#step-by-step-examples">Step by step examples</a><ul>
@@ -266,6 +267,26 @@ The example below shows an indicator that returns noise for every point in the c
                         <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
                 <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span><span class="s1">&#39;FeatureCollection&#39;</span><span class="p">,</span><span class="s1">&#39;features&#39;</span><span class="p">:</span><span class="n">features</span><span class="p">}</span>
                 <span class="k">return</span> <span class="n">out</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="multiple-tables-simultaneously">
+<h3>Multiple tables simultaneously<a class="headerlink" href="#multiple-tables-simultaneously" title="Permalink to this headline">¶</a></h3>
+<p>The following examples instantiates three <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> objects for three different tables (<cite>dungeonA</cite>, <cite>dungeonB</cite>, and <cite>dungeonC</cite>) and adds a diversity of land use indicator to each. It then runs <a class="reference internal" href="classes.html#brix.Handler.listen" title="brix.Handler.listen"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.listen()</span></code></a> for each table in its own separate thread.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span>
+<span class="kn">from</span> <span class="nn">brix.examples</span> <span class="kn">import</span> <span class="n">Diversity</span>
+
+<span class="n">table_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dungeonA&#39;</span><span class="p">,</span><span class="s1">&#39;dungeonB&#39;</span><span class="p">,</span><span class="s1">&#39;dungeonC&#39;</span><span class="p">]</span>
+
+<span class="n">handler_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">table_list</span><span class="p">:</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+        <span class="n">div</span> <span class="o">=</span> <span class="n">Diversity</span><span class="p">()</span>
+        <span class="n">H</span><span class="o">.</span><span class="n">add_indicator</span><span class="p">(</span><span class="n">div</span><span class="p">)</span>
+        <span class="n">handler_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">handler_list</span><span class="p">:</span>
+        <span class="n">h</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
