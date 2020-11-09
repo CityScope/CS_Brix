@@ -332,8 +332,8 @@ See also `brix.Handler.previous_indicators()` and `brix.Handler.previous_access(
 
 
 #### run()
-Run method to be called by `Thread.start()`.
-It runs `Handler._listen()`.
+Run method to be called by `threading.Thread.start()`.
+It runs `brix.Handler._listen()`.
 
 
 #### see_current(indicator_type='numeric')

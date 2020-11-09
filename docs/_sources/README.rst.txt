@@ -1,5 +1,3 @@
-Brix
-****
 
 .. include:: description.rst
 

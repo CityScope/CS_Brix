@@ -778,7 +778,7 @@
 	<span class="k">def</span> <span class="nf">_listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">showFront</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Lower level listen. Should only be called directly for debugging purposes. </span>
-<span class="sd">		Use :func:`Handler.listen` instead.</span>
+<span class="sd">		Use :func:`brix.Handler.listen` instead.</span>
 
 <span class="sd">		Listens for changes in the table&#39;s geogrid and update all indicators accordingly. </span>
 <span class="sd">		You can use the update_package method to see the object that will be posted to the table.</span>
@@ -810,8 +810,8 @@
 
 <div class="viewcode-block" id="Handler.run"><a class="viewcode-back" href="../../classes.html#brix.Handler.run">[docs]</a>	<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Run method to be called by :func:`Thread.start`. </span>
-<span class="sd">		It runs :func:`Handler._listen`.</span>
+<span class="sd">		Run method to be called by :func:`threading.Thread.start`. </span>
+<span class="sd">		It runs :func:`brix.Handler._listen`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">_listen</span><span class="p">(</span><span class="n">showFront</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 

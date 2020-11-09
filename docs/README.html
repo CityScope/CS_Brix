@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Brix &mdash; cs-brix 0.0.1 documentation</title>
+  <title>Introduction &mdash; cs-brix 0.0.1 documentation</title>
   
 
   
@@ -131,7 +131,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Brix</li>
+      <li>Introduction</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -150,12 +150,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="brix">
-<h1>Brix<a class="headerlink" href="#brix" title="Permalink to this headline">¶</a></h1>
-<p>Brix is a python library for CityScope modules which handles communication with <a class="reference external" href="http://cityio.media.mit.edu/">City I/O</a>.</p>
+  <p>Brix is a python library for CityScope modules which handles communication with <a class="reference external" href="http://cityio.media.mit.edu/">City I/O</a>.</p>
 <p>Full documentation can be found <a class="reference external" href="https://cityscope.media.mit.edu/CS_Brix/">here</a>.</p>
 <div class="section" id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
 <p>What is this library for? If you have never heard of a CityScope before, you might want to stop reading and learn about them <a class="reference external" href="https://cityscope.media.mit.edu/">here</a>. CityScope is an awesome way to interact, explore, and co-create urban interventions in a way that can be accessed by multiple people with different background. If you know what they are, please keep reading.</p>
 <p>What is a CityScope table? a ‘table’ is our way of describing a CityScope project. Why table then? Since historically, most CityScope instances were composed of a mesh between a physical table-top 3D model of a city, augmented with projections, software, and other interface hardware. So a table =&gt; project.</p>
 <p>What is an indicator? An indicator is the result of running a module for CityScope. Indicators work by listening for updated from the CityScope table they are linked to, calculating some values by using a model, some function of the data, or a simulation, and then post the result of the calculations to CityIO to be displayed in the table.</p>
@@ -167,16 +165,16 @@
 </ul>
 </div>
 <div class="section" id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <p>Brix is now on pip. Just do:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cs</span><span class="o">-</span><span class="n">brix</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="tutorial">
-<h2>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h2>
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="basics-of-building-a-cityscope-indicator">
-<h3>Basics of building a CityScope indicator<a class="headerlink" href="#basics-of-building-a-cityscope-indicator" title="Permalink to this headline">¶</a></h3>
+<h2>Basics of building a CityScope indicator<a class="headerlink" href="#basics-of-building-a-cityscope-indicator" title="Permalink to this headline">¶</a></h2>
 <p>Let’s get to it. First, what table are you building for? If you don’t have a specific table, that is totally okay and you can create one <a class="reference external" href="https://cityscope.media.mit.edu/CS_cityscopeJS/">here</a>. Note: by the time you read this, CityScope might pose some limitations on new projects (<code class="docutils literal notranslate"><span class="pre">tables</span></code>). Please follow instructions in the link above.
 For this tutorial, we crated one called <code class="docutils literal notranslate"><span class="pre">dungeonmaster</span></code>.</p>
 <p>An indicator will basically take in data, and produce a result. Each new indicator is built as an subclass of the <a class="reference internal" href="classes.html#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a> class provided in this library. Make sure you define three functions: <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a>, <a class="reference internal" href="classes.html#brix.Indicator.load_module" title="brix.Indicator.load_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.load_module()</span></code></a>, and <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a>. Here’s a barebones example of an indicator:</p>
@@ -210,7 +208,7 @@ For this tutorial, we crated one called <code class="docutils literal notranslat
 </div>
 </div>
 <div class="section" id="let-s-talk-data-input">
-<h3>Let’s talk data (input)<a class="headerlink" href="#let-s-talk-data-input" title="Permalink to this headline">¶</a></h3>
+<h2>Let’s talk data (input)<a class="headerlink" href="#let-s-talk-data-input" title="Permalink to this headline">¶</a></h2>
 <p>What is <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code>?
 Every time we create a CityScope table, we define a regularly spaced grid which is overlaid on the city district we’re modelling. These grid cells are the basic unit of analysis for the CityScope modules. Every grid cell has properties such as the <code class="docutils literal notranslate"><span class="pre">Type</span></code> which represents the land use and <code class="docutils literal notranslate"><span class="pre">Height</span></code> which represents the number of floors. These data are dynamic and are updated each time a user interacts with the CityScope table, experimenting with the spatial organisation of land uses and infrastructure. These dynamic data are stored the variable <cite>geogrid_data</cite>. This is a list of ojects: one for each grid cell in the CityScope table. The contents of each object really depends on the specific table you are building for and on the properties assigned to your indicator. There are two options that will control what <cite>geogrid_data</cite> contains which are: <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>. These two properties are set to <code class="docutils literal notranslate"><span class="pre">False</span></code> by default, but you can change them inside the <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a> function depending on the needs of your indicator.</p>
 <p>Go ahead, take a look at how this object looks like by instantiating your class and linking it to a table:</p>
@@ -226,7 +224,7 @@ Every time we create a CityScope table, we define a regularly spaced grid which 
 </div>
 </div>
 <div class="section" id="build-and-test-your-indicator-output">
-<h3>Build and test your indicator (output)<a class="headerlink" href="#build-and-test-your-indicator-output" title="Permalink to this headline">¶</a></h3>
+<h2>Build and test your indicator (output)<a class="headerlink" href="#build-and-test-your-indicator-output" title="Permalink to this headline">¶</a></h2>
 <p>This library ensures that you can focus on what you do best: writing a kick ass <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function that will make everyone’s urban planning life better.</p>
 <p>To test your function while debugging it, you can use the object returned by <a class="reference internal" href="classes.html#brix.Indicator.get_geogrid_data" title="brix.Indicator.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.get_geogrid_data()</span></code></a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
@@ -252,7 +250,7 @@ Every time we create a CityScope table, we define a regularly spaced grid which 
 </div>
 </div>
 <div class="section" id="deploy-your-indicator">
-<h3>Deploy your indicator<a class="headerlink" href="#deploy-your-indicator" title="Permalink to this headline">¶</a></h3>
+<h2>Deploy your indicator<a class="headerlink" href="#deploy-your-indicator" title="Permalink to this headline">¶</a></h2>
 <p>Finally, once you have build a series of indicators, the right way to deploy them is to use the <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> class. A <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are <a class="reference internal" href="classes.html#brix.Handler.add_indicators" title="brix.Handler.add_indicators"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.add_indicators()</span></code></a> which takes a list of <a class="reference internal" href="classes.html#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a> objects and connects them to the table, and <a class="reference internal" href="classes.html#brix.Handler.listen" title="brix.Handler.listen"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.listen()</span></code></a> that is a method that runs continuously waiting for updates in the CityScope table. This method creates its own thread by default, to free up the main thread in case the user needs to connect to other tables. The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named <code class="docutils literal notranslate"><span class="pre">myindicators.py</span></code>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span>
 <span class="kn">from</span> <span class="nn">myindicators</span> <span class="kn">import</span> <span class="n">Density</span><span class="p">,</span> <span class="n">Diversity</span><span class="p">,</span> <span class="n">Proximity</span>
@@ -271,7 +269,6 @@ Every time we create a CityScope table, we define a regularly spaced grid which 
 </pre></div>
 </div>
 <p>To see the indicators in the handler you can use <code class="docutils literal notranslate"><span class="pre">H.list_indicators()</span></code> to list the indicator names, and use <code class="docutils literal notranslate"><span class="pre">H.return_indicator(&lt;indicator_name&gt;)</span></code> to see the value of the indicator. Finally, the function <code class="docutils literal notranslate"><span class="pre">H.update_package()</span></code> will return the data that will be posted on CityIO.</p>
-</div>
 </div>
 </div>
 
