@@ -41,6 +41,8 @@ class Handler(Thread):
 		host_mode ='remote' , 
 		reference = None):
 
+		super(Handler, self).__init__()
+
 		if host_mode=='local':
 			self.host = 'http://127.0.0.1:5000/'
 		else:
