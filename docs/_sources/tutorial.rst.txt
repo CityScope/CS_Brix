@@ -7,6 +7,8 @@ Basics of building a CityScope indicator
 Let's get to it. First, what table are you building for? If you don't have a specific table, that is totally okay and you can create one `here <https://cityscope.media.mit.edu/CS_cityscopeJS/>`_. Note: by the time you read this, CityScope might pose some limitations on new projects (``tables``). Please follow instructions in the link above. 
 For this tutorial, we crated one called ``dungeonmaster``.
 
+After creating a table, open the frond end given by the tool and edit the table at least once. Change some blocks, and push those changes to CityIO. 
+
 An indicator will basically take in data, and produce a result. Each new indicator is built as an subclass of the :class:`brix.Indicator` class provided in this library. Make sure you define three functions: :func:`brix.Indicator.setup`, :func:`brix.Indicator.load_module`, and :func:`brix.Indicator.return_indicator`. Here's a barebones example of an indicator:
 
 ::
@@ -53,6 +55,7 @@ Go ahead, take a look at how this object looks like by instantiating your class 
 	I.link_table('dungeonmaster')
 	I.get_geogrid_data()
 
+Bear in mind that the endpoint ``GEOGRIDDATA`` is created only after your first edit to the table. If you just created your table, you need to go to the front end and edit the table at least once for ``GEOGRIDDATA`` to show up.
 
 Please note that the :func:`brix.Indicator.link_table` should only be used when developing the indicator. For deployment, we'll use the :class:`brix.Handler` class that is more efficient. You can also skip the :func:`brix.Indicator.link_table` step by defining the ``Indicator.table_name='dungeonmaster'`` property in your ``setup`` function. You will also notice that as you change the :attr:`brix.Indicator.requires_geometry` and :attr:`brix.Indicator.requires_geogrid_props` parameters in ``setup``, the output of :func:`brix.Indicator.get_geogrid_data` will change.
 
