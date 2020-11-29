@@ -42,9 +42,7 @@ class Diversity(Indicator):
 	def setup(self):
 		self.name = 'Entropy'
 		self.requires_geogrid_props = False
-
-	def load_module(self):
-		pass
+		self.viz_type = 'bar'
 
 	def return_indicator(self, geogrid_data):
 		uses = [cell['name'] for cell in geogrid_data]
