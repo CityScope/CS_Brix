@@ -576,6 +576,8 @@ class Handler(Thread):
 		----------
 		include_geometries : boolean, defaults to `False`
 			If `True` it will also add the geometry information for each grid unit.
+		with_properties : boolean, defaults to `False`
+			If `True` it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)
 		as_df: boolean, defaults to `False`
 			If `True` it will return data as a pandas.DataFrame.
 
