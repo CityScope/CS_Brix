@@ -13,6 +13,18 @@ from shapely.geometry import shape
 from .helpers import is_number
 from threading import Thread
 
+class GEOGRIDDATA(list):
+	def __init__(self,geogrid_data):
+		super(GEOGRIDDATA, self).__init__()
+		for e in geogrid_data:
+			self.append(e)
+		self.geogrid_props = None
+
+	def set_geogrid_props(self,geogrid_props):
+		self.geogrid_props = geogrid_props
+
+	def get_geogrid_props(self):
+		return self.geogrid_props
 
 class Handler(Thread):
 	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
@@ -535,6 +547,9 @@ class Handler(Thread):
 			types_def['None'] = None
 			for cell in geogrid_data:
 				cell['properties'] = types_def[cell['name']]
+		# These two lines of code relate to issue #17, but have not yet been tested
+		# geogrid_data = GEOGRIDDATA(geogrid_data)
+		# geogrid_data.set_geogrid_props(self.geogrid_props)
 		return geogrid_data
 
 	def _get_url(self,url,params=None):
@@ -666,7 +681,7 @@ class Handler(Thread):
 		'''
 		self._listen(showFront=False)
 
-	def listen(self,new_thread=True,showFront=True,append=False):
+	def listen(self,new_thread=False,showFront=True,append=False):
 		'''
 		Listens for changes in the table's geogrid and update all indicators accordingly. 
 		You can use the update_package method to see the object that will be posted to the table.
@@ -675,9 +690,9 @@ class Handler(Thread):
 
 		Parameters
 		----------
-		new_thread : boolean, defaults to `True`.
+		new_thread : boolean, defaults to `False`.
 			If `True` it will run in a separate thread, freeing up the main thread for other tables.
-			We recommend setting this to `False` when debugging, to avoid needed to recreate the object. 
+			We recommend setting this to `False` when debugging, to avoid needing to recreate the object. 
 		showFront : boolean, defaults to `True`
 			If `True` it will open the front-end URL in a webbrowser at start.
 			Only works if `new_tread=False`.
