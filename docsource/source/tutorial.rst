@@ -65,6 +65,13 @@ If you are testing and are curious how ``geogrid_data`` would look like if you s
 
 	I.get_geogrid_data(include_geometries=True)
 
+Please note that ``geogrid_data`` behaves very much like a list, but it is not a list. It belongs to the class :class:`brix.GEOGRIDDATA`, which is an extension of a list to include additional functions and properties related to the table. For example, you can get the meta-properties of the table (such as type definitions, location, etc.) by using :func:`brix.GEOGRIDDATA.get_geogrid_props()`. This is useful if, for example, you are interested in counting the total number of block types, including those that are not currently on the table. Run the following example to see how `geogrid_props` looks like:
+
+::
+
+	geogrid_data = I.get_geogrid_data()
+	geogrid_data.get_geogrid_props()
+
 
 Build and test your indicator (output)
 --------------------------------------
@@ -105,7 +112,7 @@ Note that if you define ``viz_type`` in the return dictionary of ``return_indica
 Deploy your indicator
 ---------------------
 
-Finally, once you have build a series of indicators, the right way to deploy them is to use the :class:`brix.Handler` class. A :class:`brix.Handler` object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are :func:`brix.Handler.add_indicators` which takes a list of :class:`brix.Indicator` objects and connects them to the table, and :func:`brix.Handler.listen` that is a method that runs continuously waiting for updates in the CityScope table. This method creates its own thread by default, to free up the main thread in case the user needs to connect to other tables. The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named ``myindicators.py``.
+Finally, once you have build a series of indicators, the right way to deploy them is to use the :class:`brix.Handler` class. A :class:`brix.Handler` object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are :func:`brix.Handler.add_indicators` which takes a list of :class:`brix.Indicator` objects and connects them to the table, and :func:`brix.Handler.listen` that is a method that runs continuously waiting for updates in the CityScope table. This method can also creates its own thread, to free up the main thread in case the user needs to connect to other tables (by setting ``new_thread=True``). The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named ``myindicators.py``.
 
 ::
 
