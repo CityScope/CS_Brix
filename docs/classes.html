@@ -253,6 +253,7 @@ the main thread default to daemon = False.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>include_geometries</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will also add the geometry information for each grid unit.</p></li>
+<li><p><strong>with_properties</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)</p></li>
 <li><p><strong>as_df</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will return data as a pandas.DataFrame.</p></li>
 </ul>
 </dd>
@@ -393,7 +394,7 @@ exception.</p>
 
 <dl class="method">
 <dt id="brix.Handler.listen">
-<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param">new_thread=True</em>, <em class="sig-param">showFront=True</em>, <em class="sig-param">append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.listen" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param">new_thread=False</em>, <em class="sig-param">showFront=True</em>, <em class="sig-param">append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.listen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Listens for changes in the table’s geogrid and update all indicators accordingly.
 You can use the update_package method to see the object that will be posted to the table.
 This method starts with an update before listening.
@@ -401,8 +402,8 @@ This runs in a separate thread by default.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>new_thread</strong> (boolean, defaults to <cite>True</cite>.) – If <cite>True</cite> it will run in a separate thread, freeing up the main thread for other tables.
-We recommend setting this to <cite>False</cite> when debugging, to avoid needed to recreate the object.</p></li>
+<li><p><strong>new_thread</strong> (boolean, defaults to <cite>False</cite>.) – If <cite>True</cite> it will run in a separate thread, freeing up the main thread for other tables.
+We recommend setting this to <cite>False</cite> when debugging, to avoid needing to recreate the object.</p></li>
 <li><p><strong>showFront</strong> (boolean, defaults to <cite>True</cite>) – If <cite>True</cite> it will open the front-end URL in a webbrowser at start.
 Only works if <cite>new_tread=False</cite>.</p></li>
 <li><p><strong>append</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will append the new indicators to whatever is already there.

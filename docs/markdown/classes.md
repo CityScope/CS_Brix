@@ -104,6 +104,9 @@ Returns the geogrid data from:
     * **include_geometries** (boolean, defaults to False) – If True it will also add the geometry information for each grid unit.
 
 
+    * **with_properties** (boolean, defaults to False) – If True it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)
+
+
     * **as_df** (boolean, defaults to False) – If True it will return data as a pandas.DataFrame.
 
 
@@ -253,7 +256,7 @@ Returns list of all indicator names.
 
 
 
-#### listen(new_thread=True, showFront=True, append=False)
+#### listen(new_thread=False, showFront=True, append=False)
 Listens for changes in the table’s geogrid and update all indicators accordingly.
 You can use the update_package method to see the object that will be posted to the table.
 This method starts with an update before listening.
@@ -263,8 +266,8 @@ This runs in a separate thread by default.
 * **Parameters**
 
     
-    * **new_thread** (boolean, defaults to True.) – If True it will run in a separate thread, freeing up the main thread for other tables.
-    We recommend setting this to False when debugging, to avoid needed to recreate the object.
+    * **new_thread** (boolean, defaults to False.) – If True it will run in a separate thread, freeing up the main thread for other tables.
+    We recommend setting this to False when debugging, to avoid needing to recreate the object.
 
 
     * **showFront** (boolean, defaults to True) – If True it will open the front-end URL in a webbrowser at start.

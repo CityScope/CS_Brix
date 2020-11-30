@@ -164,6 +164,43 @@
 <span class="kn">from</span> <span class="nn">.helpers</span> <span class="kn">import</span> <span class="n">is_number</span>
 <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
 
+<span class="k">class</span> <span class="nc">GEOGRIDDATA</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Glass to package the input needed by each indicator. </span>
+<span class="sd">	This class extends a simple list to charge it with additional properties, if needed.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	geogrid_data : list</span>
+<span class="sd">		List to converg to GEOGRIDDATA object.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_data</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">GEOGRIDDATA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="o">=</span> <span class="kc">None</span>
+
+	<span class="k">def</span> <span class="nf">set_geogrid_props</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_props</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Sets the value of `geogrid_props`</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		geogrid_props : dict or list</span>
+<span class="sd">			Value of :attr:`brix.Handler.geogrid_props`</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="o">=</span> <span class="n">geogrid_props</span>
+
+	<span class="k">def</span> <span class="nf">get_geogrid_props</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Get the value of :attr:`brix.Handler.geogrid_props` from the corresponding :class:`brix.Handler`.</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		geogrid_props : dict or list</span>
+<span class="sd">			Value of :attr:`brix.Handler.geogrid_props`</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span>
 
 <div class="viewcode-block" id="Handler"><a class="viewcode-back" href="../../classes.html#brix.Handler">[docs]</a><span class="k">class</span> <span class="nc">Handler</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.</span>
@@ -686,6 +723,8 @@
 			<span class="n">types_def</span><span class="p">[</span><span class="s1">&#39;None&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 			<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
 				<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">types_def</span><span class="p">[</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span>
+		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">GEOGRIDDATA</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">set_geogrid_props</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_geogrid_props</span><span class="p">())</span>
 		<span class="k">return</span> <span class="n">geogrid_data</span>
 
 	<span class="k">def</span> <span class="nf">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">url</span><span class="p">,</span><span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -712,6 +751,8 @@
 <span class="sd">		----------</span>
 <span class="sd">		include_geometries : boolean, defaults to `False`</span>
 <span class="sd">			If `True` it will also add the geometry information for each grid unit.</span>
+<span class="sd">		with_properties : boolean, defaults to `False`</span>
+<span class="sd">			If `True` it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)</span>
 <span class="sd">		as_df: boolean, defaults to `False`</span>
 <span class="sd">			If `True` it will return data as a pandas.DataFrame.</span>
 
@@ -723,10 +764,11 @@
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="n">include_geometries</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="n">with_properties</span><span class="p">)</span>
 		<span class="k">if</span> <span class="n">as_df</span><span class="p">:</span>
 			<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
-				<span class="n">cell_props</span> <span class="o">=</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
-				<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cell_props</span><span class="p">:</span>
-					<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;property_</span><span class="si">{k}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-				<span class="k">del</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
+				<span class="k">if</span> <span class="s1">&#39;properties&#39;</span> <span class="ow">in</span> <span class="n">cell</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+					<span class="n">cell_props</span> <span class="o">=</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
+					<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cell_props</span><span class="p">:</span>
+						<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;property_</span><span class="si">{k}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+					<span class="k">del</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
 			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
 			<span class="k">if</span> <span class="n">include_geometries</span><span class="p">:</span>
 				<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">geometry</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
@@ -817,7 +859,7 @@
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">_listen</span><span class="p">(</span><span class="n">showFront</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Handler.listen"><a class="viewcode-back" href="../../classes.html#brix.Handler.listen">[docs]</a>	<span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">new_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">showFront</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Handler.listen"><a class="viewcode-back" href="../../classes.html#brix.Handler.listen">[docs]</a>	<span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">new_thread</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">showFront</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Listens for changes in the table&#39;s geogrid and update all indicators accordingly. </span>
 <span class="sd">		You can use the update_package method to see the object that will be posted to the table.</span>
@@ -826,9 +868,9 @@
 
 <span class="sd">		Parameters</span>
 <span class="sd">		----------</span>
-<span class="sd">		new_thread : boolean, defaults to `True`.</span>
+<span class="sd">		new_thread : boolean, defaults to `False`.</span>
 <span class="sd">			If `True` it will run in a separate thread, freeing up the main thread for other tables.</span>
-<span class="sd">			We recommend setting this to `False` when debugging, to avoid needed to recreate the object. </span>
+<span class="sd">			We recommend setting this to `False` when debugging, to avoid needing to recreate the object. </span>
 <span class="sd">		showFront : boolean, defaults to `True`</span>
 <span class="sd">			If `True` it will open the front-end URL in a webbrowser at start.</span>
 <span class="sd">			Only works if `new_tread=False`.</span>
