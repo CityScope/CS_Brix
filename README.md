@@ -92,6 +92,13 @@ If you are testing and are curious how `geogrid_data` would look like if you set
 I.get_geogrid_data(include_geometries=True)
 ```
 
+Please note that `geogrid_data` behaves very much like a list, but it is not a list. It belongs to the class `brix.GEOGRIDDATA`, which is an extension of a list to include additional functions and properties related to the table. For example, you can get the meta-properties of the table (such as type definitions, location, etc.) by using `brix.GEOGRIDDATA.get_geogrid_props()`. This is useful if, for example, you are interested in counting the total number of block types, including those that are not currently on the table. Run the following example to see how geogrid_props looks like:
+
+```
+geogrid_data = I.get_geogrid_data()
+geogrid_data.get_geogrid_props()
+```
+
 ## Build and test your indicator (output)
 
 This library ensures that you can focus on what you do best: writing a kick ass `brix.Indicator.return_indicator()` function that will make everyone’s urban planning life better.
@@ -127,7 +134,7 @@ Note that if you define `viz_type` in the return dictionary of `return_indicator
 
 ## Deploy your indicator
 
-Finally, once you have build a series of indicators, the right way to deploy them is to use the `brix.Handler` class. A `brix.Handler` object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are `brix.Handler.add_indicators()` which takes a list of `brix.Indicator` objects and connects them to the table, and `brix.Handler.listen()` that is a method that runs continuously waiting for updates in the CityScope table. This method creates its own thread by default, to free up the main thread in case the user needs to connect to other tables. The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named `myindicators.py`.
+Finally, once you have build a series of indicators, the right way to deploy them is to use the `brix.Handler` class. A `brix.Handler` object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are `brix.Handler.add_indicators()` which takes a list of `brix.Indicator` objects and connects them to the table, and `brix.Handler.listen()` that is a method that runs continuously waiting for updates in the CityScope table. This method can also creates its own thread, to free up the main thread in case the user needs to connect to other tables (by setting `new_thread=True`). The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named `myindicators.py`.
 
 ```
 from brix import Handler
