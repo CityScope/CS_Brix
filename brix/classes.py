@@ -14,6 +14,15 @@ from .helpers import is_number
 from threading import Thread
 
 class GEOGRIDDATA(list):
+	'''
+	Glass to package the input needed by each indicator. 
+	This class extends a simple list to charge it with additional properties, if needed.
+
+	Parameters
+	----------
+	geogrid_data : list
+		List to converg to GEOGRIDDATA object.
+	'''
 	def __init__(self,geogrid_data):
 		super(GEOGRIDDATA, self).__init__()
 		for e in geogrid_data:
@@ -21,9 +30,25 @@ class GEOGRIDDATA(list):
 		self.geogrid_props = None
 
 	def set_geogrid_props(self,geogrid_props):
+		'''
+		Sets the value of `geogrid_props`
+
+		Parameters
+		----------
+		geogrid_props : dict or list
+			Value of :attr:`brix.Handler.geogrid_props`
+		'''
 		self.geogrid_props = geogrid_props
 
 	def get_geogrid_props(self):
+		'''
+		Get the value of :attr:`brix.Handler.geogrid_props` from the corresponding :class:`brix.Handler`.
+
+		Returns
+		-------
+		geogrid_props : dict or list
+			Value of :attr:`brix.Handler.geogrid_props`
+		'''
 		return self.geogrid_props
 
 class Handler(Thread):
