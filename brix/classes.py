@@ -547,9 +547,8 @@ class Handler(Thread):
 			types_def['None'] = None
 			for cell in geogrid_data:
 				cell['properties'] = types_def[cell['name']]
-		# These two lines of code relate to issue #17, but have not yet been tested
-		# geogrid_data = GEOGRIDDATA(geogrid_data)
-		# geogrid_data.set_geogrid_props(self.geogrid_props)
+		geogrid_data = GEOGRIDDATA(geogrid_data)
+		geogrid_data.set_geogrid_props(self.get_geogrid_props())
 		return geogrid_data
 
 	def _get_url(self,url,params=None):
