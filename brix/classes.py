@@ -51,6 +51,12 @@ class GEOGRIDDATA(list):
 		'''
 		return self.geogrid_props
 
+	def get_types(self):
+		return self.get_geogrid_props()['types']
+
+	def number_of_types(self):
+		return len(self.get_geogrid_props()['types'])
+
 class Handler(Thread):
 	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
 
@@ -371,7 +377,6 @@ class Handler(Thread):
 					new_value['indicator_type'] = I.indicator_type
 				if ('viz_type' not in new_value.keys())&(I.viz_type is not None):
 					new_value['viz_type'] = I.viz_type
-				print(new_value)
 				return [new_value]
 
 
@@ -623,7 +628,7 @@ class Handler(Thread):
 				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 		return geogrid_data
 
-	def perform_update(self,grid_hash_id=None,append=True):
+	def perform_update(self,grid_hash_id=None,append=False):
 		'''
 		Performs single table update.
 
