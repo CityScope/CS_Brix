@@ -3,8 +3,10 @@
 from .classes import Handler
 from .classes import Indicator
 from .classes import CompositeIndicator
+from .classes import GEOGRIDDATA
 
 import requests
+import json
 
 def update_geogrid_data(H, update_func, geogrid_data=None, **kwargs):
   '''
@@ -40,8 +42,15 @@ def update_geogrid_data(H, update_func, geogrid_data=None, **kwargs):
     print('Updating table with hash:', grid_hash_id)
 
   new_geogrid_data = update_func(geogrid_data, **kwargs)
+  new_geogrid_data = GEOGRIDDATA(new_geogrid_data)
+  new_geogrid_data.link_table(H)
+  if not new_geogrid_data.check_type_validity():
+    raise NameError('Type not found in table definition')
 
-  r = requests.post(H.cityIO_post_url+'/GEOGRIDDATA', data=json.dumps(new_geogrid_data))
+  if not new_geogrid_data.check_id_validity():
+    raise NameError('IDs do not match')
+
+  r = requests.post(H.cityIO_post_url+'/'+H.GEOGRIDDATA_varname, data=json.dumps(new_geogrid_data))
 
   if not H.quietly:
     print('Done with update')
