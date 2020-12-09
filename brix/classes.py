@@ -28,6 +28,24 @@ class GEOGRIDDATA(list):
 		for e in geogrid_data:
 			self.append(e)
 		self.geogrid_props = None
+		self.GEOGRID = None
+
+	def link_table(self,table_name):
+		'''
+		Sets set_geogrid_props and set_geogrid.
+		This function should use if GEOGRIDDATA needs to be updated.
+
+		Parameters
+		----------
+		table_name: str or :class:`brix.Handler`
+			Name of the table or Handler object.
+		'''
+		if isinstance(table_name,Handler):
+			tableHandler = table_name
+		else:
+			tableHandler = Handler(table_name)
+		self.set_geogrid_props(tableHandler.get_geogrid_props())
+		self.set_geogrid(tableHandler.get_GEOGRID())
 
 	def set_geogrid_props(self,geogrid_props):
 		'''
@@ -40,6 +58,20 @@ class GEOGRIDDATA(list):
 		'''
 		self.geogrid_props = geogrid_props
 
+	def set_geogrid(self,GEOGRID):
+		self.GEOGRID = GEOGRID
+
+	def get_geogrid(self):
+		'''
+		Get the value of GEOGRIDDATA from the corresponding :class:`brix.Handler`.
+
+		Returns
+		-------
+		GEOGRID : dict
+			Value of GEOGRID
+		'''
+		return self.GEOGRID
+
 	def get_geogrid_props(self):
 		'''
 		Get the value of :attr:`brix.Handler.geogrid_props` from the corresponding :class:`brix.Handler`.
@@ -51,11 +83,36 @@ class GEOGRIDDATA(list):
 		'''
 		return self.geogrid_props
 
-	def get_types(self):
+	def grid_size(self):
+		return len(geogrid_data.get_geogrid()['features'])
+
+	def get_type_info(self):
 		return self.get_geogrid_props()['types']
 
+	def get_type_set(self):
+		return set(self.get_geogrid_props()['types'])
+
 	def number_of_types(self):
-		return len(self.get_geogrid_props()['types'])
+		return len(self.get_type_set())
+
+	def check_type_validity(self,quietly=True):
+		non_defined_cells = set([cell['name'] for cell in self]).difference(self.get_type_set())
+		if len(non_defined_cells)==0:
+			return True
+		else:
+			if not quietly:
+				print('Unrecognized types:',non_defined_cells)
+			return False
+
+	def check_id_validity(self,quietly=True):
+		n_unique_ids = len(set([cell['id'] for cell in geogrid_data]))
+		if n_unique_ids==self.grid_size():
+			return True
+		else:
+			if not quietly:
+				print('Number of unique cells in geogrid_data does not match grid size')
+			return False
+
 
 class Handler(Thread):
 	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
@@ -549,6 +606,16 @@ class Handler(Thread):
 			grid_hash_id=self.grid_hash_id
 		return grid_hash_id
 
+	def get_GEOGRID(self):
+		if self.GEOGRID is None:
+			r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRID_varname)
+			if r.status_code==200:
+				geogrid = r.json()
+				self.GEOGRID = geogrid
+			else:
+				warn('WARNING: Cant access GEOGRID data')
+		return self.GEOGRID
+
 	def _get_grid_data(self,include_geometries=False,with_properties=False):
 		r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRIDDATA_varname)
 		if r.status_code==200:
@@ -559,15 +626,8 @@ class Handler(Thread):
 			geogrid_data = None
 	
 		if include_geometries|any([I.requires_geometry for I in self.indicators.values()]):
-			if self.GEOGRID is None:
-				r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRID_varname)
-				if r.status_code==200:
-					geogrid = r.json()
-					self.GEOGRID = geogrid
-				else:
-					warn('WARNING: Cant access GEOGRID data')
 			for i in range(len(geogrid_data)):
-				geogrid_data[i]['geometry'] = self.GEOGRID['features'][i]['geometry']
+				geogrid_data[i]['geometry'] = self.get_GEOGRID()['features'][i]['geometry']
 
 		if with_properties|any([I.requires_geogrid_props for I in self.indicators.values()]):
 			geogrid_props = self.get_geogrid_props()
@@ -579,6 +639,7 @@ class Handler(Thread):
 				cell['properties'] = types_def[cell['name']]
 		geogrid_data = GEOGRIDDATA(geogrid_data)
 		geogrid_data.set_geogrid_props(self.get_geogrid_props())
+		geogrid_data.set_geogrid(self.get_GEOGRID())
 		return geogrid_data
 
 	def _get_url(self,url,params=None):
