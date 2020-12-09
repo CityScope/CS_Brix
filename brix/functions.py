@@ -4,6 +4,8 @@ from .classes import Handler
 from .classes import Indicator
 from .classes import CompositeIndicator
 
+import requests
+
 def update_geogrid_data(H, update_func, geogrid_data=None, **kwargs):
   '''
   High order function to update table geogrid data. Based on `update_package`
