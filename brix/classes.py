@@ -286,7 +286,7 @@ class Handler(Thread):
 				raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(I.indicator_type))
 			try:
 				if I.is_composite:
-					indicator_values = self.get_indicator_values(include_composite=False)
+					indicator_values = self.get_indicator_values(geogrid_data=geogrid_data,include_composite=False)
 					self._new_value(indicator_values,indicatorName)
 				else:
 					self._new_value(geogrid_data,indicatorName)
@@ -294,7 +294,7 @@ class Handler(Thread):
 				warn('Indicator not working: '+indicatorName)
 
 	def return_indicator(self,indicator_name):
-		'''Returns the value returned by :func:`brix.Indicator.return_indicator` function of the selected indicator.
+		'''Returns the unformatted value returned by :func:`brix.Indicator.return_indicator` function of the selected indicator.
 
 		Parameters
 		----------
@@ -309,7 +309,7 @@ class Handler(Thread):
 		geogrid_data = self._get_grid_data()
 		I = self.indicators[indicator_name]
 		if I.is_composite:
-			indicator_values = self.get_indicator_values(include_composite=False)
+			indicator_values = self.get_indicator_values(geogrid_data=geogrid_data,include_composite=False)
 			return I.return_indicator(indicator_values)
 		else:
 			return I.return_indicator(geogrid_data)
@@ -467,7 +467,7 @@ class Handler(Thread):
 
 		return {'type':'FeatureCollection','properties':all_properties,'features':combined_features}
 
-	def get_indicator_values(self,include_composite=False):
+	def get_indicator_values(self,geogrid_data=None,include_composite=False):
 		'''
 		Returns the current values of numeric indicators. Used for developing a composite indicator.
 
@@ -481,7 +481,8 @@ class Handler(Thread):
 		indicator_values : dict
 			Dictionary with values for each indicator formatted as: ``{indicator_name: indicator_value, ...}``
 		'''
-		geogrid_data = self._get_grid_data()
+		if geogrid_data is None:
+			geogrid_data = self._get_grid_data()
 		new_values_numeric = []
 		for indicator_name in self.indicators:
 			I = self.indicators[indicator_name]
@@ -560,7 +561,7 @@ class Handler(Thread):
 		geogrid_data = self._get_grid_data()
 		for indicator_name in self.indicators:
 			if self.indicators[indicator_name].is_composite:
-				indicator_values = self.get_indicator_values(include_composite=False)
+				indicator_values = self.get_indicator_values(geogrid_data=geogrid_data,include_composite=False)
 				self._new_value(indicator_values,indicator_name)
 			else:
 				self._new_value(geogrid_data,indicator_name)
@@ -615,17 +616,25 @@ class Handler(Thread):
 				geogrid = r.json()
 				self.GEOGRID = geogrid
 			else:
-				warn('WARNING: Cant access GEOGRID data')
+				warn('WARNING: Cant access GEOGRIDDATA')
 		return self.GEOGRID
 
-	def _get_grid_data(self,include_geometries=False,with_properties=False):
+	def get_GEOGRIDDATA(self):
+		'''
+		Returns the raw GEOGRIDDATA object.
+		This function should be treated as a low-level function, please use :func:`brix.Handler.get_geogrid_data` instead.
+		'''
 		r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRIDDATA_varname)
 		if r.status_code==200:
 			geogrid_data = r.json()
 		else:
-			warn('WARNING: Cant access GEOGRID data')
+			warn('WARNING: Cant access GEOGRIDDATA')
 			sleep(1)
 			geogrid_data = None
+		return geogrid_data
+
+	def _get_grid_data(self,include_geometries=False,with_properties=False):
+		geogrid_data = self.get_GEOGRIDDATA()
 	
 		if include_geometries|any([I.requires_geometry for I in self.indicators.values()]):
 			for i in range(len(geogrid_data)):
