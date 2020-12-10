@@ -576,12 +576,8 @@ class Handler(Thread):
 			Table GEOGRID properties.
 		'''
 		if self.geogrid_props is None:
-			r = self._get_url(self.cityIO_get_url+'/GEOGRID/properties')
-			if r.status_code==200:
-				self.geogrid_props = r.json()
-			else:
-				warn('Cant access cityIO type definitions')
-				sleep(1)
+			geogrid = self.get_GEOGRID()
+			self.geogrid_props = geogrid['properties']
 		return self.geogrid_props
 
 	def get_table_properties(self):
