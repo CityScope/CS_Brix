@@ -756,8 +756,6 @@ class Handler(Thread):
 
 		if not self.quietly:
 			print('Performing initial update')
-			print('Update package example:')
-			print(self.update_package())
 		self.perform_update(append=self.append_on_post)
 
 		if showFront:
