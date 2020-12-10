@@ -205,10 +205,12 @@ class Handler(Thread):
 			Current value of selected indicators.
 		'''
 		if indicator_type in ['numeric']:
-			print(self.cityIO_get_url+'/indicators')
+			if not self.quietly:
+				print(self.cityIO_get_url+'/indicators')
 			r = self._get_url(self.cityIO_get_url+'/indicators')
 		elif indicator_type in ['heatmap','access']:
-			print(self.cityIO_get_url+'/access')
+			if not self.quietly:
+				print(self.cityIO_get_url+'/access')
 			r = self._get_url(self.cityIO_get_url+'/access')
 		else:
 			raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(indicator_type))
@@ -479,7 +481,7 @@ class Handler(Thread):
 		indicator_values : dict
 			Dictionary with values for each indicator formatted as: ``{indicator_name: indicator_value, ...}``
 		'''
-		geogrid_data = self.get_geogrid_data()
+		geogrid_data = self._get_grid_data()
 		new_values_numeric = []
 		for indicator_name in self.indicators:
 			I = self.indicators[indicator_name]
