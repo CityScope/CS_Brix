@@ -32,7 +32,7 @@ class GEOGRIDDATA(list):
 
 	def link_table(self,table_name):
 		'''
-		Sets set_geogrid_props and set_geogrid.
+		Sets geogrid using set_geogrid.
 		This function should use if GEOGRIDDATA needs to be updated.
 
 		Parameters
@@ -44,19 +44,7 @@ class GEOGRIDDATA(list):
 			tableHandler = table_name
 		else:
 			tableHandler = Handler(table_name)
-		self.set_geogrid_props(tableHandler.get_geogrid_props())
 		self.set_geogrid(tableHandler.get_GEOGRID())
-
-	def set_geogrid_props(self,geogrid_props):
-		'''
-		Sets the value of `geogrid_props`
-
-		Parameters
-		----------
-		geogrid_props : dict or list
-			Value of :attr:`brix.Handler.geogrid_props`
-		'''
-		self.geogrid_props = geogrid_props
 
 	def set_geogrid(self,GEOGRID):
 		self.GEOGRID = GEOGRID
@@ -81,7 +69,7 @@ class GEOGRIDDATA(list):
 		geogrid_props : dict or list
 			Value of :attr:`brix.Handler.geogrid_props`
 		'''
-		return self.geogrid_props
+		return self.GEOGRID['properties']
 
 	def grid_size(self):
 		return len(geogrid_data.get_geogrid()['features'])
@@ -631,13 +619,14 @@ class Handler(Thread):
 
 	def _get_grid_data(self,include_geometries=False,with_properties=False):
 		geogrid_data = self.get_GEOGRIDDATA()
+		geogrid = self.get_GEOGRID()
 	
 		if include_geometries|any([I.requires_geometry for I in self.indicators.values()]):
 			for i in range(len(geogrid_data)):
 				geogrid_data[i]['geometry'] = self.get_GEOGRID()['features'][i]['geometry']
 
 		if with_properties|any([I.requires_geogrid_props for I in self.indicators.values()]):
-			geogrid_props = self.get_geogrid_props()
+			geogrid_props = geogrid['properties']
 			types_def = geogrid_props['types'].copy()
 			if 'static_types' in geogrid_props:
 				types_def.update(geogrid_props['static_types'])
@@ -645,8 +634,7 @@ class Handler(Thread):
 			for cell in geogrid_data:
 				cell['properties'] = types_def[cell['name']]
 		geogrid_data = GEOGRIDDATA(geogrid_data)
-		geogrid_data.set_geogrid_props(self.get_geogrid_props())
-		geogrid_data.set_geogrid(self.get_GEOGRID())
+		geogrid_data.set_geogrid(geogrid)
 		return geogrid_data
 
 	def _get_url(self,url,params=None):
