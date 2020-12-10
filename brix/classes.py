@@ -704,11 +704,10 @@ class Handler(Thread):
 		'''
 		if grid_hash_id is None: 
 			grid_hash_id = self.get_grid_hash()	
-		geogrid_data = self._get_grid_data()
 		if not self.quietly:
 			print('Updating table with hash:',grid_hash_id)
 
-		new_values = self.update_package(geogrid_data=geogrid_data,append=append)
+		new_values = self.update_package(append=append)
 
 		if len(new_values['numeric'])!=0:
 			r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(new_values['numeric']))
