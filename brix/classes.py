@@ -101,6 +101,14 @@ class GEOGRIDDATA(list):
 				print('Number of unique cells in geogrid_data does not match grid size')
 			return False
 
+	def is_same(self,geogrid_data):
+		'''
+		Compares that self and the given geogrid_data refer to the same geogrid.
+
+		[NOT YET IMPLEMENTED]
+		'''
+		return True
+
 
 class Handler(Thread):
 	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
@@ -161,6 +169,8 @@ class Handler(Thread):
 		self.geogrid_props=None
 
 		self.reference =reference
+
+		self.pause = False
         
 	def check_table(self,return_value=False):
 		'''Prints the front end url for the table. 
@@ -703,6 +713,7 @@ class Handler(Thread):
 		new_values = self.update_package(append=append)
 
 		if len(new_values['numeric'])!=0:
+
 			r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(new_values['numeric']))
 
 		if len(new_values['heatmap']['features'])!=0:
@@ -755,6 +766,11 @@ class Handler(Thread):
 			webbrowser.open(self.front_end_url, new=2)
 		while True:
 			sleep(self.sleep_time)
+			if self.pause:
+				while True:
+					sleep(self.sleep_time)
+					if not self.pause:
+						break
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
 				self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
@@ -790,6 +806,60 @@ class Handler(Thread):
 			self.start()
 		else:
 			self._listen(showFront=showFront)
+
+	def pause_listen(self):
+		self.pause = True
+
+	def resume_listen(self):
+		self.pause = False
+
+	def update_geogrid_data(self, update_func, geogrid_data=None, **kwargs):
+		'''
+		High order function to update table geogrid data. 
+		THIS FUNCTION IS STILL NOT STABLE.
+
+		Parameters
+		----------
+		update_func : function
+			function to update the geogriddadata (list of dicts)
+			Function should return a list of dicts that represents a valid geogiddata object.
+
+		Example
+		-------
+		>>> def add_height(geogrid_data, levels):
+				for cell in geogrid_data:
+					cell['height'] += levels
+				return geogrid_data
+		>>> H = Handler('tablename', quietly=False)
+		>>> H.update_landuse(add_height)
+		'''
+		self.pause_listen()
+		if geogrid_data is None:
+			geogrid_data = self._get_grid_data()
+
+		new_geogrid_data = update_func(geogrid_data, **kwargs)
+
+		new_geogrid_data = GEOGRIDDATA(new_geogrid_data)
+		new_geogrid_data.set_geogrid(self.get_GEOGRID())
+
+		if not new_geogrid_data.check_type_validity():
+			raise NameError('Type not found in table definition.')
+
+		if not new_geogrid_data.check_id_validity():
+			raise NameError('IDs do not match.')
+
+		if not new_geogrid_data.is_same(geogrid_data):
+			raise NameError('Geogrid does not match existing layout.')
+
+		r = requests.post(self.cityIO_post_url+'/'+self.GEOGRIDDATA_varname, data=json.dumps(new_geogrid_data))
+
+		self.grid_hash_id = self.get_grid_hash()
+
+		self.resume_listen()
+
+		if not self.quietly:
+			print('Done with update')
+
 
 
 class Indicator:
