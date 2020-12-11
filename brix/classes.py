@@ -15,8 +15,9 @@ from threading import Thread
 
 class GEOGRIDDATA(list):
 	'''
-	Glass to package the input needed by each indicator. 
+	Class to package the input needed by each indicator. 
 	This class extends a simple list to charge it with additional properties, if needed.
+	It's mainly used for internal purposes. 
 
 	Parameters
 	----------
@@ -891,6 +892,8 @@ class Indicator:
 			else:
 				self.requires_geometry = False
 
+		self.return_indicator_user = None
+
 
 	def setup(self):
 		'''User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an `__init__` method.'''
@@ -909,7 +912,21 @@ class Indicator:
 		indicator_value : list, dict, or float
 			Value of indicator or list of values. When returning a dict, please use the format ``{'name': 'Indicator Name', 'value': indicator_value}``. When returning a list, please return a list of dictionaries in the same format. 
 		'''
-		return {}
+		if self.return_indicator_user is not None:
+			return self.return_indicator_user(geogrid_data)
+		else:
+			return {}
+
+	def set_return_indicator(self,return_indicator):
+		'''
+		Used to set the return_indicator method by passing a function.
+
+		Parameters
+		----------
+		return_indicator: func
+			Function that takes `geogrid_data` as input.
+		'''
+		self.return_indicator_user = return_indicator
 
 
 	def load_module(self):
