@@ -165,7 +165,6 @@ class Handler(Thread):
 
 		self.reference =reference
 
-		self.pause = False
         
 	def check_table(self,return_value=False):
 		'''Prints the front end url for the table. 
@@ -798,11 +797,6 @@ class Handler(Thread):
 			webbrowser.open(self.front_end_url, new=2)
 		while True:
 			sleep(self.sleep_time)
-			if self.pause:
-				while True:
-					sleep(self.sleep_time)
-					if not self.pause:
-						break
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
 				self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
@@ -819,7 +813,8 @@ class Handler(Thread):
 		Listens for changes in the table's geogrid and update all indicators accordingly. 
 		You can use the update_package method to see the object that will be posted to the table.
 		This method starts with an update before listening.
-		This runs in a separate thread by default.
+		Can run in a separate thread.
+		Does not support updating GEOGRIDDATA.
 
 		Parameters
 		----------
@@ -838,12 +833,6 @@ class Handler(Thread):
 			self.start()
 		else:
 			self._listen(showFront=showFront)
-
-	def pause_listen(self):
-		self.pause = True
-
-	def resume_listen(self):
-		self.pause = False
 
 	def reset_geogrid_data(self):
 		'''
@@ -877,8 +866,7 @@ class Handler(Thread):
 
 	def update_geogrid_data(self, update_func, geogrid_data=None, **kwargs):
 		'''
-		High order function to update table geogrid data. 
-		THIS FUNCTION IS STILL NOT STABLE.
+		Function to update table GEOGRIDDATA.
 
 		Parameters
 		----------
@@ -895,16 +883,12 @@ class Handler(Thread):
 		>>> H = Handler('tablename', quietly=False)
 		>>> H.update_landuse(add_height)
 		'''
-		self.pause_listen()
 		if geogrid_data is None:
 			geogrid_data = self._get_grid_data()
 
 		new_geogrid_data = update_func(geogrid_data, **kwargs)
 
-		self.post_geogrid_data(new_geogrid_data)	
-
-		self.resume_listen()
-
+		self.post_geogrid_data(new_geogrid_data)
 		if not self.quietly:
 			print('Done with update')
 
