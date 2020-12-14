@@ -26,6 +26,8 @@ class GEOGRIDDATA(list):
 	'''
 	def __init__(self,geogrid_data):
 		super(GEOGRIDDATA, self).__init__()
+		if isinstance(geogrid_data,dict):
+			raise NameError('Invalid GEOGRIDDATA endpoint.\nYou need to update your grid at least once.')
 		for e in geogrid_data:
 			self.append(e)
 		self.geogrid_props = None
