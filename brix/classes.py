@@ -163,7 +163,8 @@ class Handler(Thread):
 		self.none_character = 0
 		self.geogrid_props=None
 
-		self.reference =reference
+		self.reference = reference
+		self.classification_list = ['LBCS','NAICS']
 
         
 	def check_table(self,return_value=False):
@@ -628,16 +629,17 @@ class Handler(Thread):
 		new_code_proportion = {k:new_code_proportion[k]/total for k in new_code_proportion}
 		return new_code_proportion
 
-	def parse_classifications(self,geogrid, classification_list = ['LBCS','NAICS']):
+	def parse_classifications(self,geogrid):
 		'''
 		Helper function to parse the LBCS and NAICS strings into dictionaries of the form:
 		{'6700': 0.3, '2310': 0.21, '4100': 0.49}
 		'''
 		for t in geogrid['properties']['types']:
-			for code in classification_list:
-				code_proportion = geogrid['properties']['types'][t][code]
-				if code_proportion !='null':
-					code_proportion = json.loads(geogrid['properties']['types'][t][code])
+			for code in self.classification_list:
+				code_proportion = geogrid['properties']['types'][t][code]	
+				if (code_proportion is not None) and (code_proportion !='null'):
+					if isinstance(geogrid['properties']['types'][t][code],str):
+						code_proportion = json.loads(geogrid['properties']['types'][t][code])
 					code_proportion = self.normalize_codes(code_proportion)
 				else:
 					code_proportion = None
@@ -713,16 +715,36 @@ class Handler(Thread):
 			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.
 		'''
 		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
+
 		if as_df:
 			for cell in geogrid_data:
 				if 'properties' in cell.keys():
 					cell_props = cell['properties']
 					for k in cell_props:
-						cell[f'property_{k}'] = cell_props[k]
+						if cell_props[k] is not None:
+							if k not in self.classification_list:
+								cell[f'property_{k}'] = cell_props[k]
+							else:
+								for code in cell_props[k]:
+									cell[f'{k}_{code}'] = cell_props[k][code]
 					del cell['properties']
 			geogrid_data = pd.DataFrame(geogrid_data)
+			columns_order = [c for c in geogrid_data.columns if c.split('_')[0] not in self.classification_list]
+			columns_order+= sorted([c for c in geogrid_data.columns if c.split('_')[0] in self.classification_list])
+			geogrid_data = geogrid_data[columns_order]
 			if include_geometries:
 				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
+
+		# if as_df:
+		# 	for cell in geogrid_data:
+		# 		if 'properties' in cell.keys():
+		# 			cell_props = cell['properties']
+		# 			for k in cell_props:
+		# 				cell[f'property_{k}'] = cell_props[k]
+		# 			del cell['properties']
+		# 	geogrid_data = pd.DataFrame(geogrid_data)
+		# 	if include_geometries:
+		# 		geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 		return geogrid_data
 
 	def perform_update(self,grid_hash_id=None,append=False):
