@@ -27,7 +27,7 @@ class GEOGRIDDATA(list):
 	def __init__(self,geogrid_data):
 		super(GEOGRIDDATA, self).__init__()
 		if isinstance(geogrid_data,dict):
-			raise NameError('Invalid GEOGRIDDATA endpoint.\nYou need to update your grid at least once.')
+			raise NameError('Invalid GEOGRIDDATA endpoint. You need to update your grid at least once. See Handler.reset_geogrid_data()')
 		for e in geogrid_data:
 			self.append(e)
 		self.geogrid_props = None
@@ -75,7 +75,7 @@ class GEOGRIDDATA(list):
 		return self.GEOGRID['properties']
 
 	def grid_size(self):
-		return len(geogrid_data.get_geogrid()['features'])
+		return len(self.get_geogrid()['features'])
 
 	def get_type_info(self):
 		return self.get_geogrid_props()['types']
@@ -96,7 +96,7 @@ class GEOGRIDDATA(list):
 			return False
 
 	def check_id_validity(self,quietly=True):
-		n_unique_ids = len(set([cell['id'] for cell in geogrid_data]))
+		n_unique_ids = len(set([cell['id'] for cell in self]))
 		if n_unique_ids==self.grid_size():
 			return True
 		else:
@@ -853,6 +853,36 @@ class Handler(Thread):
 	def resume_listen(self):
 		self.pause = False
 
+	def reset_geogrid_data(self):
+		'''
+		Resets the GEOGRIDDATA endpoint to the initial value.
+		If the GEOGRIDDATA has not been updated, this will update it. 
+		'''
+		geogrid_data = []
+		for i,cell in enumerate(self.get_GEOGRID()['features']):
+			cell = cell['properties']
+			cell['id'] = i
+			geogrid_data.append(cell)
+		self.post_geogrid_data(geogrid_data)
+
+	def post_geogrid_data(self,geogrid_data):
+		'''
+		Posts the given geogrid_data object, ensuring that the object is valid.
+		'''
+		geogrid_data = GEOGRIDDATA(geogrid_data)
+		geogrid_data.set_geogrid(self.get_GEOGRID())
+
+		if not geogrid_data.check_type_validity():
+			raise NameError('Type not found in table definition.')
+
+		if not geogrid_data.check_id_validity():
+			raise NameError('IDs do not match.')
+
+		geogrid_data = list(geogrid_data)
+		r = requests.post(self.cityIO_post_url+'/'+self.GEOGRIDDATA_varname, data=json.dumps(geogrid_data))
+		self.grid_hash_id = self.get_grid_hash()
+
+
 	def update_geogrid_data(self, update_func, geogrid_data=None, **kwargs):
 		'''
 		High order function to update table geogrid data. 
@@ -879,21 +909,7 @@ class Handler(Thread):
 
 		new_geogrid_data = update_func(geogrid_data, **kwargs)
 
-		new_geogrid_data = GEOGRIDDATA(new_geogrid_data)
-		new_geogrid_data.set_geogrid(self.get_GEOGRID())
-
-		if not new_geogrid_data.check_type_validity():
-			raise NameError('Type not found in table definition.')
-
-		if not new_geogrid_data.check_id_validity():
-			raise NameError('IDs do not match.')
-
-		if not new_geogrid_data.is_same(geogrid_data):
-			raise NameError('Geogrid does not match existing layout.')
-
-		r = requests.post(self.cityIO_post_url+'/'+self.GEOGRIDDATA_varname, data=json.dumps(new_geogrid_data))
-
-		self.grid_hash_id = self.get_grid_hash()
+		self.post_geogrid_data(new_geogrid_data)	
 
 		self.resume_listen()
 
