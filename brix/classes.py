@@ -609,10 +609,47 @@ class Handler(Thread):
 			r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRID_varname)
 			if r.status_code==200:
 				geogrid = r.json()
+				try:
+					geogrid = self.parse_classifications(geogrid)
+				except:
+					warn('NAICS and LBCS classifications were not properly parsed.')
 				self.GEOGRID = geogrid
 			else:
 				warn('WARNING: Cant access GEOGRIDDATA')
 		return self.GEOGRID
+
+	def normalize_codes(self,code_proportion):
+		'''
+		Helper function to transform:
+		[{'proportion': 0.3, 'use': {'6700': 1}}, {'proportion': 0.7, 'use': {'2310': 0.3, '4100': 0.7}}]
+
+		into:
+		{'6700': 0.3, '2310': 0.21, '4100': 0.49}
+		'''
+		new_code_proportion = defaultdict(lambda: 0)
+		for prop in code_proportion:
+			for code in prop['use']:
+				new_code_proportion[code]+= round(prop['proportion']*prop['use'][code],5)
+		new_code_proportion = dict(new_code_proportion)
+		total = sum(new_code_proportion.values())
+		new_code_proportion = {k:new_code_proportion[k]/total for k in new_code_proportion}
+		return new_code_proportion
+
+	def parse_classifications(self,geogrid, classification_list = ['LBCS','NAICS']):
+		'''
+		Helper function to parse the LBCS and NAICS strings into dictionaries of the form:
+		{'6700': 0.3, '2310': 0.21, '4100': 0.49}
+		'''
+		for t in geogrid['properties']['types']:
+			for code in classification_list:
+				code_proportion = geogrid['properties']['types'][t][code]
+				if code_proportion !='null':
+					code_proportion = json.loads(geogrid['properties']['types'][t][code])
+					code_proportion = self.normalize_codes(code_proportion)
+				else:
+					code_proportion = None
+				geogrid['properties']['types'][t][code] = code_proportion
+		return geogrid
 
 	def get_GEOGRIDDATA(self):
 		'''
