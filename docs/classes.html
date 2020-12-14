@@ -245,6 +245,18 @@ the main thread default to daemon = False.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.get_GEOGRID">
+<code class="sig-name descname">get_GEOGRID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_GEOGRID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_GEOGRID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.get_GEOGRIDDATA">
+<code class="sig-name descname">get_GEOGRIDDATA</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_GEOGRIDDATA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_GEOGRIDDATA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the raw GEOGRIDDATA object.
+This function should be treated as a low-level function, please use <a class="reference internal" href="#brix.Handler.get_geogrid_data" title="brix.Handler.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_geogrid_data()</span></code></a> instead.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.get_geogrid_data">
 <code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">include_geometries=False</em>, <em class="sig-param">with_properties=False</em>, <em class="sig-param">as_df=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the geogrid data from:
@@ -289,7 +301,7 @@ the main thread default to daemon = False.</p>
 
 <dl class="method">
 <dt id="brix.Handler.get_indicator_values">
-<code class="sig-name descname">get_indicator_values</code><span class="sig-paren">(</span><em class="sig-param">include_composite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_indicator_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_indicator_values" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_indicator_values</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data=None</em>, <em class="sig-param">include_composite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_indicator_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_indicator_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the current values of numeric indicators. Used for developing a composite indicator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -430,8 +442,29 @@ This represents the Thread ID as reported by the kernel.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.normalize_codes">
+<code class="sig-name descname">normalize_codes</code><span class="sig-paren">(</span><em class="sig-param">code_proportion</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.normalize_codes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.normalize_codes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to transform:
+[{‘proportion’: 0.3, ‘use’: {‘6700’: 1}}, {‘proportion’: 0.7, ‘use’: {‘2310’: 0.3, ‘4100’: 0.7}}]</p>
+<p>into:
+{‘6700’: 0.3, ‘2310’: 0.21, ‘4100’: 0.49}</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.parse_classifications">
+<code class="sig-name descname">parse_classifications</code><span class="sig-paren">(</span><em class="sig-param">geogrid, classification_list=['LBCS', 'NAICS']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.parse_classifications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.parse_classifications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to parse the LBCS and NAICS strings into dictionaries of the form:
+{‘6700’: 0.3, ‘2310’: 0.21, ‘4100’: 0.49}</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.pause_listen">
+<code class="sig-name descname">pause_listen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.pause_listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.pause_listen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.perform_update">
-<code class="sig-name descname">perform_update</code><span class="sig-paren">(</span><em class="sig-param">grid_hash_id=None</em>, <em class="sig-param">append=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.perform_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.perform_update" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">perform_update</code><span class="sig-paren">(</span><em class="sig-param">grid_hash_id=None</em>, <em class="sig-param">append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.perform_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.perform_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs single table update.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -444,9 +477,27 @@ This represents the Thread ID as reported by the kernel.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.post_geogrid_data">
+<code class="sig-name descname">post_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.post_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.post_geogrid_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Posts the given geogrid_data object, ensuring that the object is valid.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.reset_geogrid_data">
+<code class="sig-name descname">reset_geogrid_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.reset_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.reset_geogrid_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the GEOGRIDDATA endpoint to the initial value.
+If the GEOGRIDDATA has not been updated, this will update it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.resume_listen">
+<code class="sig-name descname">resume_listen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.resume_listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.resume_listen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.return_indicator">
 <code class="sig-name descname">return_indicator</code><span class="sig-paren">(</span><em class="sig-param">indicator_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.return_indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.return_indicator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the value returned by <a class="reference internal" href="#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function of the selected indicator.</p>
+<dd><p>Returns the unformatted value returned by <a class="reference internal" href="#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function of the selected indicator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>indicator_name</strong> (<em>str</em>) – Name or identifier of the indicator. See <a class="reference internal" href="#brix.Handler.list_indicators" title="brix.Handler.list_indicators"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.list_indicators()</span></code></a></p>
@@ -515,6 +566,28 @@ same thread object.</p>
 <dt id="brix.Handler.test_indicators">
 <code class="sig-name descname">test_indicators</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.test_indicators"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.test_indicators" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dry run over all indicators.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.update_geogrid_data">
+<code class="sig-name descname">update_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">update_func</em>, <em class="sig-param">geogrid_data=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.update_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.update_geogrid_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>High order function to update table geogrid data.
+THIS FUNCTION IS STILL NOT STABLE.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>update_func</strong> (<em>function</em>) – function to update the geogriddadata (list of dicts)
+Function should return a list of dicts that represents a valid geogiddata object.</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">add_height</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span> <span class="n">levels</span><span class="p">):</span>
+<span class="go">                for cell in geogrid_data:</span>
+<span class="go">                        cell[&#39;height&#39;] += levels</span>
+<span class="go">                return geogrid_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="n">quietly</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">H</span><span class="o">.</span><span class="n">update_landuse</span><span class="p">(</span><span class="n">add_height</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -615,6 +688,17 @@ same thread object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Indicator.set_return_indicator">
+<code class="sig-name descname">set_return_indicator</code><span class="sig-paren">(</span><em class="sig-param">return_indicator</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.set_return_indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.set_return_indicator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to set the return_indicator method by passing a function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>return_indicator</strong> (<em>func</em>) – Function that takes <cite>geogrid_data</cite> as input.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.Indicator.setup">
 <code class="sig-name descname">setup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.setup" title="Permalink to this definition">¶</a></dt>
 <dd><p>User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an <cite>__init__</cite> method.</p>
@@ -693,6 +777,17 @@ same thread object.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.CompositeIndicator.set_return_indicator">
+<code class="sig-name descname">set_return_indicator</code><span class="sig-paren">(</span><em class="sig-param">return_indicator</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.set_return_indicator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to set the return_indicator method by passing a function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>return_indicator</strong> (<em>func</em>) – Function that takes <cite>geogrid_data</cite> as input.</p>
 </dd>
 </dl>
 </dd></dl>

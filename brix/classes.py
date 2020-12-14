@@ -15,8 +15,9 @@ from threading import Thread
 
 class GEOGRIDDATA(list):
 	'''
-	Glass to package the input needed by each indicator. 
+	Class to package the input needed by each indicator. 
 	This class extends a simple list to charge it with additional properties, if needed.
+	It's mainly used for internal purposes. 
 
 	Parameters
 	----------
@@ -25,20 +26,42 @@ class GEOGRIDDATA(list):
 	'''
 	def __init__(self,geogrid_data):
 		super(GEOGRIDDATA, self).__init__()
+		if isinstance(geogrid_data,dict):
+			raise NameError('Invalid GEOGRIDDATA endpoint. You need to update your grid at least once. See Handler.reset_geogrid_data()')
 		for e in geogrid_data:
 			self.append(e)
 		self.geogrid_props = None
+		self.GEOGRID = None
 
-	def set_geogrid_props(self,geogrid_props):
+	def link_table(self,table_name):
 		'''
-		Sets the value of `geogrid_props`
+		Sets geogrid using set_geogrid.
+		This function should use if GEOGRIDDATA needs to be updated.
 
 		Parameters
 		----------
-		geogrid_props : dict or list
-			Value of :attr:`brix.Handler.geogrid_props`
+		table_name: str or :class:`brix.Handler`
+			Name of the table or Handler object.
 		'''
-		self.geogrid_props = geogrid_props
+		if isinstance(table_name,Handler):
+			tableHandler = table_name
+		else:
+			tableHandler = Handler(table_name)
+		self.set_geogrid(tableHandler.get_GEOGRID())
+
+	def set_geogrid(self,GEOGRID):
+		self.GEOGRID = GEOGRID
+
+	def get_geogrid(self):
+		'''
+		Get the value of GEOGRIDDATA from the corresponding :class:`brix.Handler`.
+
+		Returns
+		-------
+		GEOGRID : dict
+			Value of GEOGRID
+		'''
+		return self.GEOGRID
 
 	def get_geogrid_props(self):
 		'''
@@ -49,7 +72,38 @@ class GEOGRIDDATA(list):
 		geogrid_props : dict or list
 			Value of :attr:`brix.Handler.geogrid_props`
 		'''
-		return self.geogrid_props
+		return self.GEOGRID['properties']
+
+	def grid_size(self):
+		return len(self.get_geogrid()['features'])
+
+	def get_type_info(self):
+		return self.get_geogrid_props()['types']
+
+	def get_type_set(self):
+		return set(self.get_geogrid_props()['types'])
+
+	def number_of_types(self):
+		return len(self.get_type_set())
+
+	def check_type_validity(self,quietly=True):
+		non_defined_cells = set([cell['name'] for cell in self]).difference(self.get_type_set())
+		if len(non_defined_cells)==0:
+			return True
+		else:
+			if not quietly:
+				print('Unrecognized types:',non_defined_cells)
+			return False
+
+	def check_id_validity(self,quietly=True):
+		n_unique_ids = len(set([cell['id'] for cell in self]))
+		if n_unique_ids==self.grid_size():
+			return True
+		else:
+			if not quietly:
+				print('Number of unique cells in geogrid_data does not match grid size')
+			return False
+
 
 class Handler(Thread):
 	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
@@ -110,6 +164,8 @@ class Handler(Thread):
 		self.geogrid_props=None
 
 		self.reference =reference
+
+		self.pause = False
         
 	def check_table(self,return_value=False):
 		'''Prints the front end url for the table. 
@@ -142,10 +198,12 @@ class Handler(Thread):
 			Current value of selected indicators.
 		'''
 		if indicator_type in ['numeric']:
-			print(self.cityIO_get_url+'/indicators')
+			if not self.quietly:
+				print(self.cityIO_get_url+'/indicators')
 			r = self._get_url(self.cityIO_get_url+'/indicators')
 		elif indicator_type in ['heatmap','access']:
-			print(self.cityIO_get_url+'/access')
+			if not self.quietly:
+				print(self.cityIO_get_url+'/access')
 			r = self._get_url(self.cityIO_get_url+'/access')
 		else:
 			raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(indicator_type))
@@ -221,7 +279,7 @@ class Handler(Thread):
 				raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(I.indicator_type))
 			try:
 				if I.is_composite:
-					indicator_values = self.get_indicator_values(include_composite=False)
+					indicator_values = self.get_indicator_values(geogrid_data=geogrid_data,include_composite=False)
 					self._new_value(indicator_values,indicatorName)
 				else:
 					self._new_value(geogrid_data,indicatorName)
@@ -229,7 +287,7 @@ class Handler(Thread):
 				warn('Indicator not working: '+indicatorName)
 
 	def return_indicator(self,indicator_name):
-		'''Returns the value returned by :func:`brix.Indicator.return_indicator` function of the selected indicator.
+		'''Returns the unformatted value returned by :func:`brix.Indicator.return_indicator` function of the selected indicator.
 
 		Parameters
 		----------
@@ -244,7 +302,7 @@ class Handler(Thread):
 		geogrid_data = self._get_grid_data()
 		I = self.indicators[indicator_name]
 		if I.is_composite:
-			indicator_values = self.get_indicator_values(include_composite=False)
+			indicator_values = self.get_indicator_values(geogrid_data=geogrid_data,include_composite=False)
 			return I.return_indicator(indicator_values)
 		else:
 			return I.return_indicator(geogrid_data)
@@ -371,7 +429,6 @@ class Handler(Thread):
 					new_value['indicator_type'] = I.indicator_type
 				if ('viz_type' not in new_value.keys())&(I.viz_type is not None):
 					new_value['viz_type'] = I.viz_type
-				print(new_value)
 				return [new_value]
 
 
@@ -403,7 +460,7 @@ class Handler(Thread):
 
 		return {'type':'FeatureCollection','properties':all_properties,'features':combined_features}
 
-	def get_indicator_values(self,include_composite=False):
+	def get_indicator_values(self,geogrid_data=None,include_composite=False):
 		'''
 		Returns the current values of numeric indicators. Used for developing a composite indicator.
 
@@ -417,7 +474,8 @@ class Handler(Thread):
 		indicator_values : dict
 			Dictionary with values for each indicator formatted as: ``{indicator_name: indicator_value, ...}``
 		'''
-		geogrid_data = self.get_geogrid_data()
+		if geogrid_data is None:
+			geogrid_data = self._get_grid_data()
 		new_values_numeric = []
 		for indicator_name in self.indicators:
 			I = self.indicators[indicator_name]
@@ -496,7 +554,7 @@ class Handler(Thread):
 		geogrid_data = self._get_grid_data()
 		for indicator_name in self.indicators:
 			if self.indicators[indicator_name].is_composite:
-				indicator_values = self.get_indicator_values(include_composite=False)
+				indicator_values = self.get_indicator_values(geogrid_data=geogrid_data,include_composite=False)
 				self._new_value(indicator_values,indicator_name)
 			else:
 				self._new_value(geogrid_data,indicator_name)
@@ -511,12 +569,8 @@ class Handler(Thread):
 			Table GEOGRID properties.
 		'''
 		if self.geogrid_props is None:
-			r = self._get_url(self.cityIO_get_url+'/GEOGRID/properties')
-			if r.status_code==200:
-				self.geogrid_props = r.json()
-			else:
-				warn('Cant access cityIO type definitions')
-				sleep(1)
+			geogrid = self.get_GEOGRID()
+			self.geogrid_props = geogrid['properties']
 		return self.geogrid_props
 
 	def get_table_properties(self):
@@ -544,28 +598,77 @@ class Handler(Thread):
 			grid_hash_id=self.grid_hash_id
 		return grid_hash_id
 
-	def _get_grid_data(self,include_geometries=False,with_properties=False):
+	def get_GEOGRID(self):
+		if self.GEOGRID is None:
+			r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRID_varname)
+			if r.status_code==200:
+				geogrid = r.json()
+				try:
+					geogrid = self.parse_classifications(geogrid)
+				except:
+					warn('NAICS and LBCS classifications were not properly parsed.')
+				self.GEOGRID = geogrid
+			else:
+				warn('WARNING: Cant access GEOGRIDDATA')
+		return self.GEOGRID
+
+	def normalize_codes(self,code_proportion):
+		'''
+		Helper function to transform:
+		[{'proportion': 0.3, 'use': {'6700': 1}}, {'proportion': 0.7, 'use': {'2310': 0.3, '4100': 0.7}}]
+
+		into:
+		{'6700': 0.3, '2310': 0.21, '4100': 0.49}
+		'''
+		new_code_proportion = defaultdict(lambda: 0)
+		for prop in code_proportion:
+			for code in prop['use']:
+				new_code_proportion[code]+= round(prop['proportion']*prop['use'][code],5)
+		new_code_proportion = dict(new_code_proportion)
+		total = sum(new_code_proportion.values())
+		new_code_proportion = {k:new_code_proportion[k]/total for k in new_code_proportion}
+		return new_code_proportion
+
+	def parse_classifications(self,geogrid, classification_list = ['LBCS','NAICS']):
+		'''
+		Helper function to parse the LBCS and NAICS strings into dictionaries of the form:
+		{'6700': 0.3, '2310': 0.21, '4100': 0.49}
+		'''
+		for t in geogrid['properties']['types']:
+			for code in classification_list:
+				code_proportion = geogrid['properties']['types'][t][code]
+				if code_proportion !='null':
+					code_proportion = json.loads(geogrid['properties']['types'][t][code])
+					code_proportion = self.normalize_codes(code_proportion)
+				else:
+					code_proportion = None
+				geogrid['properties']['types'][t][code] = code_proportion
+		return geogrid
+
+	def get_GEOGRIDDATA(self):
+		'''
+		Returns the raw GEOGRIDDATA object.
+		This function should be treated as a low-level function, please use :func:`brix.Handler.get_geogrid_data` instead.
+		'''
 		r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRIDDATA_varname)
 		if r.status_code==200:
 			geogrid_data = r.json()
 		else:
-			warn('WARNING: Cant access GEOGRID data')
+			warn('WARNING: Cant access GEOGRIDDATA')
 			sleep(1)
 			geogrid_data = None
+		return geogrid_data
+
+	def _get_grid_data(self,include_geometries=False,with_properties=False):
+		geogrid_data = self.get_GEOGRIDDATA()
+		geogrid = self.get_GEOGRID()
 	
 		if include_geometries|any([I.requires_geometry for I in self.indicators.values()]):
-			if self.GEOGRID is None:
-				r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRID_varname)
-				if r.status_code==200:
-					geogrid = r.json()
-					self.GEOGRID = geogrid
-				else:
-					warn('WARNING: Cant access GEOGRID data')
 			for i in range(len(geogrid_data)):
-				geogrid_data[i]['geometry'] = self.GEOGRID['features'][i]['geometry']
+				geogrid_data[i]['geometry'] = self.get_GEOGRID()['features'][i]['geometry']
 
 		if with_properties|any([I.requires_geogrid_props for I in self.indicators.values()]):
-			geogrid_props = self.get_geogrid_props()
+			geogrid_props = geogrid['properties']
 			types_def = geogrid_props['types'].copy()
 			if 'static_types' in geogrid_props:
 				types_def.update(geogrid_props['static_types'])
@@ -573,7 +676,7 @@ class Handler(Thread):
 			for cell in geogrid_data:
 				cell['properties'] = types_def[cell['name']]
 		geogrid_data = GEOGRIDDATA(geogrid_data)
-		geogrid_data.set_geogrid_props(self.get_geogrid_props())
+		geogrid_data.set_geogrid(geogrid)
 		return geogrid_data
 
 	def _get_url(self,url,params=None):
@@ -623,7 +726,7 @@ class Handler(Thread):
 				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 		return geogrid_data
 
-	def perform_update(self,grid_hash_id=None,append=True):
+	def perform_update(self,grid_hash_id=None,append=False):
 		'''
 		Performs single table update.
 
@@ -636,13 +739,13 @@ class Handler(Thread):
 		'''
 		if grid_hash_id is None: 
 			grid_hash_id = self.get_grid_hash()	
-		geogrid_data = self._get_grid_data()
 		if not self.quietly:
 			print('Updating table with hash:',grid_hash_id)
 
-		new_values = self.update_package(geogrid_data=geogrid_data,append=append)
+		new_values = self.update_package(append=append)
 
 		if len(new_values['numeric'])!=0:
+
 			r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(new_values['numeric']))
 
 		if len(new_values['heatmap']['features'])!=0:
@@ -689,14 +792,17 @@ class Handler(Thread):
 
 		if not self.quietly:
 			print('Performing initial update')
-			print('Update package example:')
-			print(self.update_package())
 		self.perform_update(append=self.append_on_post)
 
 		if showFront:
 			webbrowser.open(self.front_end_url, new=2)
 		while True:
 			sleep(self.sleep_time)
+			if self.pause:
+				while True:
+					sleep(self.sleep_time)
+					if not self.pause:
+						break
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
 				self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
@@ -733,6 +839,76 @@ class Handler(Thread):
 		else:
 			self._listen(showFront=showFront)
 
+	def pause_listen(self):
+		self.pause = True
+
+	def resume_listen(self):
+		self.pause = False
+
+	def reset_geogrid_data(self):
+		'''
+		Resets the GEOGRIDDATA endpoint to the initial value.
+		If the GEOGRIDDATA has not been updated, this will update it. 
+		'''
+		geogrid_data = []
+		for i,cell in enumerate(self.get_GEOGRID()['features']):
+			cell = cell['properties']
+			cell['id'] = i
+			geogrid_data.append(cell)
+		self.post_geogrid_data(geogrid_data)
+
+	def post_geogrid_data(self,geogrid_data):
+		'''
+		Posts the given geogrid_data object, ensuring that the object is valid.
+		'''
+		geogrid_data = GEOGRIDDATA(geogrid_data)
+		geogrid_data.set_geogrid(self.get_GEOGRID())
+
+		if not geogrid_data.check_type_validity():
+			raise NameError('Type not found in table definition.')
+
+		if not geogrid_data.check_id_validity():
+			raise NameError('IDs do not match.')
+
+		geogrid_data = list(geogrid_data)
+		r = requests.post(self.cityIO_post_url+'/'+self.GEOGRIDDATA_varname, data=json.dumps(geogrid_data))
+		self.grid_hash_id = self.get_grid_hash()
+
+
+	def update_geogrid_data(self, update_func, geogrid_data=None, **kwargs):
+		'''
+		High order function to update table geogrid data. 
+		THIS FUNCTION IS STILL NOT STABLE.
+
+		Parameters
+		----------
+		update_func : function
+			function to update the geogriddadata (list of dicts)
+			Function should return a list of dicts that represents a valid geogiddata object.
+
+		Example
+		-------
+		>>> def add_height(geogrid_data, levels):
+				for cell in geogrid_data:
+					cell['height'] += levels
+				return geogrid_data
+		>>> H = Handler('tablename', quietly=False)
+		>>> H.update_landuse(add_height)
+		'''
+		self.pause_listen()
+		if geogrid_data is None:
+			geogrid_data = self._get_grid_data()
+
+		new_geogrid_data = update_func(geogrid_data, **kwargs)
+
+		self.post_geogrid_data(new_geogrid_data)	
+
+		self.resume_listen()
+
+		if not self.quietly:
+			print('Done with update')
+
+
 
 class Indicator:
 	'''Parent class to build indicators from. To use, you need to define a subclass than inherets properties from this class. Doing so, ensures your indicator inherets the necessary methods and properties to connect with a CityScipe table.'''
@@ -763,6 +939,8 @@ class Indicator:
 			else:
 				self.requires_geometry = False
 
+		self.return_indicator_user = None
+
 
 	def setup(self):
 		'''User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an `__init__` method.'''
@@ -781,7 +959,21 @@ class Indicator:
 		indicator_value : list, dict, or float
 			Value of indicator or list of values. When returning a dict, please use the format ``{'name': 'Indicator Name', 'value': indicator_value}``. When returning a list, please return a list of dictionaries in the same format. 
 		'''
-		return {}
+		if self.return_indicator_user is not None:
+			return self.return_indicator_user(geogrid_data)
+		else:
+			return {}
+
+	def set_return_indicator(self,return_indicator):
+		'''
+		Used to set the return_indicator method by passing a function.
+
+		Parameters
+		----------
+		return_indicator: func
+			Function that takes `geogrid_data` as input.
+		'''
+		self.return_indicator_user = return_indicator
 
 
 	def load_module(self):

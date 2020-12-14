@@ -39,10 +39,10 @@ class Diversity(Indicator):
 	'''
 	Example of a diversity of land use indicator
 	'''
-	def setup(self):
+	def setup(self,viz_type = 'bar'):
 		self.name = 'Entropy'
 		self.requires_geogrid_props = False
-		self.viz_type = 'bar'
+		self.viz_type = viz_type
 
 	def return_indicator(self, geogrid_data):
 		uses = [cell['name'] for cell in geogrid_data]
@@ -54,6 +54,8 @@ class Diversity(Indicator):
 		for key in frequencies:
 			p = frequencies[key]/total
 			entropy += -p*log(p)
+
+		entropy = entropy/log(geogrid_data.number_of_types())
 
 		return entropy
 

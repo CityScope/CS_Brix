@@ -166,8 +166,9 @@
 
 <span class="k">class</span> <span class="nc">GEOGRIDDATA</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Glass to package the input needed by each indicator. </span>
+<span class="sd">	Class to package the input needed by each indicator. </span>
 <span class="sd">	This class extends a simple list to charge it with additional properties, if needed.</span>
+<span class="sd">	It&#39;s mainly used for internal purposes. </span>
 
 <span class="sd">	Parameters</span>
 <span class="sd">	----------</span>
@@ -176,20 +177,42 @@
 <span class="sd">	&#39;&#39;&#39;</span>
 	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_data</span><span class="p">):</span>
 		<span class="nb">super</span><span class="p">(</span><span class="n">GEOGRIDDATA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="nb">dict</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Invalid GEOGRIDDATA endpoint. You need to update your grid at least once. See Handler.reset_geogrid_data()&#39;</span><span class="p">)</span>
 		<span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="o">=</span> <span class="kc">None</span>
 
-	<span class="k">def</span> <span class="nf">set_geogrid_props</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_props</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">link_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">table_name</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Sets the value of `geogrid_props`</span>
+<span class="sd">		Sets geogrid using set_geogrid.</span>
+<span class="sd">		This function should use if GEOGRIDDATA needs to be updated.</span>
 
 <span class="sd">		Parameters</span>
 <span class="sd">		----------</span>
-<span class="sd">		geogrid_props : dict or list</span>
-<span class="sd">			Value of :attr:`brix.Handler.geogrid_props`</span>
+<span class="sd">		table_name: str or :class:`brix.Handler`</span>
+<span class="sd">			Name of the table or Handler object.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
-		<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="o">=</span> <span class="n">geogrid_props</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span><span class="n">Handler</span><span class="p">):</span>
+			<span class="n">tableHandler</span> <span class="o">=</span> <span class="n">table_name</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">tableHandler</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_geogrid</span><span class="p">(</span><span class="n">tableHandler</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">())</span>
+
+	<span class="k">def</span> <span class="nf">set_geogrid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">GEOGRID</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="o">=</span> <span class="n">GEOGRID</span>
+
+	<span class="k">def</span> <span class="nf">get_geogrid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Get the value of GEOGRIDDATA from the corresponding :class:`brix.Handler`.</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		GEOGRID : dict</span>
+<span class="sd">			Value of GEOGRID</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span>
 
 	<span class="k">def</span> <span class="nf">get_geogrid_props</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
@@ -200,7 +223,38 @@
 <span class="sd">		geogrid_props : dict or list</span>
 <span class="sd">			Value of :attr:`brix.Handler.geogrid_props`</span>
 <span class="sd">		&#39;&#39;&#39;</span>
-		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="nf">grid_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_geogrid</span><span class="p">()[</span><span class="s1">&#39;features&#39;</span><span class="p">])</span>
+
+	<span class="k">def</span> <span class="nf">get_type_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_geogrid_props</span><span class="p">()[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="nf">get_type_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_geogrid_props</span><span class="p">()[</span><span class="s1">&#39;types&#39;</span><span class="p">])</span>
+
+	<span class="k">def</span> <span class="nf">number_of_types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_type_set</span><span class="p">())</span>
+
+	<span class="k">def</span> <span class="nf">check_type_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">quietly</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="n">non_defined_cells</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_type_set</span><span class="p">())</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_defined_cells</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+			<span class="k">return</span> <span class="kc">True</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unrecognized types:&#39;</span><span class="p">,</span><span class="n">non_defined_cells</span><span class="p">)</span>
+			<span class="k">return</span> <span class="kc">False</span>
+
+	<span class="k">def</span> <span class="nf">check_id_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">quietly</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="n">n_unique_ids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]))</span>
+		<span class="k">if</span> <span class="n">n_unique_ids</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_size</span><span class="p">():</span>
+			<span class="k">return</span> <span class="kc">True</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of unique cells in geogrid_data does not match grid size&#39;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="kc">False</span>
+
 
 <div class="viewcode-block" id="Handler"><a class="viewcode-back" href="../../classes.html#brix.Handler">[docs]</a><span class="k">class</span> <span class="nc">Handler</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.</span>
@@ -261,6 +315,8 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span><span class="o">=</span><span class="kc">None</span>
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span><span class="n">reference</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">False</span>
         
 <div class="viewcode-block" id="Handler.check_table"><a class="viewcode-back" href="../../classes.html#brix.Handler.check_table">[docs]</a>	<span class="k">def</span> <span class="nf">check_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">return_value</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;Prints the front end url for the table. </span>
@@ -293,10 +349,12 @@
 <span class="sd">			Current value of selected indicators.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="n">indicator_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;numeric&#39;</span><span class="p">]:</span>
-			<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/indicators&#39;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/indicators&#39;</span><span class="p">)</span>
 			<span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/indicators&#39;</span><span class="p">)</span>
 		<span class="k">elif</span> <span class="n">indicator_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;heatmap&#39;</span><span class="p">,</span><span class="s1">&#39;access&#39;</span><span class="p">]:</span>
-			<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/access&#39;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/access&#39;</span><span class="p">)</span>
 			<span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/access&#39;</span><span class="p">)</span>
 		<span class="k">else</span><span class="p">:</span>
 			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Indicator type should either be numeric, heatmap, or access. Current type: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">indicator_type</span><span class="p">))</span>
@@ -372,7 +430,7 @@
 				<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Indicator type should either be numeric, heatmap, or access. Current type: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">I</span><span class="o">.</span><span class="n">indicator_type</span><span class="p">))</span>
 			<span class="k">try</span><span class="p">:</span>
 				<span class="k">if</span> <span class="n">I</span><span class="o">.</span><span class="n">is_composite</span><span class="p">:</span>
-					<span class="n">indicator_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_indicator_values</span><span class="p">(</span><span class="n">include_composite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+					<span class="n">indicator_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_indicator_values</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">include_composite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 					<span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span><span class="p">(</span><span class="n">indicator_values</span><span class="p">,</span><span class="n">indicatorName</span><span class="p">)</span>
 				<span class="k">else</span><span class="p">:</span>
 					<span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">indicatorName</span><span class="p">)</span>
@@ -380,7 +438,7 @@
 				<span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Indicator not working: &#39;</span><span class="o">+</span><span class="n">indicatorName</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Handler.return_indicator"><a class="viewcode-back" href="../../classes.html#brix.Handler.return_indicator">[docs]</a>	<span class="k">def</span> <span class="nf">return_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">indicator_name</span><span class="p">):</span>
-		<span class="sd">&#39;&#39;&#39;Returns the value returned by :func:`brix.Indicator.return_indicator` function of the selected indicator.</span>
+		<span class="sd">&#39;&#39;&#39;Returns the unformatted value returned by :func:`brix.Indicator.return_indicator` function of the selected indicator.</span>
 
 <span class="sd">		Parameters</span>
 <span class="sd">		----------</span>
@@ -395,7 +453,7 @@
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">()</span>
 		<span class="n">I</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="p">[</span><span class="n">indicator_name</span><span class="p">]</span>
 		<span class="k">if</span> <span class="n">I</span><span class="o">.</span><span class="n">is_composite</span><span class="p">:</span>
-			<span class="n">indicator_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_indicator_values</span><span class="p">(</span><span class="n">include_composite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+			<span class="n">indicator_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_indicator_values</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">include_composite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 			<span class="k">return</span> <span class="n">I</span><span class="o">.</span><span class="n">return_indicator</span><span class="p">(</span><span class="n">indicator_values</span><span class="p">)</span>
 		<span class="k">else</span><span class="p">:</span>
 			<span class="k">return</span> <span class="n">I</span><span class="o">.</span><span class="n">return_indicator</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span></div>
@@ -522,7 +580,6 @@
 					<span class="n">new_value</span><span class="p">[</span><span class="s1">&#39;indicator_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">indicator_type</span>
 				<span class="k">if</span> <span class="p">(</span><span class="s1">&#39;viz_type&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_value</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">&amp;</span><span class="p">(</span><span class="n">I</span><span class="o">.</span><span class="n">viz_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
 					<span class="n">new_value</span><span class="p">[</span><span class="s1">&#39;viz_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">viz_type</span>
-				<span class="nb">print</span><span class="p">(</span><span class="n">new_value</span><span class="p">)</span>
 				<span class="k">return</span> <span class="p">[</span><span class="n">new_value</span><span class="p">]</span>
 
 
@@ -554,7 +611,7 @@
 
 		<span class="k">return</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span><span class="s1">&#39;FeatureCollection&#39;</span><span class="p">,</span><span class="s1">&#39;properties&#39;</span><span class="p">:</span><span class="n">all_properties</span><span class="p">,</span><span class="s1">&#39;features&#39;</span><span class="p">:</span><span class="n">combined_features</span><span class="p">}</span>
 
-<div class="viewcode-block" id="Handler.get_indicator_values"><a class="viewcode-back" href="../../classes.html#brix.Handler.get_indicator_values">[docs]</a>	<span class="k">def</span> <span class="nf">get_indicator_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">include_composite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Handler.get_indicator_values"><a class="viewcode-back" href="../../classes.html#brix.Handler.get_indicator_values">[docs]</a>	<span class="k">def</span> <span class="nf">get_indicator_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">include_composite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Returns the current values of numeric indicators. Used for developing a composite indicator.</span>
 
@@ -568,7 +625,8 @@
 <span class="sd">		indicator_values : dict</span>
 <span class="sd">			Dictionary with values for each indicator formatted as: ``{indicator_name: indicator_value, ...}``</span>
 <span class="sd">		&#39;&#39;&#39;</span>
-		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">geogrid_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">()</span>
 		<span class="n">new_values_numeric</span> <span class="o">=</span> <span class="p">[]</span>
 		<span class="k">for</span> <span class="n">indicator_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="p">:</span>
 			<span class="n">I</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="p">[</span><span class="n">indicator_name</span><span class="p">]</span>
@@ -647,7 +705,7 @@
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">()</span>
 		<span class="k">for</span> <span class="n">indicator_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="p">:</span>
 			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="p">[</span><span class="n">indicator_name</span><span class="p">]</span><span class="o">.</span><span class="n">is_composite</span><span class="p">:</span>
-				<span class="n">indicator_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_indicator_values</span><span class="p">(</span><span class="n">include_composite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+				<span class="n">indicator_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_indicator_values</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">include_composite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 				<span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span><span class="p">(</span><span class="n">indicator_values</span><span class="p">,</span><span class="n">indicator_name</span><span class="p">)</span>
 			<span class="k">else</span><span class="p">:</span>
 				<span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">indicator_name</span><span class="p">)</span></div>
@@ -662,12 +720,8 @@
 <span class="sd">			Table GEOGRID properties.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-			<span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/GEOGRID/properties&#39;</span><span class="p">)</span>
-			<span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="o">==</span><span class="mi">200</span><span class="p">:</span>
-				<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-			<span class="k">else</span><span class="p">:</span>
-				<span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Cant access cityIO type definitions&#39;</span><span class="p">)</span>
-				<span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+			<span class="n">geogrid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="o">=</span> <span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
 		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span></div>
 
 <div class="viewcode-block" id="Handler.get_table_properties"><a class="viewcode-back" href="../../classes.html#brix.Handler.get_table_properties">[docs]</a>	<span class="k">def</span> <span class="nf">get_table_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -695,28 +749,77 @@
 			<span class="n">grid_hash_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_hash_id</span>
 		<span class="k">return</span> <span class="n">grid_hash_id</span></div>
 
-	<span class="k">def</span> <span class="nf">_get_grid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Handler.get_GEOGRID"><a class="viewcode-back" href="../../classes.html#brix.Handler.get_GEOGRID">[docs]</a>	<span class="k">def</span> <span class="nf">get_GEOGRID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_varname</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="o">==</span><span class="mi">200</span><span class="p">:</span>
+				<span class="n">geogrid</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+				<span class="k">try</span><span class="p">:</span>
+					<span class="n">geogrid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_classifications</span><span class="p">(</span><span class="n">geogrid</span><span class="p">)</span>
+				<span class="k">except</span><span class="p">:</span>
+					<span class="n">warn</span><span class="p">(</span><span class="s1">&#39;NAICS and LBCS classifications were not properly parsed.&#39;</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="o">=</span> <span class="n">geogrid</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">warn</span><span class="p">(</span><span class="s1">&#39;WARNING: Cant access GEOGRIDDATA&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span></div>
+
+<div class="viewcode-block" id="Handler.normalize_codes"><a class="viewcode-back" href="../../classes.html#brix.Handler.normalize_codes">[docs]</a>	<span class="k">def</span> <span class="nf">normalize_codes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">code_proportion</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Helper function to transform:</span>
+<span class="sd">		[{&#39;proportion&#39;: 0.3, &#39;use&#39;: {&#39;6700&#39;: 1}}, {&#39;proportion&#39;: 0.7, &#39;use&#39;: {&#39;2310&#39;: 0.3, &#39;4100&#39;: 0.7}}]</span>
+
+<span class="sd">		into:</span>
+<span class="sd">		{&#39;6700&#39;: 0.3, &#39;2310&#39;: 0.21, &#39;4100&#39;: 0.49}</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">new_code_proportion</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">code_proportion</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">prop</span><span class="p">[</span><span class="s1">&#39;use&#39;</span><span class="p">]:</span>
+				<span class="n">new_code_proportion</span><span class="p">[</span><span class="n">code</span><span class="p">]</span><span class="o">+=</span> <span class="nb">round</span><span class="p">(</span><span class="n">prop</span><span class="p">[</span><span class="s1">&#39;proportion&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">prop</span><span class="p">[</span><span class="s1">&#39;use&#39;</span><span class="p">][</span><span class="n">code</span><span class="p">],</span><span class="mi">5</span><span class="p">)</span>
+		<span class="n">new_code_proportion</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">new_code_proportion</span><span class="p">)</span>
+		<span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">new_code_proportion</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+		<span class="n">new_code_proportion</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">new_code_proportion</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">/</span><span class="n">total</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">new_code_proportion</span><span class="p">}</span>
+		<span class="k">return</span> <span class="n">new_code_proportion</span></div>
+
+<div class="viewcode-block" id="Handler.parse_classifications"><a class="viewcode-back" href="../../classes.html#brix.Handler.parse_classifications">[docs]</a>	<span class="k">def</span> <span class="nf">parse_classifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid</span><span class="p">,</span> <span class="n">classification_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LBCS&#39;</span><span class="p">,</span><span class="s1">&#39;NAICS&#39;</span><span class="p">]):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Helper function to parse the LBCS and NAICS strings into dictionaries of the form:</span>
+<span class="sd">		{&#39;6700&#39;: 0.3, &#39;2310&#39;: 0.21, &#39;4100&#39;: 0.49}</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]:</span>
+			<span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">classification_list</span><span class="p">:</span>
+				<span class="n">code_proportion</span> <span class="o">=</span> <span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">code</span><span class="p">]</span>
+				<span class="k">if</span> <span class="n">code_proportion</span> <span class="o">!=</span><span class="s1">&#39;null&#39;</span><span class="p">:</span>
+					<span class="n">code_proportion</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">code</span><span class="p">])</span>
+					<span class="n">code_proportion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_codes</span><span class="p">(</span><span class="n">code_proportion</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">code_proportion</span> <span class="o">=</span> <span class="kc">None</span>
+				<span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">code</span><span class="p">]</span> <span class="o">=</span> <span class="n">code_proportion</span>
+		<span class="k">return</span> <span class="n">geogrid</span></div>
+
+<div class="viewcode-block" id="Handler.get_GEOGRIDDATA"><a class="viewcode-back" href="../../classes.html#brix.Handler.get_GEOGRIDDATA">[docs]</a>	<span class="k">def</span> <span class="nf">get_GEOGRIDDATA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Returns the raw GEOGRIDDATA object.</span>
+<span class="sd">		This function should be treated as a low-level function, please use :func:`brix.Handler.get_geogrid_data` instead.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GEOGRIDDATA_varname</span><span class="p">)</span>
 		<span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="o">==</span><span class="mi">200</span><span class="p">:</span>
 			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 		<span class="k">else</span><span class="p">:</span>
-			<span class="n">warn</span><span class="p">(</span><span class="s1">&#39;WARNING: Cant access GEOGRID data&#39;</span><span class="p">)</span>
+			<span class="n">warn</span><span class="p">(</span><span class="s1">&#39;WARNING: Cant access GEOGRIDDATA&#39;</span><span class="p">)</span>
 			<span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="k">return</span> <span class="n">geogrid_data</span></div>
+
+	<span class="k">def</span> <span class="nf">_get_grid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRIDDATA</span><span class="p">()</span>
+		<span class="n">geogrid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">()</span>
 	
 		<span class="k">if</span> <span class="n">include_geometries</span><span class="o">|</span><span class="nb">any</span><span class="p">([</span><span class="n">I</span><span class="o">.</span><span class="n">requires_geometry</span> <span class="k">for</span> <span class="n">I</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="o">.</span><span class="n">values</span><span class="p">()]):</span>
-			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-				<span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_get_url</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_varname</span><span class="p">)</span>
-				<span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="o">==</span><span class="mi">200</span><span class="p">:</span>
-					<span class="n">geogrid</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-					<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="o">=</span> <span class="n">geogrid</span>
-				<span class="k">else</span><span class="p">:</span>
-					<span class="n">warn</span><span class="p">(</span><span class="s1">&#39;WARNING: Cant access GEOGRID data&#39;</span><span class="p">)</span>
 			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)):</span>
-				<span class="n">geogrid_data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span><span class="p">[</span><span class="s1">&#39;features&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span>
+				<span class="n">geogrid_data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">()[</span><span class="s1">&#39;features&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span>
 
 		<span class="k">if</span> <span class="n">with_properties</span><span class="o">|</span><span class="nb">any</span><span class="p">([</span><span class="n">I</span><span class="o">.</span><span class="n">requires_geogrid_props</span> <span class="k">for</span> <span class="n">I</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="o">.</span><span class="n">values</span><span class="p">()]):</span>
-			<span class="n">geogrid_props</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_geogrid_props</span><span class="p">()</span>
+			<span class="n">geogrid_props</span> <span class="o">=</span> <span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
 			<span class="n">types_def</span> <span class="o">=</span> <span class="n">geogrid_props</span><span class="p">[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 			<span class="k">if</span> <span class="s1">&#39;static_types&#39;</span> <span class="ow">in</span> <span class="n">geogrid_props</span><span class="p">:</span>
 				<span class="n">types_def</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">geogrid_props</span><span class="p">[</span><span class="s1">&#39;static_types&#39;</span><span class="p">])</span>
@@ -724,7 +827,7 @@
 			<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
 				<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">types_def</span><span class="p">[</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span>
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">GEOGRIDDATA</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
-		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">set_geogrid_props</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_geogrid_props</span><span class="p">())</span>
+		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">set_geogrid</span><span class="p">(</span><span class="n">geogrid</span><span class="p">)</span>
 		<span class="k">return</span> <span class="n">geogrid_data</span>
 
 	<span class="k">def</span> <span class="nf">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">url</span><span class="p">,</span><span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -774,7 +877,7 @@
 				<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">geometry</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
 		<span class="k">return</span> <span class="n">geogrid_data</span></div>
 
-<div class="viewcode-block" id="Handler.perform_update"><a class="viewcode-back" href="../../classes.html#brix.Handler.perform_update">[docs]</a>	<span class="k">def</span> <span class="nf">perform_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">grid_hash_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Handler.perform_update"><a class="viewcode-back" href="../../classes.html#brix.Handler.perform_update">[docs]</a>	<span class="k">def</span> <span class="nf">perform_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">grid_hash_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Performs single table update.</span>
 
@@ -787,13 +890,13 @@
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="n">grid_hash_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
 			<span class="n">grid_hash_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_hash</span><span class="p">()</span>	
-		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">()</span>
 		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Updating table with hash:&#39;</span><span class="p">,</span><span class="n">grid_hash_id</span><span class="p">)</span>
 
-		<span class="n">new_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_package</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="n">append</span><span class="p">)</span>
+		<span class="n">new_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_package</span><span class="p">(</span><span class="n">append</span><span class="o">=</span><span class="n">append</span><span class="p">)</span>
 
 		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_values</span><span class="p">[</span><span class="s1">&#39;numeric&#39;</span><span class="p">])</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+
 			<span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_post_url</span><span class="o">+</span><span class="s1">&#39;/indicators&#39;</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">new_values</span><span class="p">[</span><span class="s1">&#39;numeric&#39;</span><span class="p">]))</span>
 
 		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_values</span><span class="p">[</span><span class="s1">&#39;heatmap&#39;</span><span class="p">][</span><span class="s1">&#39;features&#39;</span><span class="p">])</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
@@ -840,14 +943,17 @@
 
 		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Performing initial update&#39;</span><span class="p">)</span>
-			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Update package example:&#39;</span><span class="p">)</span>
-			<span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_package</span><span class="p">())</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">perform_update</span><span class="p">(</span><span class="n">append</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">append_on_post</span><span class="p">)</span>
 
 		<span class="k">if</span> <span class="n">showFront</span><span class="p">:</span>
 			<span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">front_end_url</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 		<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
 			<span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span><span class="p">)</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pause</span><span class="p">:</span>
+				<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+					<span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span><span class="p">)</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pause</span><span class="p">:</span>
+						<span class="k">break</span>
 			<span class="n">grid_hash_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_hash</span><span class="p">()</span>
 			<span class="k">if</span> <span class="n">grid_hash_id</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_hash_id</span><span class="p">:</span>
 				<span class="bp">self</span><span class="o">.</span><span class="n">perform_update</span><span class="p">(</span><span class="n">grid_hash_id</span><span class="o">=</span><span class="n">grid_hash_id</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">append_on_post</span><span class="p">)</span>
@@ -882,7 +988,77 @@
 		<span class="k">if</span> <span class="n">new_thread</span><span class="p">:</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 		<span class="k">else</span><span class="p">:</span>
-			<span class="bp">self</span><span class="o">.</span><span class="n">_listen</span><span class="p">(</span><span class="n">showFront</span><span class="o">=</span><span class="n">showFront</span><span class="p">)</span></div></div>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_listen</span><span class="p">(</span><span class="n">showFront</span><span class="o">=</span><span class="n">showFront</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Handler.pause_listen"><a class="viewcode-back" href="../../classes.html#brix.Handler.pause_listen">[docs]</a>	<span class="k">def</span> <span class="nf">pause_listen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Handler.resume_listen"><a class="viewcode-back" href="../../classes.html#brix.Handler.resume_listen">[docs]</a>	<span class="k">def</span> <span class="nf">resume_listen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Handler.reset_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.reset_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">reset_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Resets the GEOGRIDDATA endpoint to the initial value.</span>
+<span class="sd">		If the GEOGRIDDATA has not been updated, this will update it. </span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">cell</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">()[</span><span class="s1">&#39;features&#39;</span><span class="p">]):</span>
+			<span class="n">cell</span> <span class="o">=</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
+			<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+			<span class="n">geogrid_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">post_geogrid_data</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Handler.post_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.post_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">post_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_data</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Posts the given geogrid_data object, ensuring that the object is valid.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">GEOGRIDDATA</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">set_geogrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">())</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">check_type_validity</span><span class="p">():</span>
+			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Type not found in table definition.&#39;</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">check_id_validity</span><span class="p">():</span>
+			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;IDs do not match.&#39;</span><span class="p">)</span>
+
+		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+		<span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_post_url</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GEOGRIDDATA_varname</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">grid_hash_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_hash</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Handler.update_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.update_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">update_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_func</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		High order function to update table geogrid data. </span>
+<span class="sd">		THIS FUNCTION IS STILL NOT STABLE.</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		update_func : function</span>
+<span class="sd">			function to update the geogriddadata (list of dicts)</span>
+<span class="sd">			Function should return a list of dicts that represents a valid geogiddata object.</span>
+
+<span class="sd">		Example</span>
+<span class="sd">		-------</span>
+<span class="sd">		&gt;&gt;&gt; def add_height(geogrid_data, levels):</span>
+<span class="sd">				for cell in geogrid_data:</span>
+<span class="sd">					cell[&#39;height&#39;] += levels</span>
+<span class="sd">				return geogrid_data</span>
+<span class="sd">		&gt;&gt;&gt; H = Handler(&#39;tablename&#39;, quietly=False)</span>
+<span class="sd">		&gt;&gt;&gt; H.update_landuse(add_height)</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">pause_listen</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">geogrid_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">()</span>
+
+		<span class="n">new_geogrid_data</span> <span class="o">=</span> <span class="n">update_func</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">post_geogrid_data</span><span class="p">(</span><span class="n">new_geogrid_data</span><span class="p">)</span>	
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">resume_listen</span><span class="p">()</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done with update&#39;</span><span class="p">)</span></div></div>
+
 
 
 <div class="viewcode-block" id="Indicator"><a class="viewcode-back" href="../../classes.html#brix.Indicator">[docs]</a><span class="k">class</span> <span class="nc">Indicator</span><span class="p">:</span>
@@ -914,6 +1090,8 @@
 			<span class="k">else</span><span class="p">:</span>
 				<span class="bp">self</span><span class="o">.</span><span class="n">requires_geometry</span> <span class="o">=</span> <span class="kc">False</span>
 
+		<span class="bp">self</span><span class="o">.</span><span class="n">return_indicator_user</span> <span class="o">=</span> <span class="kc">None</span>
+
 
 <div class="viewcode-block" id="Indicator.setup"><a class="viewcode-back" href="../../classes.html#brix.Indicator.setup">[docs]</a>	<span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an `__init__` method.&#39;&#39;&#39;</span>
@@ -932,7 +1110,21 @@
 <span class="sd">		indicator_value : list, dict, or float</span>
 <span class="sd">			Value of indicator or list of values. When returning a dict, please use the format ``{&#39;name&#39;: &#39;Indicator Name&#39;, &#39;value&#39;: indicator_value}``. When returning a list, please return a list of dictionaries in the same format. </span>
 <span class="sd">		&#39;&#39;&#39;</span>
-		<span class="k">return</span> <span class="p">{}</span></div>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_indicator_user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_indicator_user</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Indicator.set_return_indicator"><a class="viewcode-back" href="../../classes.html#brix.Indicator.set_return_indicator">[docs]</a>	<span class="k">def</span> <span class="nf">set_return_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">return_indicator</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Used to set the return_indicator method by passing a function.</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		return_indicator: func</span>
+<span class="sd">			Function that takes `geogrid_data` as input.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">return_indicator_user</span> <span class="o">=</span> <span class="n">return_indicator</span></div>
 
 
 <div class="viewcode-block" id="Indicator.load_module"><a class="viewcode-back" href="../../classes.html#brix.Indicator.load_module">[docs]</a>	<span class="k">def</span> <span class="nf">load_module</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
