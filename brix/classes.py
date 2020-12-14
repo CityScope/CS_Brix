@@ -735,16 +735,6 @@ class Handler(Thread):
 			if include_geometries:
 				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 
-		# if as_df:
-		# 	for cell in geogrid_data:
-		# 		if 'properties' in cell.keys():
-		# 			cell_props = cell['properties']
-		# 			for k in cell_props:
-		# 				cell[f'property_{k}'] = cell_props[k]
-		# 			del cell['properties']
-		# 	geogrid_data = pd.DataFrame(geogrid_data)
-		# 	if include_geometries:
-		# 		geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 		return geogrid_data
 
 	def perform_update(self,grid_hash_id=None,append=False):
