@@ -104,14 +104,6 @@ class GEOGRIDDATA(list):
 				print('Number of unique cells in geogrid_data does not match grid size')
 			return False
 
-	def is_same(self,geogrid_data):
-		'''
-		Compares that self and the given geogrid_data refer to the same geogrid.
-
-		[NOT YET IMPLEMENTED]
-		'''
-		return True
-
 
 class Handler(Thread):
 	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
