@@ -31,3 +31,27 @@ def get_buffer_size(poly,buffer_percent=0.25):
 	lon_range = abs(max(lons)-min(lons))
 	buffer_size = buffer_percent*max(lat_range,lon_range)
 	return buffer_size
+
+
+def has_tags(tags, target_tags):
+	'''
+	Helper function used by get_OSM_nodes. 
+	Checks if tags of the form:
+	tag = {
+		'amenity':'pub',
+		'height':'2.5'
+	}
+
+	Belongs to the category defined as:
+	target_tags = {
+		"amenity":["restaurant","cafe","fast_food","pub","cafe"],
+		"shop":["coffee"]
+	}
+	'''
+	if not isinstance(tags, dict):
+		return False
+	for key in tags:
+		if key in target_tags.keys():
+			if ((tags[key] in target_tags[key])):
+				return True
+	return False
