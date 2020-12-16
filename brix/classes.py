@@ -10,8 +10,10 @@ from warnings import warn
 from time import sleep
 from collections import defaultdict
 from shapely.geometry import shape
-from .helpers import is_number
+from .helpers import is_number, get_buffer_size
 from threading import Thread
+from shapely.ops import unary_union
+from shapely.geometry import shape
 
 class GEOGRIDDATA(list):
 	'''
@@ -167,6 +169,42 @@ class Handler(Thread):
 		self.classification_list = ['LBCS','NAICS']
 
 		self.OSM_data = {}
+
+	def grid_bounds(self,bbox=False,buffer_percent=None):
+		'''
+		Returns the bounds of the geogrid.
+
+		Parameters
+		----------
+		bbox: boolean, defaults to False
+			If True, it will return a bounding box instead of a polygon.
+		buffer_percent: float, optional
+			If given, this will add a buffer around the table.
+			Size of buffer in units of the grid diameter
+			See :func:`brix.get_buffer_size`.
+
+		Returns
+		-------
+		limit: shapely.Polygon or list
+			Bounds of the table. If `bbox=True` it will return a horizontal bounding box.
+		'''
+		geogrid_data = self._get_grid_data(include_geometries=True)
+
+		grid = [shape(cell['geometry']) for cell in geogrid_data]
+		limit = unary_union(grid)
+		limit = limit.buffer(get_buffer_size(limit,buffer_percent=0.001))
+		limit = limit.simplify(0.00001)
+
+		if buffer_percent is not None:
+			buffer_size = get_buffer_size(limit,buffer_percent=buffer_percent)
+			limit = limit.buffer(buffer_size)
+			limit = limit.simplify(0.0001)
+
+		if bbox:
+			lons,lats = zip(*limit.exterior.coords)
+			return [min(lons),min(lats),max(lons),max(lats)]
+		else:
+			return limit
 
         
 	def check_table(self,return_value=False):
