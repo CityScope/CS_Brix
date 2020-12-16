@@ -166,6 +166,8 @@ class Handler(Thread):
 		self.reference = reference
 		self.classification_list = ['LBCS','NAICS']
 
+		self.OSM_data = {}
+
         
 	def check_table(self,return_value=False):
 		'''Prints the front end url for the table. 
