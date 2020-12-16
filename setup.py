@@ -22,7 +22,8 @@ setuptools.setup(
         'joblib>=0.13.2',
         'shapely>=1.6.2',
         'geopandas>=0.6.2',
-        'geopy>=1.20.0'
+        'geopy>=1.20.0',
+        'osmnx>=0.16.2'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
