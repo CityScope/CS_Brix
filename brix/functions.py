@@ -125,17 +125,15 @@ def get_OSM_nodes(H,expand_tags=False,amenity_tag_categories=None,use_stored=Tru
 	amenity_tag_categories: dict (optional)
 		Dictionary with categories of amenities. 
 		For example:
-		``
-		{
-			"restaurants": {
-				"amenity":["restaurant","cafe","fast_food","pub","cafe"],
-				"shop":["coffee"]
-			},
-			"nightlife": {
-				"amenity":["bar","pub","biergarten","nightclub"]
+			{
+				"restaurants": {
+					"amenity":["restaurant","cafe","fast_food","pub","cafe"],
+					"shop":["coffee"]
+				},
+				"nightlife": {
+					"amenity":["bar","pub","biergarten","nightclub"]
+				}
 			}
-		}
-		``
 		Will add two new columns: "category_restaurants" and "category_nightlife"
 	use_stored: boolean, defaults to True
 		If True, the function will retrieve the results once and save them in the Handler under the :attr:`brix.Handler.OSM_data` attribute.
