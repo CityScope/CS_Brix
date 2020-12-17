@@ -27,6 +27,18 @@ Function that constructs and indicator based on a user defined return_indicator 
     * **requires_geogrid_props** (boolean, defaults to False) – If True, the geogrid_data object will include properties.
 
 
+
+* **Returns**
+
+    **I** – Numeric indicator that returns the value of the given function.
+
+
+
+* **Return type**
+
+    `brix.Indicator`
+
+
 ## OSM functions
 
 These functions help you get data from Open Street Maps for your table.
@@ -90,13 +102,7 @@ There is a default buffer added around the grid, but you can increase this by ch
 
     * **amenity_tag_categories** (*dict** (**optional**)*) – Dictionary with categories of amenities.
     For example:
-
-
-    ```
-    ``
-    ```
-
-    \`
+    \`\`
     {
 
     > ”restaurants”: {

@@ -51,6 +51,11 @@ def make_numeric_indicator(name,return_indicator,viz_type='bar',requires_geometr
 		If `True`, the geogrid_data object will also come with geometries.
 	requires_geogrid_props: boolean, defaults to `False`
 		If `True`, the geogrid_data object will include properties. 
+
+	Returns
+	-------
+	I: :class:`brix.Indicator`
+		Numeric indicator that returns the value of the given function. 
 	'''
 	I = Indicator(
 		name=name,
@@ -120,7 +125,7 @@ def get_OSM_nodes(H,expand_tags=False,amenity_tag_categories=None,use_stored=Tru
 	amenity_tag_categories: dict (optional)
 		Dictionary with categories of amenities. 
 		For example:
-		```
+		``
 		{
 			"restaurants": {
 				"amenity":["restaurant","cafe","fast_food","pub","cafe"],
@@ -130,7 +135,7 @@ def get_OSM_nodes(H,expand_tags=False,amenity_tag_categories=None,use_stored=Tru
 				"amenity":["bar","pub","biergarten","nightclub"]
 			}
 		}
-		```
+		``
 		Will add two new columns: "category_restaurants" and "category_nightlife"
 	use_stored: boolean, defaults to True
 		If True, the function will retrieve the results once and save them in the Handler under the :attr:`brix.Handler.OSM_data` attribute.
