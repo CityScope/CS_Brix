@@ -134,3 +134,11 @@ Finally, once you have build a series of indicators, the right way to deploy the
 
 To see the indicators in the handler you can use ``H.list_indicators()`` to list the indicator names, and use ``H.return_indicator(<indicator_name>)`` to see the value of the indicator. Finally, the function ``H.update_package()`` will return the data that will be posted on CityIO.
 
+
+Additional tools
+----------------
+
+This module also contains a set of other useful functions that integrate with :class:`brix.Handler` and :class:`brix.Indicator`. 
+
+The functions :func:`brix.get_OSM_geometries` and :func:`brix.get_OSM_nodes` help you get data from Open Street Maps for your table. 
+
