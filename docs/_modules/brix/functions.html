@@ -1,0 +1,381 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>brix.functions &mdash; cs-brix 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> cs-brix
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../classes.html">Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cs-brix</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>brix.functions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for brix.functions</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Other functions that use brix objects (e.g. function to get street network for table from OSM)</span>
+
+<span class="kn">from</span> <span class="nn">.classes</span> <span class="kn">import</span> <span class="n">Handler</span>
+<span class="kn">from</span> <span class="nn">.classes</span> <span class="kn">import</span> <span class="n">Indicator</span>
+<span class="kn">from</span> <span class="nn">.classes</span> <span class="kn">import</span> <span class="n">CompositeIndicator</span>
+<span class="kn">from</span> <span class="nn">.classes</span> <span class="kn">import</span> <span class="n">GEOGRIDDATA</span>
+<span class="kn">from</span> <span class="nn">.helpers</span> <span class="kn">import</span> <span class="n">get_buffer_size</span><span class="p">,</span> <span class="n">has_tags</span>
+
+<span class="k">try</span><span class="p">:</span>
+	<span class="kn">from</span> <span class="nn">osmnx</span> <span class="kn">import</span> <span class="n">geometries_from_polygon</span>
+<span class="k">except</span><span class="p">:</span>
+	<span class="n">geometries_from_polygon</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+
+<span class="k">def</span> <span class="nf">add_height</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span> <span class="n">levels</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Adds levels to all the cells in geogrid.</span>
+<span class="sd">	Function mainly used for testing as an example. </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	---------</span>
+<span class="sd">	geogrid_data: dict or :class:`brix.GEOGRIDDATA`</span>
+<span class="sd">		List of dicts with the geogrid_data information.</span>
+<span class="sd">	levels: float</span>
+<span class="sd">		Number of levels by which to rise height</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	new_geogrid_data: dict</span>
+<span class="sd">		Same as input, but with additional levels in each cell.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
+		<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">levels</span>
+	<span class="k">return</span> <span class="n">geogrid_data</span>
+
+<div class="viewcode-block" id="make_numeric_indicator"><a class="viewcode-back" href="../../functions.html#brix.make_numeric_indicator">[docs]</a><span class="k">def</span> <span class="nf">make_numeric_indicator</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">return_indicator</span><span class="p">,</span><span class="n">viz_type</span><span class="o">=</span><span class="s1">&#39;bar&#39;</span><span class="p">,</span><span class="n">requires_geometry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">requires_geogrid_props</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Function that constructs and indicator based on a user defined return_indicator function. </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	name: str</span>
+<span class="sd">		Name of the indicator.</span>
+<span class="sd">	return_indicator: func</span>
+<span class="sd">		Function that takes in geogrid_data and return the value of the indicator.</span>
+<span class="sd">	viz_type: str, defaults to &#39;bar&#39;</span>
+<span class="sd">		Visualization type in front end. Used for numeric indicators.</span>
+<span class="sd">	requires_geometry: boolean, defaults to `False`</span>
+<span class="sd">		If `True`, the geogrid_data object will also come with geometries.</span>
+<span class="sd">	requires_geogrid_props: boolean, defaults to `False`</span>
+<span class="sd">		If `True`, the geogrid_data object will include properties. </span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="n">I</span> <span class="o">=</span> <span class="n">Indicator</span><span class="p">(</span>
+		<span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+		<span class="n">requires_geometry</span><span class="o">=</span><span class="n">requires_geometry</span><span class="p">,</span>
+		<span class="n">requires_geogrid_props</span><span class="o">=</span><span class="n">requires_geogrid_props</span><span class="p">,</span>
+		<span class="n">viz_type</span><span class="o">=</span><span class="n">viz_type</span><span class="p">)</span>
+	<span class="n">I</span><span class="o">.</span><span class="n">set_return_indicator</span><span class="p">(</span><span class="n">return_indicator</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">I</span></div>
+
+<div class="viewcode-block" id="get_OSM_geometries"><a class="viewcode-back" href="../../functions.html#brix.get_OSM_geometries">[docs]</a><span class="k">def</span> <span class="nf">get_OSM_geometries</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">tags</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;building&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">},</span><span class="n">buffer_percent</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span><span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">only_polygons</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Gets the buildings from OSM within the table&#39;s geogrid.</span>
+<span class="sd">	Simple usage: `buildings = OSM_geometries(H)</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	H: :class:`brix.Handler`</span>
+<span class="sd">		Table Handler.</span>
+<span class="sd">	tags: dict, defaults to building</span>
+<span class="sd">		Tags og geometries to get. See: `osmnx.geometries_from_polygon`</span>
+<span class="sd">	buffer_percent: float, defaults to 0.25</span>
+<span class="sd">		Buffer to use around the table.</span>
+<span class="sd">		Size of buffer in units of the grid diameter</span>
+<span class="sd">		See :func:`brix.get_buffer_size`.</span>
+<span class="sd">	use_stored: boolean, defaults to True</span>
+<span class="sd">		If True, the function will retrieve the results once and save them in the Handler under the :attr:`brix.Handler.OSM_data` attribute.</span>
+<span class="sd">		If False, the function will retrieve the results every time it is called.</span>
+<span class="sd">	only_polygons: boolean, defaults to True</span>
+<span class="sd">		If False, it will return all buildings, including those without their polygon shape (e..g some buildings just have a point).</span>
+<span class="sd">	  </span>
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	buildings: geopandas.GeoDataFrame</span>
+<span class="sd">		Table with geometries from OSM. </span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">if</span> <span class="s1">&#39;OSM_geometries&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+		<span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_geometries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_geometries&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span><span class="o">|</span><span class="p">(</span><span class="ow">not</span> <span class="n">use_stored</span><span class="p">):</span>
+		<span class="n">limit</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">grid_bounds</span><span class="p">(</span><span class="n">buffer_percent</span><span class="o">=</span><span class="n">buffer_percent</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">geometries_from_polygon</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">buildings</span> <span class="o">=</span> <span class="n">geometries_from_polygon</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span><span class="n">tags</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Package osmnx not found.&#39;</span><span class="p">)</span>
+		<span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_geometries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buildings</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using stored geometries&#39;</span><span class="p">)</span>
+
+	<span class="n">buildings</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_geometries&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+	<span class="k">if</span> <span class="n">only_polygons</span><span class="p">:</span>
+		<span class="n">buildings</span> <span class="o">=</span> <span class="n">buildings</span><span class="p">[</span><span class="n">buildings</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;Polygon&#39;</span><span class="p">]</span>
+	<span class="k">return</span> <span class="n">buildings</span></div>
+
+<div class="viewcode-block" id="get_OSM_nodes"><a class="viewcode-back" href="../../functions.html#brix.get_OSM_nodes">[docs]</a><span class="k">def</span> <span class="nf">get_OSM_nodes</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">expand_tags</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">amenity_tag_categories</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">buffer_percent</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span><span class="n">quietly</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Returns the nodes from OSM.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	H: :class:`brix.Handler`</span>
+<span class="sd">		Table Handler.</span>
+<span class="sd">	expand_tags: boolean, defaults to False.</span>
+<span class="sd">		If True, it will expand all the tags into a wide format with one column per tag.</span>
+<span class="sd">		Columns will be named as: tag_{tag}</span>
+<span class="sd">	amenity_tag_categories: dict (optional)</span>
+<span class="sd">		Dictionary with categories of amenities. </span>
+<span class="sd">		For example:</span>
+<span class="sd">		amenity_tag_categories = {</span>
+<span class="sd">			&quot;restaurants&quot;: {</span>
+<span class="sd">				&quot;amenity&quot;:[&quot;restaurant&quot;,&quot;cafe&quot;,&quot;fast_food&quot;,&quot;pub&quot;,&quot;cafe&quot;],</span>
+<span class="sd">				&quot;shop&quot;:[&quot;coffee&quot;]</span>
+<span class="sd">			},</span>
+<span class="sd">			&quot;nightlife&quot;: {</span>
+<span class="sd">				&quot;amenity&quot;:[&quot;bar&quot;,&quot;pub&quot;,&quot;biergarten&quot;,&quot;nightclub&quot;]</span>
+<span class="sd">			}</span>
+<span class="sd">		}</span>
+<span class="sd">		Will add two new columns: &quot;category_restaurants&quot; and &quot;category_nightlife&quot;</span>
+<span class="sd">	use_stored: boolean, defaults to True</span>
+<span class="sd">		If True, the function will retrieve the results once and save them in the Handler under the :attr:`brix.Handler.OSM_data` attribute.</span>
+<span class="sd">		If False, the function will retrieve the results every time it is called.</span>
+<span class="sd">	buffer_percent: float, defaults to 0.25</span>
+<span class="sd">		Buffer to use around the table.</span>
+<span class="sd">		Size of buffer in units of the grid diameter</span>
+<span class="sd">		See `get_buffer_size`.</span>
+<span class="sd">	quietly: boolean, defaults to False</span>
+<span class="sd">		If True, it will print the generated URL</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	node_data_df: geopandas.GeoDataFrame</span>
+<span class="sd">		Table with all the nodes within the bounds. </span>
+<span class="sd">	&#39;&#39;&#39;</span>
+
+	<span class="k">if</span> <span class="s1">&#39;OSM_nodes&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+	    <span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_nodes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+	    
+	<span class="k">if</span> <span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_nodes&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span><span class="o">|</span><span class="p">(</span><span class="ow">not</span> <span class="n">use_stored</span><span class="p">):</span>
+		<span class="n">bbox</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">grid_bounds</span><span class="p">(</span><span class="n">bbox</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">buffer_percent</span><span class="o">=</span><span class="n">buffer_percent</span><span class="p">)</span>
+		<span class="n">OSM_NODES_URL_ROOT</span><span class="o">=</span><span class="s1">&#39;https://lz4.overpass-api.de/api/interpreter?data=[out:json][bbox];node;out;&amp;bbox=&#39;</span>
+		<span class="n">str_bounds</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39;,&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39;,&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39;,&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+		<span class="n">osm_node_url_bbox</span><span class="o">=</span><span class="n">OSM_NODES_URL_ROOT</span><span class="o">+</span><span class="n">str_bounds</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="n">osm_node_url_bbox</span><span class="p">)</span>
+		<span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">osm_node_url_bbox</span><span class="p">)</span>
+		<span class="n">node_data</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+		<span class="n">node_data_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">node_data</span><span class="p">[</span><span class="s1">&#39;elements&#39;</span><span class="p">])</span>
+		<span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_nodes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_data_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using stored data&#39;</span><span class="p">)</span>
+
+	<span class="n">node_data_df</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_nodes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+	<span class="k">if</span> <span class="n">amenity_tag_categories</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>    
+		<span class="k">for</span> <span class="n">cat_name</span> <span class="ow">in</span> <span class="n">amenity_tag_categories</span><span class="p">:</span>
+			<span class="n">node_data_df</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;category_</span><span class="si">{cat_name}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_data_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">has_tags</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">],</span> <span class="n">amenity_tag_categories</span><span class="p">[</span><span class="n">cat_name</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">expand_tags</span><span class="p">:</span>
+		<span class="n">tag_df</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">t</span> <span class="ow">in</span> <span class="n">node_data_df</span><span class="p">[</span><span class="o">~</span><span class="n">node_data_df</span><span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()][[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span><span class="s1">&#39;tags&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+			<span class="n">t</span> <span class="o">=</span> <span class="p">{</span><span class="sa">f</span><span class="s1">&#39;tag_</span><span class="si">{k}</span><span class="s1">&#39;</span><span class="p">:</span><span class="n">t</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">t</span><span class="p">}</span>
+			<span class="n">t</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+			<span class="n">tag_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+		<span class="n">tag_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tag_df</span><span class="p">)</span>
+		<span class="n">node_data_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">node_data_df</span><span class="p">,</span><span class="n">tag_df</span><span class="p">,</span><span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+	<span class="n">node_data_df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">node_data_df</span><span class="p">,</span><span class="n">geometry</span><span class="o">=</span><span class="n">gpd</span><span class="o">.</span><span class="n">points_from_xy</span><span class="p">(</span><span class="n">node_data_df</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">],</span><span class="n">node_data_df</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]))</span>
+	<span class="k">return</span> <span class="n">node_data_df</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, CityScience group at the MIT Media Lab
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

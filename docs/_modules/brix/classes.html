@@ -162,8 +162,10 @@
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">shape</span>
-<span class="kn">from</span> <span class="nn">.helpers</span> <span class="kn">import</span> <span class="n">is_number</span>
+<span class="kn">from</span> <span class="nn">.helpers</span> <span class="kn">import</span> <span class="n">is_number</span><span class="p">,</span> <span class="n">get_buffer_size</span>
 <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+<span class="kn">from</span> <span class="nn">shapely.ops</span> <span class="kn">import</span> <span class="n">unary_union</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">shape</span>
 
 <span class="k">class</span> <span class="nc">GEOGRIDDATA</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
@@ -315,9 +317,47 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">none_character</span> <span class="o">=</span> <span class="mi">0</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span><span class="o">=</span><span class="kc">None</span>
 
-		<span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span><span class="n">reference</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="n">reference</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LBCS&#39;</span><span class="p">,</span><span class="s1">&#39;NAICS&#39;</span><span class="p">]</span>
 
-		<span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">False</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">OSM_data</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="Handler.grid_bounds"><a class="viewcode-back" href="../../classes.html#brix.Handler.grid_bounds">[docs]</a>	<span class="k">def</span> <span class="nf">grid_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">bbox</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">buffer_percent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Returns the bounds of the geogrid.</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		bbox: boolean, defaults to False</span>
+<span class="sd">			If True, it will return a bounding box instead of a polygon.</span>
+<span class="sd">		buffer_percent: float, optional</span>
+<span class="sd">			If given, this will add a buffer around the table.</span>
+<span class="sd">			Size of buffer in units of the grid diameter</span>
+<span class="sd">			See :func:`brix.get_buffer_size`.</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		limit: shapely.Polygon or list</span>
+<span class="sd">			Bounds of the table. If `bbox=True` it will return a horizontal bounding box.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+		<span class="n">grid</span> <span class="o">=</span> <span class="p">[</span><span class="n">shape</span><span class="p">(</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">]</span>
+		<span class="n">limit</span> <span class="o">=</span> <span class="n">unary_union</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+		<span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">get_buffer_size</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span><span class="n">buffer_percent</span><span class="o">=</span><span class="mf">0.001</span><span class="p">))</span>
+		<span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="mf">0.00001</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">buffer_percent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">buffer_size</span> <span class="o">=</span> <span class="n">get_buffer_size</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span><span class="n">buffer_percent</span><span class="o">=</span><span class="n">buffer_percent</span><span class="p">)</span>
+			<span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">buffer_size</span><span class="p">)</span>
+			<span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span><span class="o">.</span><span class="n">simplify</span><span class="p">(</span><span class="mf">0.0001</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">bbox</span><span class="p">:</span>
+			<span class="n">lons</span><span class="p">,</span><span class="n">lats</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">limit</span><span class="o">.</span><span class="n">exterior</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+			<span class="k">return</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">lons</span><span class="p">),</span><span class="nb">min</span><span class="p">(</span><span class="n">lats</span><span class="p">),</span><span class="nb">max</span><span class="p">(</span><span class="n">lons</span><span class="p">),</span><span class="nb">max</span><span class="p">(</span><span class="n">lats</span><span class="p">)]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">limit</span></div>
+
         
 <div class="viewcode-block" id="Handler.check_table"><a class="viewcode-back" href="../../classes.html#brix.Handler.check_table">[docs]</a>	<span class="k">def</span> <span class="nf">check_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">return_value</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;Prints the front end url for the table. </span>
@@ -781,16 +821,17 @@
 		<span class="n">new_code_proportion</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">new_code_proportion</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">/</span><span class="n">total</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">new_code_proportion</span><span class="p">}</span>
 		<span class="k">return</span> <span class="n">new_code_proportion</span></div>
 
-<div class="viewcode-block" id="Handler.parse_classifications"><a class="viewcode-back" href="../../classes.html#brix.Handler.parse_classifications">[docs]</a>	<span class="k">def</span> <span class="nf">parse_classifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid</span><span class="p">,</span> <span class="n">classification_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LBCS&#39;</span><span class="p">,</span><span class="s1">&#39;NAICS&#39;</span><span class="p">]):</span>
+<div class="viewcode-block" id="Handler.parse_classifications"><a class="viewcode-back" href="../../classes.html#brix.Handler.parse_classifications">[docs]</a>	<span class="k">def</span> <span class="nf">parse_classifications</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Helper function to parse the LBCS and NAICS strings into dictionaries of the form:</span>
 <span class="sd">		{&#39;6700&#39;: 0.3, &#39;2310&#39;: 0.21, &#39;4100&#39;: 0.49}</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]:</span>
-			<span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">classification_list</span><span class="p">:</span>
-				<span class="n">code_proportion</span> <span class="o">=</span> <span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">code</span><span class="p">]</span>
-				<span class="k">if</span> <span class="n">code_proportion</span> <span class="o">!=</span><span class="s1">&#39;null&#39;</span><span class="p">:</span>
-					<span class="n">code_proportion</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">code</span><span class="p">])</span>
+			<span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">:</span>
+				<span class="n">code_proportion</span> <span class="o">=</span> <span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">code</span><span class="p">]</span>	
+				<span class="k">if</span> <span class="p">(</span><span class="n">code_proportion</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">code_proportion</span> <span class="o">!=</span><span class="s1">&#39;null&#39;</span><span class="p">):</span>
+					<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">code</span><span class="p">],</span><span class="nb">str</span><span class="p">):</span>
+						<span class="n">code_proportion</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">geogrid</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">code</span><span class="p">])</span>
 					<span class="n">code_proportion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_codes</span><span class="p">(</span><span class="n">code_proportion</span><span class="p">)</span>
 				<span class="k">else</span><span class="p">:</span>
 					<span class="n">code_proportion</span> <span class="o">=</span> <span class="kc">None</span>
@@ -866,16 +907,26 @@
 <span class="sd">			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="n">include_geometries</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="n">with_properties</span><span class="p">)</span>
+
 		<span class="k">if</span> <span class="n">as_df</span><span class="p">:</span>
 			<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
 				<span class="k">if</span> <span class="s1">&#39;properties&#39;</span> <span class="ow">in</span> <span class="n">cell</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
 					<span class="n">cell_props</span> <span class="o">=</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
 					<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cell_props</span><span class="p">:</span>
-						<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;property_</span><span class="si">{k}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+						<span class="k">if</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+							<span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">:</span>
+								<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;property_</span><span class="si">{k}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+							<span class="k">else</span><span class="p">:</span>
+								<span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+									<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{k}</span><span class="s1">_</span><span class="si">{code}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">code</span><span class="p">]</span>
 					<span class="k">del</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
 			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+			<span class="n">columns_order</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">]</span>
+			<span class="n">columns_order</span><span class="o">+=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">])</span>
+			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">geogrid_data</span><span class="p">[</span><span class="n">columns_order</span><span class="p">]</span>
 			<span class="k">if</span> <span class="n">include_geometries</span><span class="p">:</span>
 				<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">geometry</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+
 		<span class="k">return</span> <span class="n">geogrid_data</span></div>
 
 <div class="viewcode-block" id="Handler.perform_update"><a class="viewcode-back" href="../../classes.html#brix.Handler.perform_update">[docs]</a>	<span class="k">def</span> <span class="nf">perform_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">grid_hash_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -950,11 +1001,6 @@
 			<span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">front_end_url</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 		<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
 			<span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span><span class="p">)</span>
-			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pause</span><span class="p">:</span>
-				<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-					<span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span><span class="p">)</span>
-					<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pause</span><span class="p">:</span>
-						<span class="k">break</span>
 			<span class="n">grid_hash_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_hash</span><span class="p">()</span>
 			<span class="k">if</span> <span class="n">grid_hash_id</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_hash_id</span><span class="p">:</span>
 				<span class="bp">self</span><span class="o">.</span><span class="n">perform_update</span><span class="p">(</span><span class="n">grid_hash_id</span><span class="o">=</span><span class="n">grid_hash_id</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">append_on_post</span><span class="p">)</span>
@@ -971,7 +1017,8 @@
 <span class="sd">		Listens for changes in the table&#39;s geogrid and update all indicators accordingly. </span>
 <span class="sd">		You can use the update_package method to see the object that will be posted to the table.</span>
 <span class="sd">		This method starts with an update before listening.</span>
-<span class="sd">		This runs in a separate thread by default.</span>
+<span class="sd">		Can run in a separate thread.</span>
+<span class="sd">		Does not support updating GEOGRIDDATA.</span>
 
 <span class="sd">		Parameters</span>
 <span class="sd">		----------</span>
@@ -990,12 +1037,6 @@
 			<span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 		<span class="k">else</span><span class="p">:</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">_listen</span><span class="p">(</span><span class="n">showFront</span><span class="o">=</span><span class="n">showFront</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="Handler.pause_listen"><a class="viewcode-back" href="../../classes.html#brix.Handler.pause_listen">[docs]</a>	<span class="k">def</span> <span class="nf">pause_listen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-		<span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">True</span></div>
-
-<div class="viewcode-block" id="Handler.resume_listen"><a class="viewcode-back" href="../../classes.html#brix.Handler.resume_listen">[docs]</a>	<span class="k">def</span> <span class="nf">resume_listen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-		<span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Handler.reset_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.reset_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">reset_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
@@ -1029,8 +1070,7 @@
 
 <div class="viewcode-block" id="Handler.update_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.update_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">update_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_func</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		High order function to update table geogrid data. </span>
-<span class="sd">		THIS FUNCTION IS STILL NOT STABLE.</span>
+<span class="sd">		Function to update table GEOGRIDDATA.</span>
 
 <span class="sd">		Parameters</span>
 <span class="sd">		----------</span>
@@ -1047,16 +1087,12 @@
 <span class="sd">		&gt;&gt;&gt; H = Handler(&#39;tablename&#39;, quietly=False)</span>
 <span class="sd">		&gt;&gt;&gt; H.update_landuse(add_height)</span>
 <span class="sd">		&#39;&#39;&#39;</span>
-		<span class="bp">self</span><span class="o">.</span><span class="n">pause_listen</span><span class="p">()</span>
 		<span class="k">if</span> <span class="n">geogrid_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">()</span>
 
 		<span class="n">new_geogrid_data</span> <span class="o">=</span> <span class="n">update_func</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-		<span class="bp">self</span><span class="o">.</span><span class="n">post_geogrid_data</span><span class="p">(</span><span class="n">new_geogrid_data</span><span class="p">)</span>	
-
-		<span class="bp">self</span><span class="o">.</span><span class="n">resume_listen</span><span class="p">()</span>
-
+		<span class="bp">self</span><span class="o">.</span><span class="n">post_geogrid_data</span><span class="p">(</span><span class="n">new_geogrid_data</span><span class="p">)</span>
 		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done with update&#39;</span><span class="p">)</span></div></div>
 

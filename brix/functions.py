@@ -6,7 +6,10 @@ from .classes import CompositeIndicator
 from .classes import GEOGRIDDATA
 from .helpers import get_buffer_size, has_tags
 
-import osmnx as ox
+try:
+	from osmnx import geometries_from_polygon
+except:
+	geometries_from_polygon = None
 import requests
 import pandas as pd
 import geopandas as gpd
@@ -87,7 +90,10 @@ def get_OSM_geometries(H,tags = {'building':True},buffer_percent=0.25,use_stored
 		H.OSM_data['OSM_geometries'] = None
 	if (H.OSM_data['OSM_geometries'] is None)|(not use_stored):
 		limit = H.grid_bounds(buffer_percent=buffer_percent)
-		buildings = ox.geometries_from_polygon(limit,tags)
+		if geometries_from_polygon is not None:
+			buildings = geometries_from_polygon(limit,tags)
+		else:
+			raise NameError('Package osmnx not found.')
 		H.OSM_data['OSM_geometries'] = buildings.copy()
 	else:
 		print('Using stored geometries')
