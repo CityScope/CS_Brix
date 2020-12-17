@@ -14,15 +14,15 @@ import requests
 import pandas as pd
 import geopandas as gpd
 
-def add_height(geogrid_data, levels):
+def add_height(H, levels):
 	'''
 	Adds levels to all the cells in geogrid.
 	Function mainly used for testing as an example. 
 
 	Parameters
 	---------
-	geogrid_data: dict or :class:`brix.GEOGRIDDATA`
-		List of dicts with the geogrid_data information.
+	H: :class:`brix.Handler`
+		Handler connected to the necessarry table. 
 	levels: float
 		Number of levels by which to rise height
 
@@ -31,6 +31,7 @@ def add_height(geogrid_data, levels):
 	new_geogrid_data: dict
 		Same as input, but with additional levels in each cell.
 	'''
+	geogrid_data = H.get_geogrid_data()
 	for cell in geogrid_data:
 		cell['height'] += levels
 	return geogrid_data
@@ -102,7 +103,7 @@ def get_OSM_geometries(H,tags = {'building':True},buffer_percent=0.25,use_stored
 			raise NameError('Package osmnx not found.')
 		H.OSM_data['OSM_geometries'] = buildings.copy()
 	else:
-		print('Using stored geometries')
+		print('Using stored OSM geometries')
 
 	buildings = H.OSM_data['OSM_geometries'].copy()
 	if only_polygons:
@@ -167,7 +168,7 @@ def get_OSM_nodes(H,expand_tags=False,amenity_tag_categories=None,use_stored=Tru
 		node_data_df=pd.DataFrame(node_data['elements'])
 		H.OSM_data['OSM_nodes'] = node_data_df.copy()
 	else:
-		print('Using stored data')
+		print('Using stored OSM data')
 
 	node_data_df = H.OSM_data['OSM_nodes'].copy()
 
