@@ -16,7 +16,7 @@ setuptools.setup(
     download_url = 'https://github.com/CityScope/CS_Brix/archive/v_0.0.3.tar.gz',
     packages=setuptools.find_packages(),
     install_requires=[
-        'requests>=2.22',
+        'requests>=2.24',
         'pandas>=0.25.3',
         'pygeohash>=1.2.0',
         'joblib>=0.13.2',
