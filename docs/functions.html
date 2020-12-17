@@ -187,7 +187,7 @@
 <dt id="brix.get_OSM_geometries">
 <code class="sig-prename descclassname">brix.</code><code class="sig-name descname">get_OSM_geometries</code><span class="sig-paren">(</span><em class="sig-param">H</em>, <em class="sig-param">tags={'building': True}</em>, <em class="sig-param">buffer_percent=0.25</em>, <em class="sig-param">use_stored=True</em>, <em class="sig-param">only_polygons=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/functions.html#get_OSM_geometries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.get_OSM_geometries" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets the buildings from OSM within the table’s geogrid.
-Simple usage: <a href="#id1"><span class="problematic" id="id2">`</span></a>buildings = OSM_geometries(H)</p>
+Simple usage: <cite>buildings = OSM_geometries(H)</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -222,10 +222,11 @@ If False, the function will retrieve the results every time it is called.</p></l
 Columns will be named as: tag_{tag}</p></li>
 <li><p><strong>amenity_tag_categories</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – <p>Dictionary with categories of amenities.
 For example:
-amenity_tag_categories = {</p>
+.. code-block:: json</p>
 <blockquote>
-<div><dl class="simple">
-<dt>”restaurants”: {</dt><dd><p>“amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
+<div><dl>
+<dt>{</dt><dd><dl class="simple">
+<dt>“restaurants”: {</dt><dd><p>“amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
 “shop”:[“coffee”]</p>
 </dd>
 </dl>
@@ -235,9 +236,11 @@ amenity_tag_categories = {</p>
 <div><p>”amenity”:[“bar”,”pub”,”biergarten”,”nightclub”]</p>
 </div></blockquote>
 <p>}</p>
+</dd>
+</dl>
+<p>}</p>
 </div></blockquote>
-<p>}
-Will add two new columns: “category_restaurants” and “category_nightlife”</p>
+<p>Will add two new columns: “category_restaurants” and “category_nightlife”</p>
 </p></li>
 <li><p><strong>use_stored</strong> (<em>boolean</em><em>, </em><em>defaults to True</em>) – If True, the function will retrieve the results once and save them in the Handler under the <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Handler.OSM_data</span></code> attribute.
 If False, the function will retrieve the results every time it is called.</p></li>

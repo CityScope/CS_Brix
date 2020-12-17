@@ -215,7 +215,7 @@
 <div class="viewcode-block" id="get_OSM_geometries"><a class="viewcode-back" href="../../functions.html#brix.get_OSM_geometries">[docs]</a><span class="k">def</span> <span class="nf">get_OSM_geometries</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">tags</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;building&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">},</span><span class="n">buffer_percent</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span><span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">only_polygons</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">	Gets the buildings from OSM within the table&#39;s geogrid.</span>
-<span class="sd">	Simple usage: `buildings = OSM_geometries(H)</span>
+<span class="sd">	Simple usage: `buildings = OSM_geometries(H)`</span>
 
 <span class="sd">	Parameters</span>
 <span class="sd">	----------</span>
@@ -269,15 +269,16 @@
 <span class="sd">	amenity_tag_categories: dict (optional)</span>
 <span class="sd">		Dictionary with categories of amenities. </span>
 <span class="sd">		For example:</span>
-<span class="sd">		amenity_tag_categories = {</span>
-<span class="sd">			&quot;restaurants&quot;: {</span>
-<span class="sd">				&quot;amenity&quot;:[&quot;restaurant&quot;,&quot;cafe&quot;,&quot;fast_food&quot;,&quot;pub&quot;,&quot;cafe&quot;],</span>
-<span class="sd">				&quot;shop&quot;:[&quot;coffee&quot;]</span>
-<span class="sd">			},</span>
-<span class="sd">			&quot;nightlife&quot;: {</span>
-<span class="sd">				&quot;amenity&quot;:[&quot;bar&quot;,&quot;pub&quot;,&quot;biergarten&quot;,&quot;nightclub&quot;]</span>
+<span class="sd">		.. code-block:: json</span>
+<span class="sd">			{</span>
+<span class="sd">				&quot;restaurants&quot;: {</span>
+<span class="sd">					&quot;amenity&quot;:[&quot;restaurant&quot;,&quot;cafe&quot;,&quot;fast_food&quot;,&quot;pub&quot;,&quot;cafe&quot;],</span>
+<span class="sd">					&quot;shop&quot;:[&quot;coffee&quot;]</span>
+<span class="sd">				},</span>
+<span class="sd">				&quot;nightlife&quot;: {</span>
+<span class="sd">					&quot;amenity&quot;:[&quot;bar&quot;,&quot;pub&quot;,&quot;biergarten&quot;,&quot;nightclub&quot;]</span>
+<span class="sd">				}</span>
 <span class="sd">			}</span>
-<span class="sd">		}</span>
 <span class="sd">		Will add two new columns: &quot;category_restaurants&quot; and &quot;category_nightlife&quot;</span>
 <span class="sd">	use_stored: boolean, defaults to True</span>
 <span class="sd">		If True, the function will retrieve the results once and save them in the Handler under the :attr:`brix.Handler.OSM_data` attribute.</span>

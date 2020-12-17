@@ -34,13 +34,7 @@ These functions help you get data from Open Street Maps for your table.
 
 ### brix.get_OSM_geometries(H, tags={'building': True}, buffer_percent=0.25, use_stored=True, only_polygons=True)
 Gets the buildings from OSM within the table’s geogrid.
-Simple usage: 
-
-```
-`
-```
-
-buildings = OSM_geometries(H)
+Simple usage: buildings = OSM_geometries(H)
 
 
 * **Parameters**
@@ -93,21 +87,24 @@ Returns the nodes from OSM.
 
     * **amenity_tag_categories** (*dict** (**optional**)*) – Dictionary with categories of amenities.
     For example:
-    amenity_tag_categories = {
+    .. code-block:: json
 
-    > ”restaurants”: {
+    > {
 
-    >     “amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
-    >     “shop”:[“coffee”]
+    >     “restaurants”: {
 
-    > },
-    > “nightlife”: {
+    >         “amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
+    >         “shop”:[“coffee”]
 
-    > > ”amenity”:[“bar”,”pub”,”biergarten”,”nightclub”]
+    >     },
+    >     “nightlife”: {
+
+    >     > ”amenity”:[“bar”,”pub”,”biergarten”,”nightclub”]
+
+    >     }
 
     > }
 
-    }
     Will add two new columns: “category_restaurants” and “category_nightlife”
 
 
