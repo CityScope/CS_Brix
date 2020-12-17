@@ -63,7 +63,7 @@ def make_numeric_indicator(name,return_indicator,viz_type='bar',requires_geometr
 def get_OSM_geometries(H,tags = {'building':True},buffer_percent=0.25,use_stored=True,only_polygons=True):
 	'''
 	Gets the buildings from OSM within the table's geogrid.
-	Simple usage: `buildings = OSM_geometries(H)
+	Simple usage: `buildings = OSM_geometries(H)`
 
 	Parameters
 	----------
@@ -117,15 +117,16 @@ def get_OSM_nodes(H,expand_tags=False,amenity_tag_categories=None,use_stored=Tru
 	amenity_tag_categories: dict (optional)
 		Dictionary with categories of amenities. 
 		For example:
-		amenity_tag_categories = {
-			"restaurants": {
-				"amenity":["restaurant","cafe","fast_food","pub","cafe"],
-				"shop":["coffee"]
-			},
-			"nightlife": {
-				"amenity":["bar","pub","biergarten","nightclub"]
+		.. code-block:: json
+			{
+				"restaurants": {
+					"amenity":["restaurant","cafe","fast_food","pub","cafe"],
+					"shop":["coffee"]
+				},
+				"nightlife": {
+					"amenity":["bar","pub","biergarten","nightclub"]
+				}
 			}
-		}
 		Will add two new columns: "category_restaurants" and "category_nightlife"
 	use_stored: boolean, defaults to True
 		If True, the function will retrieve the results once and save them in the Handler under the :attr:`brix.Handler.OSM_data` attribute.
