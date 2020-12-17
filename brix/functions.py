@@ -63,14 +63,15 @@ def make_numeric_indicator(name,return_indicator,viz_type='bar',requires_geometr
 def get_OSM_geometries(H,tags = {'building':True},buffer_percent=0.25,use_stored=True,only_polygons=True):
 	'''
 	Gets the buildings from OSM within the table's geogrid.
-	Simple usage: `buildings = OSM_geometries(H)`
+	This function requires osmnx package to be installed. 
+	Simple usage: `buildings = OSM_geometries(H)`.
 
 	Parameters
 	----------
 	H: :class:`brix.Handler`
 		Table Handler.
 	tags: dict, defaults to building
-		Tags og geometries to get. See: `osmnx.geometries_from_polygon`
+		Tags of geometries to get. See: `osmnx.geometries_from_polygon`
 	buffer_percent: float, defaults to 0.25
 		Buffer to use around the table.
 		Size of buffer in units of the grid diameter
@@ -106,6 +107,8 @@ def get_OSM_geometries(H,tags = {'building':True},buffer_percent=0.25,use_stored
 def get_OSM_nodes(H,expand_tags=False,amenity_tag_categories=None,use_stored=True,buffer_percent=0.25,quietly=True):
 	'''
 	Returns the nodes from OSM.
+	This function can be used to obtain a list of amenities within the area defined by the table. 
+	There is a default buffer added around the grid, but you can increase this by changing `buffer_percent`.
 
 	Parameters
 	----------
@@ -117,16 +120,17 @@ def get_OSM_nodes(H,expand_tags=False,amenity_tag_categories=None,use_stored=Tru
 	amenity_tag_categories: dict (optional)
 		Dictionary with categories of amenities. 
 		For example:
-		.. code-block:: json
-			{
-				"restaurants": {
-					"amenity":["restaurant","cafe","fast_food","pub","cafe"],
-					"shop":["coffee"]
-				},
-				"nightlife": {
-					"amenity":["bar","pub","biergarten","nightclub"]
-				}
+		```
+		{
+			"restaurants": {
+				"amenity":["restaurant","cafe","fast_food","pub","cafe"],
+				"shop":["coffee"]
+			},
+			"nightlife": {
+				"amenity":["bar","pub","biergarten","nightclub"]
 			}
+		}
+		```
 		Will add two new columns: "category_restaurants" and "category_nightlife"
 	use_stored: boolean, defaults to True
 		If True, the function will retrieve the results once and save them in the Handler under the :attr:`brix.Handler.OSM_data` attribute.

@@ -187,12 +187,13 @@
 <dt id="brix.get_OSM_geometries">
 <code class="sig-prename descclassname">brix.</code><code class="sig-name descname">get_OSM_geometries</code><span class="sig-paren">(</span><em class="sig-param">H</em>, <em class="sig-param">tags={'building': True}</em>, <em class="sig-param">buffer_percent=0.25</em>, <em class="sig-param">use_stored=True</em>, <em class="sig-param">only_polygons=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/functions.html#get_OSM_geometries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.get_OSM_geometries" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets the buildings from OSM within the table’s geogrid.
-Simple usage: <cite>buildings = OSM_geometries(H)</cite></p>
+This function requires osmnx package to be installed.
+Simple usage: <cite>buildings = OSM_geometries(H)</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>H</strong> (<a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a>) – Table Handler.</p></li>
-<li><p><strong>tags</strong> (<em>dict</em><em>, </em><em>defaults to building</em>) – Tags og geometries to get. See: <cite>osmnx.geometries_from_polygon</cite></p></li>
+<li><p><strong>tags</strong> (<em>dict</em><em>, </em><em>defaults to building</em>) – Tags of geometries to get. See: <cite>osmnx.geometries_from_polygon</cite></p></li>
 <li><p><strong>buffer_percent</strong> (<em>float</em><em>, </em><em>defaults to 0.25</em>) – Buffer to use around the table.
 Size of buffer in units of the grid diameter
 See <code class="xref py py-func docutils literal notranslate"><span class="pre">brix.get_buffer_size()</span></code>.</p></li>
@@ -213,7 +214,9 @@ If False, the function will retrieve the results every time it is called.</p></l
 <dl class="function">
 <dt id="brix.get_OSM_nodes">
 <code class="sig-prename descclassname">brix.</code><code class="sig-name descname">get_OSM_nodes</code><span class="sig-paren">(</span><em class="sig-param">H</em>, <em class="sig-param">expand_tags=False</em>, <em class="sig-param">amenity_tag_categories=None</em>, <em class="sig-param">use_stored=True</em>, <em class="sig-param">buffer_percent=0.25</em>, <em class="sig-param">quietly=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/functions.html#get_OSM_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.get_OSM_nodes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the nodes from OSM.</p>
+<dd><p>Returns the nodes from OSM.
+This function can be used to obtain a list of amenities within the area defined by the table.
+There is a default buffer added around the grid, but you can increase this by changing <cite>buffer_percent</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -222,11 +225,11 @@ If False, the function will retrieve the results every time it is called.</p></l
 Columns will be named as: tag_{tag}</p></li>
 <li><p><strong>amenity_tag_categories</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – <p>Dictionary with categories of amenities.
 For example:
-.. code-block:: json</p>
+<a href="#id1"><span class="problematic" id="id2">``</span></a>`
+{</p>
 <blockquote>
-<div><dl>
-<dt>{</dt><dd><dl class="simple">
-<dt>“restaurants”: {</dt><dd><p>“amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
+<div><dl class="simple">
+<dt>”restaurants”: {</dt><dd><p>“amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
 “shop”:[“coffee”]</p>
 </dd>
 </dl>
@@ -235,9 +238,6 @@ For example:
 <blockquote>
 <div><p>”amenity”:[“bar”,”pub”,”biergarten”,”nightclub”]</p>
 </div></blockquote>
-<p>}</p>
-</dd>
-</dl>
 <p>}</p>
 </div></blockquote>
 <p>Will add two new columns: “category_restaurants” and “category_nightlife”</p>
