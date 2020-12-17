@@ -11,6 +11,7 @@ Documentation for cs-brix library
 
    tutorial
    classes
+   functions
    examples
 
 

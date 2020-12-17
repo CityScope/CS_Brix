@@ -10,8 +10,10 @@ from warnings import warn
 from time import sleep
 from collections import defaultdict
 from shapely.geometry import shape
-from .helpers import is_number
+from .helpers import is_number, get_buffer_size
 from threading import Thread
+from shapely.ops import unary_union
+from shapely.geometry import shape
 
 class GEOGRIDDATA(list):
 	'''
@@ -163,9 +165,47 @@ class Handler(Thread):
 		self.none_character = 0
 		self.geogrid_props=None
 
-		self.reference =reference
+		self.reference = reference
+		self.classification_list = ['LBCS','NAICS']
 
-		self.pause = False
+		self.OSM_data = {}
+
+	def grid_bounds(self,bbox=False,buffer_percent=None):
+		'''
+		Returns the bounds of the geogrid.
+
+		Parameters
+		----------
+		bbox: boolean, defaults to False
+			If True, it will return a bounding box instead of a polygon.
+		buffer_percent: float, optional
+			If given, this will add a buffer around the table.
+			Size of buffer in units of the grid diameter
+			See :func:`brix.get_buffer_size`.
+
+		Returns
+		-------
+		limit: shapely.Polygon or list
+			Bounds of the table. If `bbox=True` it will return a horizontal bounding box.
+		'''
+		geogrid_data = self._get_grid_data(include_geometries=True)
+
+		grid = [shape(cell['geometry']) for cell in geogrid_data]
+		limit = unary_union(grid)
+		limit = limit.buffer(get_buffer_size(limit,buffer_percent=0.001))
+		limit = limit.simplify(0.00001)
+
+		if buffer_percent is not None:
+			buffer_size = get_buffer_size(limit,buffer_percent=buffer_percent)
+			limit = limit.buffer(buffer_size)
+			limit = limit.simplify(0.0001)
+
+		if bbox:
+			lons,lats = zip(*limit.exterior.coords)
+			return [min(lons),min(lats),max(lons),max(lats)]
+		else:
+			return limit
+
         
 	def check_table(self,return_value=False):
 		'''Prints the front end url for the table. 
@@ -629,16 +669,17 @@ class Handler(Thread):
 		new_code_proportion = {k:new_code_proportion[k]/total for k in new_code_proportion}
 		return new_code_proportion
 
-	def parse_classifications(self,geogrid, classification_list = ['LBCS','NAICS']):
+	def parse_classifications(self,geogrid):
 		'''
 		Helper function to parse the LBCS and NAICS strings into dictionaries of the form:
 		{'6700': 0.3, '2310': 0.21, '4100': 0.49}
 		'''
 		for t in geogrid['properties']['types']:
-			for code in classification_list:
-				code_proportion = geogrid['properties']['types'][t][code]
-				if code_proportion !='null':
-					code_proportion = json.loads(geogrid['properties']['types'][t][code])
+			for code in self.classification_list:
+				code_proportion = geogrid['properties']['types'][t][code]	
+				if (code_proportion is not None) and (code_proportion !='null'):
+					if isinstance(geogrid['properties']['types'][t][code],str):
+						code_proportion = json.loads(geogrid['properties']['types'][t][code])
 					code_proportion = self.normalize_codes(code_proportion)
 				else:
 					code_proportion = None
@@ -714,16 +755,26 @@ class Handler(Thread):
 			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.
 		'''
 		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
+
 		if as_df:
 			for cell in geogrid_data:
 				if 'properties' in cell.keys():
 					cell_props = cell['properties']
 					for k in cell_props:
-						cell[f'property_{k}'] = cell_props[k]
+						if cell_props[k] is not None:
+							if k not in self.classification_list:
+								cell[f'property_{k}'] = cell_props[k]
+							else:
+								for code in cell_props[k]:
+									cell[f'{k}_{code}'] = cell_props[k][code]
 					del cell['properties']
 			geogrid_data = pd.DataFrame(geogrid_data)
+			columns_order = [c for c in geogrid_data.columns if c.split('_')[0] not in self.classification_list]
+			columns_order+= sorted([c for c in geogrid_data.columns if c.split('_')[0] in self.classification_list])
+			geogrid_data = geogrid_data[columns_order]
 			if include_geometries:
 				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
+
 		return geogrid_data
 
 	def perform_update(self,grid_hash_id=None,append=False):
@@ -798,11 +849,6 @@ class Handler(Thread):
 			webbrowser.open(self.front_end_url, new=2)
 		while True:
 			sleep(self.sleep_time)
-			if self.pause:
-				while True:
-					sleep(self.sleep_time)
-					if not self.pause:
-						break
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
 				self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
@@ -819,7 +865,8 @@ class Handler(Thread):
 		Listens for changes in the table's geogrid and update all indicators accordingly. 
 		You can use the update_package method to see the object that will be posted to the table.
 		This method starts with an update before listening.
-		This runs in a separate thread by default.
+		Can run in a separate thread.
+		Does not support updating GEOGRIDDATA.
 
 		Parameters
 		----------
@@ -838,12 +885,6 @@ class Handler(Thread):
 			self.start()
 		else:
 			self._listen(showFront=showFront)
-
-	def pause_listen(self):
-		self.pause = True
-
-	def resume_listen(self):
-		self.pause = False
 
 	def reset_geogrid_data(self):
 		'''
@@ -877,8 +918,7 @@ class Handler(Thread):
 
 	def update_geogrid_data(self, update_func, geogrid_data=None, **kwargs):
 		'''
-		High order function to update table geogrid data. 
-		THIS FUNCTION IS STILL NOT STABLE.
+		Function to update table GEOGRIDDATA.
 
 		Parameters
 		----------
@@ -895,16 +935,12 @@ class Handler(Thread):
 		>>> H = Handler('tablename', quietly=False)
 		>>> H.update_landuse(add_height)
 		'''
-		self.pause_listen()
 		if geogrid_data is None:
 			geogrid_data = self._get_grid_data()
 
 		new_geogrid_data = update_func(geogrid_data, **kwargs)
 
-		self.post_geogrid_data(new_geogrid_data)	
-
-		self.resume_listen()
-
+		self.post_geogrid_data(new_geogrid_data)
 		if not self.quietly:
 			print('Done with update')
 
