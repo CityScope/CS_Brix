@@ -106,6 +106,20 @@ class GEOGRIDDATA(list):
 				print('Number of unique cells in geogrid_data does not match grid size')
 			return False
 
+	def remap_colors(self):
+		'''
+		Forces the colors to match the define colors of the cell type. 
+		Requires that GEOGRIDDATA is set
+		'''
+		if self.GEOGRID is None:
+			raise NameError('GEOGRIDDATA object does not have GEOGRID attribute.')
+		if not self.check_type_validity(quietly=False):
+			raise NameError('Type not found in table definition.')
+		GEOGRID = self.GEOGRID
+		for cell in self:
+			h = GEOGRID['properties']['types'][cell['name']]['color'].replace('#','')
+			color = list(int(h[i:i+2], 16) for i in (0, 2, 4))
+			cell['color'] = color
 
 class Handler(Thread):
 	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
@@ -905,26 +919,29 @@ class Handler(Thread):
 		geogrid_data = GEOGRIDDATA(geogrid_data)
 		geogrid_data.set_geogrid(self.get_GEOGRID())
 
-		if not geogrid_data.check_type_validity():
+		if not geogrid_data.check_type_validity(quietly=False):
 			raise NameError('Type not found in table definition.')
 
 		if not geogrid_data.check_id_validity():
 			raise NameError('IDs do not match.')
+
+		geogrid_data.remap_colors()
 
 		geogrid_data = list(geogrid_data)
 		r = requests.post(self.cityIO_post_url+'/'+self.GEOGRIDDATA_varname, data=json.dumps(geogrid_data))
 		self.grid_hash_id = self.get_grid_hash()
 
 
-	def update_geogrid_data(self, update_func, geogrid_data=None, **kwargs):
+	def update_geogrid_data(self, update_func, **kwargs):
 		'''
 		Function to update table GEOGRIDDATA.
 
 		Parameters
 		----------
 		update_func : function
-			function to update the geogriddadata (list of dicts)
-			Function should return a list of dicts that represents a valid geogiddata object.
+			Function to update the geogriddadata (list of dicts)
+			Function should take a :class:`brix.Handler` as the first and only positional argument plus any number of keyword arguments.
+			Function should return a list of dicts that represents a valid geogriddata object.
 
 		Example
 		-------
@@ -935,10 +952,8 @@ class Handler(Thread):
 		>>> H = Handler('tablename', quietly=False)
 		>>> H.update_landuse(add_height)
 		'''
-		if geogrid_data is None:
-			geogrid_data = self._get_grid_data()
 
-		new_geogrid_data = update_func(geogrid_data, **kwargs)
+		new_geogrid_data = update_func(self, **kwargs)
 
 		self.post_geogrid_data(new_geogrid_data)
 		if not self.quietly:
