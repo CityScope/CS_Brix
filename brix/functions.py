@@ -13,6 +13,56 @@ except:
 import requests
 import pandas as pd
 import geopandas as gpd
+from geopandas.tools import sjoin
+
+def OSM_infer_geogrid_data(H,amenity_tag_categories=None):
+	'''
+	Infers the cell type based on the OSM tags classified into categories in amenity_tag_categories.
+	This function does not update the color of the cell, as :func:`brix.Handler.post_geogrid_data` will eventually take care of this. 
+
+	Parameters
+	----------
+	H: :class:`brix.Handler`
+		Handler for the table to infer types for.
+	amenity_tag_categories: dict 
+		Dictionary with categories of amenities. 
+		For example:
+			{
+				"restaurants": {
+					"amenity":["restaurant","cafe","fast_food","pub","cafe"],
+					"shop":["coffee"]
+				},
+				"nightlife": {
+					"amenity":["bar","pub","biergarten","nightclub"]
+				}
+			}
+		Will add two new columns: "category_restaurants" and "category_nightlife"
+
+	Returns
+	-------
+	geogrid_data: list
+		List of cells to be updated.
+	'''
+	if amenity_tag_categories is None:
+		raise NameError('amenity_tag_categories is required')
+	node_data_df = get_OSM_nodes(H,amenity_tag_categories=amenity_tag_categories)
+	node_data_df['category'] = None
+	for cat in amenity_tag_categories:
+	    node_data_df.loc[node_data_df[f'category_{cat}'],'category'] = cat
+	node_data_df = node_data_df[~node_data_df['category'].isna()]
+
+
+	geogrid_df = H.get_geogrid_data(include_geometries=True,as_df=True)
+	geogrid_df = gpd.GeoDataFrame(geogrid_df[['id']],geometry=geogrid_df['geometry'])
+
+	matched = sjoin(node_data_df, geogrid_df, how='inner')
+	matched = matched[['category','id_right','id_left']].groupby(['id_right','category']).count().reset_index().sort_values(by='id_left',ascending=False).groupby(['id_right','category']).first()
+	id_category = dict(matched.reset_index()[['id_right','category']].values)
+	geogrid_data = H.get_geogrid_data()
+	for cell in geogrid_data:
+		if cell['id'] in id_category.keys():
+			cell['name'] = id_category[cell['id']] 
+	return geogrid_data
 
 def add_height(H, levels):
 	'''
