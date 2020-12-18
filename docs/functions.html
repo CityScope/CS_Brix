@@ -267,6 +267,47 @@ See <cite>get_buffer_size</cite>.</p></li>
 </dl>
 </dd></dl>
 
+<dl class="function">
+<dt id="brix.OSM_infer_geogrid_data">
+<code class="sig-prename descclassname">brix.</code><code class="sig-name descname">OSM_infer_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">H</em>, <em class="sig-param">amenity_tag_categories=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/functions.html#OSM_infer_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.OSM_infer_geogrid_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Infers the cell type based on the OSM tags classified into categories in amenity_tag_categories.
+This function does not update the color of the cell, as <a class="reference internal" href="classes.html#brix.Handler.post_geogrid_data" title="brix.Handler.post_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.post_geogrid_data()</span></code></a> will eventually take care of this.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>H</strong> (<a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a>) – Handler for the table to infer types for.</p></li>
+<li><p><strong>amenity_tag_categories</strong> (<em>dict</em>) – <p>Dictionary with categories of amenities.
+For example:</p>
+<blockquote>
+<div><dl>
+<dt>{</dt><dd><dl class="simple">
+<dt>“restaurants”: {</dt><dd><p>“amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
+“shop”:[“coffee”]</p>
+</dd>
+</dl>
+<p>},
+“nightlife”: {</p>
+<blockquote>
+<div><p>”amenity”:[“bar”,”pub”,”biergarten”,”nightclub”]</p>
+</div></blockquote>
+<p>}</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>Will add two new columns: “category_restaurants” and “category_nightlife”</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>geogrid_data</strong> – List of cells to be updated.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </div>
 

@@ -145,3 +145,50 @@ There is a default buffer added around the grid, but you can increase this by ch
 * **Return type**
 
     geopandas.GeoDataFrame
+
+
+
+### brix.OSM_infer_geogrid_data(H, amenity_tag_categories=None)
+Infers the cell type based on the OSM tags classified into categories in amenity_tag_categories.
+This function does not update the color of the cell, as `brix.Handler.post_geogrid_data()` will eventually take care of this.
+
+
+* **Parameters**
+
+    
+    * **H** (`brix.Handler`) – Handler for the table to infer types for.
+
+
+    * **amenity_tag_categories** (*dict*) – Dictionary with categories of amenities.
+    For example:
+
+    > {
+
+    >     “restaurants”: {
+
+    >         “amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
+    >         “shop”:[“coffee”]
+
+    >     },
+    >     “nightlife”: {
+
+    >     > ”amenity”:[“bar”,”pub”,”biergarten”,”nightclub”]
+
+    >     }
+
+    > }
+
+    Will add two new columns: “category_restaurants” and “category_nightlife”
+
+
+
+
+* **Returns**
+
+    **geogrid_data** – List of cells to be updated.
+
+
+
+* **Return type**
+
+    list
