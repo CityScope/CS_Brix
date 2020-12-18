@@ -16,3 +16,5 @@ These functions help you get data from Open Street Maps for your table.
 .. autofunction:: brix.get_OSM_geometries
 
 .. autofunction:: brix.get_OSM_nodes
+
+.. autofunction:: brix.OSM_infer_geogrid_data
