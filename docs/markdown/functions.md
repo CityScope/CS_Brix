@@ -102,18 +102,20 @@ There is a default buffer added around the grid, but you can increase this by ch
 
     * **amenity_tag_categories** (*dict** (**optional**)*) – Dictionary with categories of amenities.
     For example:
-    \`\`
-    {
 
-    > ”restaurants”: {
+    > {
 
-    >     “amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
-    >     “shop”:[“coffee”]
+    >     “restaurants”: {
 
-    > },
-    > “nightlife”: {
+    >         “amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
+    >         “shop”:[“coffee”]
 
-    > > ”amenity”:[“bar”,”pub”,”biergarten”,”nightclub”]
+    >     },
+    >     “nightlife”: {
+
+    >     > ”amenity”:[“bar”,”pub”,”biergarten”,”nightclub”]
+
+    >     }
 
     > }
 

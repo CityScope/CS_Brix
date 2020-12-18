@@ -584,12 +584,13 @@ same thread object.</p>
 
 <dl class="method">
 <dt id="brix.Handler.update_geogrid_data">
-<code class="sig-name descname">update_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">update_func</em>, <em class="sig-param">geogrid_data=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.update_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.update_geogrid_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">update_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">update_func</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.update_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.update_geogrid_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to update table GEOGRIDDATA.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>update_func</strong> (<em>function</em>) – function to update the geogriddadata (list of dicts)
-Function should return a list of dicts that represents a valid geogiddata object.</p>
+<dd class="field-odd"><p><strong>update_func</strong> (<em>function</em>) – Function to update the geogriddadata (list of dicts)
+Function should take a <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> as the first and only positional argument plus any number of keyword arguments.
+Function should return a list of dicts that represents a valid geogriddata object.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>

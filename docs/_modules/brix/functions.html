@@ -165,16 +165,66 @@
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">from</span> <span class="nn">geopandas.tools</span> <span class="kn">import</span> <span class="n">sjoin</span>
 
-<span class="k">def</span> <span class="nf">add_height</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span> <span class="n">levels</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">OSM_infer_geogrid_data</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">amenity_tag_categories</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Infers the cell type based on the OSM tags classified into categories in amenity_tag_categories.</span>
+<span class="sd">	This function does not update the color of the cell, as :func:`brix.Handler.post_geogrid_data` will eventually take care of this. </span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	H: :class:`brix.Handler`</span>
+<span class="sd">		Handler for the table to infer types for.</span>
+<span class="sd">	amenity_tag_categories: dict </span>
+<span class="sd">		Dictionary with categories of amenities. </span>
+<span class="sd">		For example:</span>
+<span class="sd">			{</span>
+<span class="sd">				&quot;restaurants&quot;: {</span>
+<span class="sd">					&quot;amenity&quot;:[&quot;restaurant&quot;,&quot;cafe&quot;,&quot;fast_food&quot;,&quot;pub&quot;,&quot;cafe&quot;],</span>
+<span class="sd">					&quot;shop&quot;:[&quot;coffee&quot;]</span>
+<span class="sd">				},</span>
+<span class="sd">				&quot;nightlife&quot;: {</span>
+<span class="sd">					&quot;amenity&quot;:[&quot;bar&quot;,&quot;pub&quot;,&quot;biergarten&quot;,&quot;nightclub&quot;]</span>
+<span class="sd">				}</span>
+<span class="sd">			}</span>
+<span class="sd">		Will add two new columns: &quot;category_restaurants&quot; and &quot;category_nightlife&quot;</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	geogrid_data: list</span>
+<span class="sd">		List of cells to be updated.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">if</span> <span class="n">amenity_tag_categories</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;amenity_tag_categories is required&#39;</span><span class="p">)</span>
+	<span class="n">node_data_df</span> <span class="o">=</span> <span class="n">get_OSM_nodes</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">amenity_tag_categories</span><span class="o">=</span><span class="n">amenity_tag_categories</span><span class="p">)</span>
+	<span class="n">node_data_df</span><span class="p">[</span><span class="s1">&#39;category&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+	<span class="k">for</span> <span class="n">cat</span> <span class="ow">in</span> <span class="n">amenity_tag_categories</span><span class="p">:</span>
+	    <span class="n">node_data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">node_data_df</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;category_</span><span class="si">{cat}</span><span class="s1">&#39;</span><span class="p">],</span><span class="s1">&#39;category&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cat</span>
+	<span class="n">node_data_df</span> <span class="o">=</span> <span class="n">node_data_df</span><span class="p">[</span><span class="o">~</span><span class="n">node_data_df</span><span class="p">[</span><span class="s1">&#39;category&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
+
+
+	<span class="n">geogrid_df</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+	<span class="n">geogrid_df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geogrid_df</span><span class="p">[[</span><span class="s1">&#39;id&#39;</span><span class="p">]],</span><span class="n">geometry</span><span class="o">=</span><span class="n">geogrid_df</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+
+	<span class="n">matched</span> <span class="o">=</span> <span class="n">sjoin</span><span class="p">(</span><span class="n">node_data_df</span><span class="p">,</span> <span class="n">geogrid_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+	<span class="n">matched</span> <span class="o">=</span> <span class="n">matched</span><span class="p">[[</span><span class="s1">&#39;category&#39;</span><span class="p">,</span><span class="s1">&#39;id_right&#39;</span><span class="p">,</span><span class="s1">&#39;id_left&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;id_right&#39;</span><span class="p">,</span><span class="s1">&#39;category&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;id_left&#39;</span><span class="p">,</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;id_right&#39;</span><span class="p">,</span><span class="s1">&#39;category&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+	<span class="n">id_category</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">matched</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()[[</span><span class="s1">&#39;id_right&#39;</span><span class="p">,</span><span class="s1">&#39;category&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+	<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
+	<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">id_category</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">id_category</span><span class="p">[</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]]</span> 
+	<span class="k">return</span> <span class="n">geogrid_data</span>
+
+<span class="k">def</span> <span class="nf">add_height</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">levels</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">	Adds levels to all the cells in geogrid.</span>
 <span class="sd">	Function mainly used for testing as an example. </span>
 
 <span class="sd">	Parameters</span>
 <span class="sd">	---------</span>
-<span class="sd">	geogrid_data: dict or :class:`brix.GEOGRIDDATA`</span>
-<span class="sd">		List of dicts with the geogrid_data information.</span>
+<span class="sd">	H: :class:`brix.Handler`</span>
+<span class="sd">		Handler connected to the necessarry table. </span>
 <span class="sd">	levels: float</span>
 <span class="sd">		Number of levels by which to rise height</span>
 
@@ -183,6 +233,7 @@
 <span class="sd">	new_geogrid_data: dict</span>
 <span class="sd">		Same as input, but with additional levels in each cell.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
+	<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
 	<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
 		<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">levels</span>
 	<span class="k">return</span> <span class="n">geogrid_data</span>
@@ -254,7 +305,7 @@
 			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Package osmnx not found.&#39;</span><span class="p">)</span>
 		<span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_geometries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buildings</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 	<span class="k">else</span><span class="p">:</span>
-		<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using stored geometries&#39;</span><span class="p">)</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using stored OSM geometries&#39;</span><span class="p">)</span>
 
 	<span class="n">buildings</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_geometries&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 	<span class="k">if</span> <span class="n">only_polygons</span><span class="p">:</span>
@@ -277,17 +328,15 @@
 <span class="sd">	amenity_tag_categories: dict (optional)</span>
 <span class="sd">		Dictionary with categories of amenities. </span>
 <span class="sd">		For example:</span>
-<span class="sd">		``</span>
-<span class="sd">		{</span>
-<span class="sd">			&quot;restaurants&quot;: {</span>
-<span class="sd">				&quot;amenity&quot;:[&quot;restaurant&quot;,&quot;cafe&quot;,&quot;fast_food&quot;,&quot;pub&quot;,&quot;cafe&quot;],</span>
-<span class="sd">				&quot;shop&quot;:[&quot;coffee&quot;]</span>
-<span class="sd">			},</span>
-<span class="sd">			&quot;nightlife&quot;: {</span>
-<span class="sd">				&quot;amenity&quot;:[&quot;bar&quot;,&quot;pub&quot;,&quot;biergarten&quot;,&quot;nightclub&quot;]</span>
+<span class="sd">			{</span>
+<span class="sd">				&quot;restaurants&quot;: {</span>
+<span class="sd">					&quot;amenity&quot;:[&quot;restaurant&quot;,&quot;cafe&quot;,&quot;fast_food&quot;,&quot;pub&quot;,&quot;cafe&quot;],</span>
+<span class="sd">					&quot;shop&quot;:[&quot;coffee&quot;]</span>
+<span class="sd">				},</span>
+<span class="sd">				&quot;nightlife&quot;: {</span>
+<span class="sd">					&quot;amenity&quot;:[&quot;bar&quot;,&quot;pub&quot;,&quot;biergarten&quot;,&quot;nightclub&quot;]</span>
+<span class="sd">				}</span>
 <span class="sd">			}</span>
-<span class="sd">		}</span>
-<span class="sd">		``</span>
 <span class="sd">		Will add two new columns: &quot;category_restaurants&quot; and &quot;category_nightlife&quot;</span>
 <span class="sd">	use_stored: boolean, defaults to True</span>
 <span class="sd">		If True, the function will retrieve the results once and save them in the Handler under the :attr:`brix.Handler.OSM_data` attribute.</span>
@@ -321,7 +370,7 @@
 		<span class="n">node_data_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">node_data</span><span class="p">[</span><span class="s1">&#39;elements&#39;</span><span class="p">])</span>
 		<span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_nodes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_data_df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 	<span class="k">else</span><span class="p">:</span>
-		<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using stored data&#39;</span><span class="p">)</span>
+		<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using stored OSM data&#39;</span><span class="p">)</span>
 
 	<span class="n">node_data_df</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">OSM_data</span><span class="p">[</span><span class="s1">&#39;OSM_nodes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 

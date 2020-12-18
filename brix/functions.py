@@ -13,16 +13,66 @@ except:
 import requests
 import pandas as pd
 import geopandas as gpd
+from geopandas.tools import sjoin
 
-def add_height(geogrid_data, levels):
+def OSM_infer_geogrid_data(H,amenity_tag_categories=None):
+	'''
+	Infers the cell type based on the OSM tags classified into categories in amenity_tag_categories.
+	This function does not update the color of the cell, as :func:`brix.Handler.post_geogrid_data` will eventually take care of this. 
+
+	Parameters
+	----------
+	H: :class:`brix.Handler`
+		Handler for the table to infer types for.
+	amenity_tag_categories: dict 
+		Dictionary with categories of amenities. 
+		For example:
+			{
+				"restaurants": {
+					"amenity":["restaurant","cafe","fast_food","pub","cafe"],
+					"shop":["coffee"]
+				},
+				"nightlife": {
+					"amenity":["bar","pub","biergarten","nightclub"]
+				}
+			}
+		Will add two new columns: "category_restaurants" and "category_nightlife"
+
+	Returns
+	-------
+	geogrid_data: list
+		List of cells to be updated.
+	'''
+	if amenity_tag_categories is None:
+		raise NameError('amenity_tag_categories is required')
+	node_data_df = get_OSM_nodes(H,amenity_tag_categories=amenity_tag_categories)
+	node_data_df['category'] = None
+	for cat in amenity_tag_categories:
+	    node_data_df.loc[node_data_df[f'category_{cat}'],'category'] = cat
+	node_data_df = node_data_df[~node_data_df['category'].isna()]
+
+
+	geogrid_df = H.get_geogrid_data(include_geometries=True,as_df=True)
+	geogrid_df = gpd.GeoDataFrame(geogrid_df[['id']],geometry=geogrid_df['geometry'])
+
+	matched = sjoin(node_data_df, geogrid_df, how='inner')
+	matched = matched[['category','id_right','id_left']].groupby(['id_right','category']).count().reset_index().sort_values(by='id_left',ascending=False).groupby(['id_right','category']).first()
+	id_category = dict(matched.reset_index()[['id_right','category']].values)
+	geogrid_data = H.get_geogrid_data()
+	for cell in geogrid_data:
+		if cell['id'] in id_category.keys():
+			cell['name'] = id_category[cell['id']] 
+	return geogrid_data
+
+def add_height(H, levels):
 	'''
 	Adds levels to all the cells in geogrid.
 	Function mainly used for testing as an example. 
 
 	Parameters
 	---------
-	geogrid_data: dict or :class:`brix.GEOGRIDDATA`
-		List of dicts with the geogrid_data information.
+	H: :class:`brix.Handler`
+		Handler connected to the necessarry table. 
 	levels: float
 		Number of levels by which to rise height
 
@@ -31,6 +81,7 @@ def add_height(geogrid_data, levels):
 	new_geogrid_data: dict
 		Same as input, but with additional levels in each cell.
 	'''
+	geogrid_data = H.get_geogrid_data()
 	for cell in geogrid_data:
 		cell['height'] += levels
 	return geogrid_data
@@ -102,7 +153,7 @@ def get_OSM_geometries(H,tags = {'building':True},buffer_percent=0.25,use_stored
 			raise NameError('Package osmnx not found.')
 		H.OSM_data['OSM_geometries'] = buildings.copy()
 	else:
-		print('Using stored geometries')
+		print('Using stored OSM geometries')
 
 	buildings = H.OSM_data['OSM_geometries'].copy()
 	if only_polygons:
@@ -125,17 +176,15 @@ def get_OSM_nodes(H,expand_tags=False,amenity_tag_categories=None,use_stored=Tru
 	amenity_tag_categories: dict (optional)
 		Dictionary with categories of amenities. 
 		For example:
-		``
-		{
-			"restaurants": {
-				"amenity":["restaurant","cafe","fast_food","pub","cafe"],
-				"shop":["coffee"]
-			},
-			"nightlife": {
-				"amenity":["bar","pub","biergarten","nightclub"]
+			{
+				"restaurants": {
+					"amenity":["restaurant","cafe","fast_food","pub","cafe"],
+					"shop":["coffee"]
+				},
+				"nightlife": {
+					"amenity":["bar","pub","biergarten","nightclub"]
+				}
 			}
-		}
-		``
 		Will add two new columns: "category_restaurants" and "category_nightlife"
 	use_stored: boolean, defaults to True
 		If True, the function will retrieve the results once and save them in the Handler under the :attr:`brix.Handler.OSM_data` attribute.
@@ -169,7 +218,7 @@ def get_OSM_nodes(H,expand_tags=False,amenity_tag_categories=None,use_stored=Tru
 		node_data_df=pd.DataFrame(node_data['elements'])
 		H.OSM_data['OSM_nodes'] = node_data_df.copy()
 	else:
-		print('Using stored data')
+		print('Using stored OSM data')
 
 	node_data_df = H.OSM_data['OSM_nodes'].copy()
 

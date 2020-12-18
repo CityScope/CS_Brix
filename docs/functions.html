@@ -230,12 +230,11 @@ There is a default buffer added around the grid, but you can increase this by ch
 <li><p><strong>expand_tags</strong> (<em>boolean</em><em>, </em><em>defaults to False.</em>) – If True, it will expand all the tags into a wide format with one column per tag.
 Columns will be named as: tag_{tag}</p></li>
 <li><p><strong>amenity_tag_categories</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – <p>Dictionary with categories of amenities.
-For example:
-``
-{</p>
+For example:</p>
 <blockquote>
-<div><dl class="simple">
-<dt>”restaurants”: {</dt><dd><p>“amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
+<div><dl>
+<dt>{</dt><dd><dl class="simple">
+<dt>“restaurants”: {</dt><dd><p>“amenity”:[“restaurant”,”cafe”,”fast_food”,”pub”,”cafe”],
 “shop”:[“coffee”]</p>
 </dd>
 </dl>
@@ -244,6 +243,9 @@ For example:
 <blockquote>
 <div><p>”amenity”:[“bar”,”pub”,”biergarten”,”nightclub”]</p>
 </div></blockquote>
+<p>}</p>
+</dd>
+</dl>
 <p>}</p>
 </div></blockquote>
 <p>Will add two new columns: “category_restaurants” and “category_nightlife”</p>

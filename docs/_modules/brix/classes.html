@@ -258,6 +258,20 @@
 				<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of unique cells in geogrid_data does not match grid size&#39;</span><span class="p">)</span>
 			<span class="k">return</span> <span class="kc">False</span>
 
+	<span class="k">def</span> <span class="nf">remap_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Forces the colors to match the define colors of the cell type. </span>
+<span class="sd">		Requires that GEOGRIDDATA is set</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;GEOGRIDDATA object does not have GEOGRID attribute.&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_type_validity</span><span class="p">(</span><span class="n">quietly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Type not found in table definition.&#39;</span><span class="p">)</span>
+		<span class="n">GEOGRID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span>
+		<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+			<span class="n">h</span> <span class="o">=</span> <span class="n">GEOGRID</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+			<span class="n">color</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+			<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
 
 <div class="viewcode-block" id="Handler"><a class="viewcode-back" href="../../classes.html#brix.Handler">[docs]</a><span class="k">class</span> <span class="nc">Handler</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.</span>
@@ -1057,26 +1071,29 @@
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">GEOGRIDDATA</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
 		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">set_geogrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">())</span>
 
-		<span class="k">if</span> <span class="ow">not</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">check_type_validity</span><span class="p">():</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">check_type_validity</span><span class="p">(</span><span class="n">quietly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Type not found in table definition.&#39;</span><span class="p">)</span>
 
 		<span class="k">if</span> <span class="ow">not</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">check_id_validity</span><span class="p">():</span>
 			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;IDs do not match.&#39;</span><span class="p">)</span>
+
+		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">remap_colors</span><span class="p">()</span>
 
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
 		<span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_post_url</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">GEOGRIDDATA_varname</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">))</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">grid_hash_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_hash</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="Handler.update_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.update_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">update_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_func</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Handler.update_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.update_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">update_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Function to update table GEOGRIDDATA.</span>
 
 <span class="sd">		Parameters</span>
 <span class="sd">		----------</span>
 <span class="sd">		update_func : function</span>
-<span class="sd">			function to update the geogriddadata (list of dicts)</span>
-<span class="sd">			Function should return a list of dicts that represents a valid geogiddata object.</span>
+<span class="sd">			Function to update the geogriddadata (list of dicts)</span>
+<span class="sd">			Function should take a :class:`brix.Handler` as the first and only positional argument plus any number of keyword arguments.</span>
+<span class="sd">			Function should return a list of dicts that represents a valid geogriddata object.</span>
 
 <span class="sd">		Example</span>
 <span class="sd">		-------</span>
@@ -1087,10 +1104,8 @@
 <span class="sd">		&gt;&gt;&gt; H = Handler(&#39;tablename&#39;, quietly=False)</span>
 <span class="sd">		&gt;&gt;&gt; H.update_landuse(add_height)</span>
 <span class="sd">		&#39;&#39;&#39;</span>
-		<span class="k">if</span> <span class="n">geogrid_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">()</span>
 
-		<span class="n">new_geogrid_data</span> <span class="o">=</span> <span class="n">update_func</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		<span class="n">new_geogrid_data</span> <span class="o">=</span> <span class="n">update_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">post_geogrid_data</span><span class="p">(</span><span class="n">new_geogrid_data</span><span class="p">)</span>
 		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
