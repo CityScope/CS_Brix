@@ -8,7 +8,7 @@ with open("requirements.txt") as f:
 
 setuptools.setup(
     name="cs-brix",
-    version="0.0.3",
+    version="0.0.4",
     license='GNU General Public License v3.0 only (GPL-3.0-only)',
     author="CityScience MIT",
     author_email="csadmin@media.mit.edu",
@@ -16,7 +16,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/CityScope/CS_Brix",
-    download_url = 'https://github.com/CityScope/CS_Brix/archive/v_0.0.3.tar.gz',
+    download_url = 'https://github.com/CityScope/CS_Brix/archive/v_0.0.4.tar.gz',
     packages=setuptools.find_packages(),
     install_requires=INSTALL_REQUIRES,
     classifiers=[
