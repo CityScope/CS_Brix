@@ -191,7 +191,7 @@ class Handler(Thread):
 		Parameters
 		----------
 		bbox: boolean, defaults to False
-			If True, it will return a bounding box instead of a polygon.
+			If True, it will return a bounding box instead of a polygon. [W, S, E, N]
 		buffer_percent: float, optional
 			If given, this will add a buffer around the table.
 			Size of buffer in units of the grid diameter
