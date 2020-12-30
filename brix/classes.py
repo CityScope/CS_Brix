@@ -690,7 +690,10 @@ class Handler(Thread):
 		'''
 		for t in geogrid['properties']['types']:
 			for code in self.classification_list:
-				code_proportion = geogrid['properties']['types'][t][code]	
+				if code in geogrid['properties']['types'][t].keys():
+					code_proportion = geogrid['properties']['types'][t][code]
+				else:
+					code_proportion = None
 				if (code_proportion is not None) and (code_proportion !='null'):
 					if isinstance(geogrid['properties']['types'][t][code],str):
 						code_proportion = json.loads(geogrid['properties']['types'][t][code])
@@ -717,6 +720,11 @@ class Handler(Thread):
 	def _get_grid_data(self,include_geometries=False,with_properties=False):
 		geogrid_data = self.get_GEOGRIDDATA()
 		geogrid = self.get_GEOGRID()
+
+		geogrid_data = GEOGRIDDATA(geogrid_data)
+		geogrid_data.set_geogrid(geogrid)
+		if not geogrid_data.check_id_validity():
+			warn('WARNING: Current GEOGRIDDATA includes undefined types.')
 	
 		if include_geometries|any([I.requires_geometry for I in self.indicators.values()]):
 			for i in range(len(geogrid_data)):
@@ -729,9 +737,8 @@ class Handler(Thread):
 				types_def.update(geogrid_props['static_types'])
 			types_def['None'] = None
 			for cell in geogrid_data:
-				cell['properties'] = types_def[cell['name']]
-		geogrid_data = GEOGRIDDATA(geogrid_data)
-		geogrid_data.set_geogrid(geogrid)
+				if cell['name'] in types_def.keys():
+					cell['properties'] = types_def[cell['name']]
 		return geogrid_data
 
 	def _get_url(self,url,params=None):
