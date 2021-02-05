@@ -106,6 +106,18 @@ class GEOGRIDDATA(list):
 				print('Number of unique cells in geogrid_data does not match grid size')
 			return False
 
+	def fill_missing_cells(self):
+		'''
+		Fills missing cells from GEOGRID.
+
+		This is useful when working only with interactive cells.
+		'''
+		available_ids = [cell['id'] for cell in self]
+		for cell in self.GEOGRID['features']:
+			cell = cell['properties']
+			if cell['id'] not in available_ids:
+				self.append(cell)
+
 	def remap_colors(self):
 		'''
 		Forces the colors to match the define colors of the cell type. 
@@ -170,6 +182,7 @@ class Handler(Thread):
 		self.GEOGRID = None
 
 		self.indicators = {}
+		self.update_geogrid_data_functions = []
 		self.grid_hash_id = None
 		self.grid_hash_id = self.get_grid_hash()
 
@@ -191,7 +204,7 @@ class Handler(Thread):
 		Parameters
 		----------
 		bbox: boolean, defaults to False
-			If True, it will return a bounding box instead of a polygon.
+			If True, it will return a bounding box instead of a polygon. [W, S, E, N]
 		buffer_percent: float, optional
 			If given, this will add a buffer around the table.
 			Size of buffer in units of the grid diameter
@@ -339,6 +352,22 @@ class Handler(Thread):
 					self._new_value(geogrid_data,indicatorName)
 			except:
 				warn('Indicator not working: '+indicatorName)
+
+	def add_geogrid_data_update_function(self,update_func):
+		'''
+		Adds a function to update GEOGRIDDATA. 
+
+		See :func:`brix.Handler.update_geogrid_data`.
+
+		Parameters
+		----------
+		update_func : function
+			Function to update the geogriddadata (list of dicts)
+			Function should take a :class:`brix.Handler` as the first and only positional argument.
+			No keyword arguments are supported when using this feature.
+			Function should return a list of dicts that represents a valid geogriddata object.
+		'''
+		self.update_geogrid_data_functions.append(update_func)
 
 	def return_indicator(self,indicator_name):
 		'''Returns the unformatted value returned by :func:`brix.Indicator.return_indicator` function of the selected indicator.
@@ -690,7 +719,10 @@ class Handler(Thread):
 		'''
 		for t in geogrid['properties']['types']:
 			for code in self.classification_list:
-				code_proportion = geogrid['properties']['types'][t][code]	
+				if code in geogrid['properties']['types'][t].keys():
+					code_proportion = geogrid['properties']['types'][t][code]
+				else:
+					code_proportion = None
 				if (code_proportion is not None) and (code_proportion !='null'):
 					if isinstance(geogrid['properties']['types'][t][code],str):
 						code_proportion = json.loads(geogrid['properties']['types'][t][code])
@@ -714,9 +746,16 @@ class Handler(Thread):
 			geogrid_data = None
 		return geogrid_data
 
-	def _get_grid_data(self,include_geometries=False,with_properties=False):
+	def _get_grid_data(self,include_geometries=False,with_properties=False,exclude_noninteractive=False):
 		geogrid_data = self.get_GEOGRIDDATA()
 		geogrid = self.get_GEOGRID()
+		
+		geogrid_data = GEOGRIDDATA(geogrid_data)
+		geogrid_data.set_geogrid(geogrid)
+		if not geogrid_data.check_id_validity():
+			geogrid_data.fill_missing_cells()
+			if not geogrid_data.check_id_validity():
+				warn('WARNING: Current GEOGRIDDATA includes undefined types.')
 	
 		if include_geometries|any([I.requires_geometry for I in self.indicators.values()]):
 			for i in range(len(geogrid_data)):
@@ -729,9 +768,17 @@ class Handler(Thread):
 				types_def.update(geogrid_props['static_types'])
 			types_def['None'] = None
 			for cell in geogrid_data:
-				cell['properties'] = types_def[cell['name']]
-		geogrid_data = GEOGRIDDATA(geogrid_data)
-		geogrid_data.set_geogrid(geogrid)
+				if cell['name'] in types_def.keys():
+					cell['properties'] = types_def[cell['name']]
+
+		if exclude_noninteractive:
+			interactive_geogrid_data = []
+			for cell in geogrid_data:
+				if 'interactive' in cell.keys():
+					if cell['interactive']=='Web':
+						interactive_geogrid_data.append(cell)
+			geogrid_data = interactive_geogrid_data
+
 		return geogrid_data
 
 	def _get_url(self,url,params=None):
@@ -749,7 +796,7 @@ class Handler(Thread):
 			warn('FAILED TO RETRIEVE URL: '+url)
 		return r
 
-	def get_geogrid_data(self,include_geometries=False,with_properties=False,as_df=False):
+	def get_geogrid_data(self,include_geometries=False,with_properties=False,exclude_noninteractive=False,as_df=False):
 		'''
 		Returns the geogrid data from:
 		http://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA
@@ -760,6 +807,8 @@ class Handler(Thread):
 			If `True` it will also add the geometry information for each grid unit.
 		with_properties : boolean, defaults to `False`
 			If `True` it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)
+		exclude_noninteractive : boolean, defaults to `False`
+			If `True` it will exclude non-interactive cells. 
 		as_df: boolean, defaults to `False`
 			If `True` it will return data as a pandas.DataFrame.
 
@@ -768,7 +817,7 @@ class Handler(Thread):
 		geogrid_data : dict
 			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.
 		'''
-		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
+		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties,exclude_noninteractive=exclude_noninteractive)
 
 		if as_df:
 			for cell in geogrid_data:
@@ -819,6 +868,22 @@ class Handler(Thread):
 			print('Done with update')
 		self.grid_hash_id = grid_hash_id
 
+	def perform_geogrid_data_update(self):
+		'''
+		Performs GEOGRIDDATA update using the functions added to the :class:`brix.Handler` using :func:`brix.Hanlder.add_geogrid_data_update_function`.
+
+		Returns True if an update happened, and Flase otherwise.
+		'''
+		update_flag = False
+		for update_func in self.update_geogrid_data_functions:
+			new_geogrid_data = update_func(self)
+			self.post_geogrid_data(new_geogrid_data)
+			update_flag = True
+			if not self.quietly:
+				print('GEOGRIDDATA successfully updated')
+		return update_flag
+
+
 	def rollback(self):
 		''':class:`brix.Handler` keeps track of the previous value of the indicators and access values.This function rollsback the current values to whatever the locally stored values are.
 		See also :func:`brix.Handler.previous_indicators` and :func:`brix.Handler.previous_access`.
@@ -857,14 +922,19 @@ class Handler(Thread):
 
 		if not self.quietly:
 			print('Performing initial update')
+
+		self.perform_geogrid_data_update()
 		self.perform_update(append=self.append_on_post)
 
 		if showFront:
 			webbrowser.open(self.front_end_url, new=2)
+		self.grid_hash_id = self.get_grid_hash()
 		while True:
 			sleep(self.sleep_time)
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
+				if self.perform_geogrid_data_update():
+					grid_hash_id = self.get_grid_hash()
 				self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
 
 	def run(self):
@@ -915,6 +985,13 @@ class Handler(Thread):
 	def post_geogrid_data(self,geogrid_data):
 		'''
 		Posts the given geogrid_data object, ensuring that the object is valid.
+
+		Function can be called by itself or using :func:`brix.Handler.update_geogrid_data`.
+
+		Parameters
+		----------
+		geogrid_data: dict
+			Dictionary corresponding to a valid :class:`brix.GEOGRIDDATA` object.
 		'''
 		geogrid_data = GEOGRIDDATA(geogrid_data)
 		geogrid_data.set_geogrid(self.get_GEOGRID())
@@ -923,13 +1000,22 @@ class Handler(Thread):
 			raise NameError('Type not found in table definition.')
 
 		if not geogrid_data.check_id_validity():
-			raise NameError('IDs do not match.')
+			geogrid_data.fill_missing_cells()
+			if not geogrid_data.check_id_validity():
+				raise NameError('IDs do not match.')
 
 		geogrid_data.remap_colors()
 
 		geogrid_data = list(geogrid_data)
+
+		ids = [cell['id'] for cell in geogrid_data]
+		ids = np.argsort(ids)
+		geogrid_data = [geogrid_data[i] for i in ids]
+
 		r = requests.post(self.cityIO_post_url+'/'+self.GEOGRIDDATA_varname, data=json.dumps(geogrid_data))
 		self.grid_hash_id = self.get_grid_hash()
+		if not self.quietly:
+			print('GEOGRIDDATA successfully updated:',self.grid_hash_id)
 
 
 	def update_geogrid_data(self, update_func, **kwargs):
@@ -945,12 +1031,14 @@ class Handler(Thread):
 
 		Example
 		-------
-		>>> def add_height(geogrid_data, levels):
+		>>> def add_height(H, levels=1):
+				geogrid_data = H.get_geogrid_data()
 				for cell in geogrid_data:
 					cell['height'] += levels
 				return geogrid_data
+		>>> levels = 3
 		>>> H = Handler('tablename', quietly=False)
-		>>> H.update_landuse(add_height)
+		>>> H.update_geogrid_data(add_height, levels=levels)
 		'''
 
 		new_geogrid_data = update_func(self, **kwargs)
@@ -969,6 +1057,7 @@ class Indicator:
 		self.viz_type = 'radar'
 		self.requires_geometry = None
 		self.requires_geogrid_props = False
+		self.exclude_noninteractive = False
 		self.model_path = None
 		self.pickled_model = None
 		# self.int_types_def=None
@@ -1077,7 +1166,7 @@ class Indicator:
 		return self.tableHandler.get_geogrid_props()['header']
 
 
-	def get_geogrid_data(self,as_df=False,include_geometries=None,with_properties=None):
+	def get_geogrid_data(self,as_df=False,include_geometries=None,with_properties=None,exclude_noninteractive=None):
 		'''
 		Returns the geogrid data from the linked table. Function mainly used for development. See :func:`brix.Indicator.link_table`. It returns the exact object that will be passed to return_indicator
 
@@ -1090,14 +1179,18 @@ class Indicator:
 			If `True`, it will override the default parameter of the Indicator.
 		with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`
 			If `True`, it will override the default parameter of the Indicator.
+		exclude_noninteractive : boolean, defaults to `False`
+			If `True` it will exclude non-interactive cells. 
 
 		Returns
 		-------
 		geogrid_data : str or pandas.DataFrame
 			Data that will be passed to the :func:`brix.Indicator.return_indicator` function by the :class:`brix.Handler` when deployed.
 		'''
-		include_geometries = self.requires_geometry if include_geometries is None else include_geometries
-		with_properties    = self.requires_geogrid_props if with_properties is None else with_properties
+		include_geometries     = self.requires_geometry if include_geometries is None else include_geometries
+		with_properties        = self.requires_geogrid_props if with_properties is None else with_properties
+		exclude_noninteractive = self.exclude_noninteractive if exclude_noninteractive is None else exclude_noninteractive
+		
 		if self.tableHandler is None:
 			if self.table_name is not None:
 				self.link_table(table_name=self.table_name)
@@ -1105,7 +1198,7 @@ class Indicator:
 				warn('To use this function, please link a table first:\n> Indicator.link_table(table_name)')
 				return None
 
-		geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
+		geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties,exclude_noninteractive=exclude_noninteractive)
 		if as_df:
 			geogrid_data = pd.DataFrame(geogrid_data)
 			if include_geometries:

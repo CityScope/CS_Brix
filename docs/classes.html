@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Classes &mdash; cs-brix 0.0.1 documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -51,7 +54,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> cs-brix
+            <a href="index.html" class="icon icon-home"> cs-brix
           
 
           
@@ -133,6 +136,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -144,7 +149,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/classes.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -181,6 +186,21 @@ will be used as input for the return_indicator function in each indicator class.
 </ul>
 </dd>
 </dl>
+<dl class="method">
+<dt id="brix.Handler.add_geogrid_data_update_function">
+<code class="sig-name descname">add_geogrid_data_update_function</code><span class="sig-paren">(</span><em class="sig-param">update_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.add_geogrid_data_update_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.add_geogrid_data_update_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a function to update GEOGRIDDATA.</p>
+<p>See <a class="reference internal" href="#brix.Handler.update_geogrid_data" title="brix.Handler.update_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.update_geogrid_data()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>update_func</strong> (<em>function</em>) – Function to update the geogriddadata (list of dicts)
+Function should take a <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> as the first and only positional argument.
+No keyword arguments are supported when using this feature.
+Function should return a list of dicts that represents a valid geogriddata object.</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="method">
 <dt id="brix.Handler.add_indicator">
 <code class="sig-name descname">add_indicator</code><span class="sig-paren">(</span><em class="sig-param">I</em>, <em class="sig-param">test=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.add_indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.add_indicator" title="Permalink to this definition">¶</a></dt>
@@ -259,7 +279,7 @@ This function should be treated as a low-level function, please use <a class="re
 
 <dl class="method">
 <dt id="brix.Handler.get_geogrid_data">
-<code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">include_geometries=False</em>, <em class="sig-param">with_properties=False</em>, <em class="sig-param">as_df=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">include_geometries=False</em>, <em class="sig-param">with_properties=False</em>, <em class="sig-param">exclude_noninteractive=False</em>, <em class="sig-param">as_df=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the geogrid data from:
 <a class="reference external" href="http://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA">http://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA</a></p>
 <dl class="field-list simple">
@@ -267,6 +287,7 @@ This function should be treated as a low-level function, please use <a class="re
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>include_geometries</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will also add the geometry information for each grid unit.</p></li>
 <li><p><strong>with_properties</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)</p></li>
+<li><p><strong>exclude_noninteractive</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will exclude non-interactive cells.</p></li>
 <li><p><strong>as_df</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will return data as a pandas.DataFrame.</p></li>
 </ul>
 </dd>
@@ -330,7 +351,7 @@ This function should be treated as a low-level function, please use <a class="re
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>bbox</strong> (<em>boolean</em><em>, </em><em>defaults to False</em>) – If True, it will return a bounding box instead of a polygon.</p></li>
+<li><p><strong>bbox</strong> (<em>boolean</em><em>, </em><em>defaults to False</em>) – If True, it will return a bounding box instead of a polygon. [W, S, E, N]</p></li>
 <li><p><strong>buffer_percent</strong> (<em>float</em><em>, </em><em>optional</em>) – If given, this will add a buffer around the table.
 Size of buffer in units of the grid diameter
 See <code class="xref py py-func docutils literal notranslate"><span class="pre">brix.get_buffer_size()</span></code>.</p></li>
@@ -482,6 +503,13 @@ This represents the Thread ID as reported by the kernel.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.perform_geogrid_data_update">
+<code class="sig-name descname">perform_geogrid_data_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.perform_geogrid_data_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.perform_geogrid_data_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs GEOGRIDDATA update using the functions added to the <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> using <code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Hanlder.add_geogrid_data_update_function()</span></code>.</p>
+<p>Returns True if an update happened, and Flase otherwise.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.perform_update">
 <code class="sig-name descname">perform_update</code><span class="sig-paren">(</span><em class="sig-param">grid_hash_id=None</em>, <em class="sig-param">append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.perform_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.perform_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs single table update.</p>
@@ -499,6 +527,12 @@ This represents the Thread ID as reported by the kernel.</p>
 <dt id="brix.Handler.post_geogrid_data">
 <code class="sig-name descname">post_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.post_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.post_geogrid_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Posts the given geogrid_data object, ensuring that the object is valid.</p>
+<p>Function can be called by itself or using <a class="reference internal" href="#brix.Handler.update_geogrid_data" title="brix.Handler.update_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.update_geogrid_data()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>geogrid_data</strong> (<em>dict</em>) – Dictionary corresponding to a valid <code class="xref py py-class docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA</span></code> object.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -594,12 +628,14 @@ Function should return a list of dicts that represents a valid geogriddata objec
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">add_height</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span> <span class="n">levels</span><span class="p">):</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">add_height</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="go">                geogrid_data = H.get_geogrid_data()</span>
 <span class="go">                for cell in geogrid_data:</span>
 <span class="go">                        cell[&#39;height&#39;] += levels</span>
 <span class="go">                return geogrid_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">levels</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;tablename&#39;</span><span class="p">,</span> <span class="n">quietly</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">H</span><span class="o">.</span><span class="n">update_landuse</span><span class="p">(</span><span class="n">add_height</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">H</span><span class="o">.</span><span class="n">update_geogrid_data</span><span class="p">(</span><span class="n">add_height</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -635,7 +671,7 @@ Function should return a list of dicts that represents a valid geogriddata objec
 <dd><p>Parent class to build indicators from. To use, you need to define a subclass than inherets properties from this class. Doing so, ensures your indicator inherets the necessary methods and properties to connect with a CityScipe table.</p>
 <dl class="method">
 <dt id="brix.Indicator.get_geogrid_data">
-<code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">as_df=False</em>, <em class="sig-param">include_geometries=None</em>, <em class="sig-param">with_properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.get_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">as_df=False</em>, <em class="sig-param">include_geometries=None</em>, <em class="sig-param">with_properties=None</em>, <em class="sig-param">exclude_noninteractive=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.get_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the geogrid data from the linked table. Function mainly used for development. See <a class="reference internal" href="#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a>. It returns the exact object that will be passed to return_indicator</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -643,6 +679,7 @@ Function should return a list of dicts that represents a valid geogriddata objec
 <li><p><strong>as_df</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will return data as a pandas.DataFrame.</p></li>
 <li><p><strong>include_geometries</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
 <li><p><strong>with_properties</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
+<li><p><strong>exclude_noninteractive</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will exclude non-interactive cells.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -729,7 +766,7 @@ Function should return a list of dicts that represents a valid geogriddata objec
 <dd><p>Subclass used to define composite indicators. Composite indicators are functions of already defined indicators. By defining <a class="reference internal" href="#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a> and <a class="reference internal" href="#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a>, this class allows you to define a composite indicator by just passing an aggregation function.</p>
 <dl class="method">
 <dt id="brix.CompositeIndicator.get_geogrid_data">
-<code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">as_df=False</em>, <em class="sig-param">include_geometries=None</em>, <em class="sig-param">with_properties=None</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">as_df=False</em>, <em class="sig-param">include_geometries=None</em>, <em class="sig-param">with_properties=None</em>, <em class="sig-param">exclude_noninteractive=None</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the geogrid data from the linked table. Function mainly used for development. See <a class="reference internal" href="#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a>. It returns the exact object that will be passed to return_indicator</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -737,6 +774,7 @@ Function should return a list of dicts that represents a valid geogriddata objec
 <li><p><strong>as_df</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will return data as a pandas.DataFrame.</p></li>
 <li><p><strong>include_geometries</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
 <li><p><strong>with_properties</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
+<li><p><strong>exclude_noninteractive</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will exclude non-interactive cells.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -830,37 +868,29 @@ Function should return a list of dicts that represents a valid geogriddata objec
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="functions.html" class="btn btn-neutral float-right" title="Functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="tutorial.html" class="btn btn-neutral float-left" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="functions.html" class="btn btn-neutral float-right" title="Functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tutorial.html" class="btn btn-neutral float-left" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, CityScience group at the MIT Media Lab
+        &#169; Copyright 2020, CityScience group at the MIT Media Lab.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

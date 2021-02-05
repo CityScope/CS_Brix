@@ -99,6 +99,8 @@ geogrid_data = I.get_geogrid_data()
 geogrid_data.get_geogrid_props()
 ```
 
+Some tables might include a non-interactive area. This is fairly straightforward to filter out as intercative cells are characterized by `cell['interative']='Web'`. In the same way you work with `include_geometries` and `with_properties` you can set `exclude_noninteractive=True` to ensure you will always be working with the interactive cells from GEOGRIDDATA.
+
 ## Build and test your indicator (output)
 
 This library ensures that you can focus on what you do best: writing a kick ass `brix.Indicator.return_indicator()` function that will make everyone’s urban planning life better.
@@ -194,6 +196,21 @@ Class to handle the connection for indicators built based on data from the GEOGR
 
 
 
+#### add_geogrid_data_update_function(update_func)
+Adds a function to update GEOGRIDDATA.
+
+See `brix.Handler.update_geogrid_data()`.
+
+
+* **Parameters**
+
+    **update_func** (*function*) – Function to update the geogriddadata (list of dicts)
+    Function should take a `brix.Handler` as the first and only positional argument.
+    No keyword arguments are supported when using this feature.
+    Function should return a list of dicts that represents a valid geogriddata object.
+
+
+
 #### add_indicator(I, test=True)
 Adds indicator to handler object.
 
@@ -264,7 +281,7 @@ Returns the raw GEOGRIDDATA object.
 This function should be treated as a low-level function, please use `brix.Handler.get_geogrid_data()` instead.
 
 
-#### get_geogrid_data(include_geometries=False, with_properties=False, as_df=False)
+#### get_geogrid_data(include_geometries=False, with_properties=False, exclude_noninteractive=False, as_df=False)
 Returns the geogrid data from:
 [http://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA](http://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA)
 
@@ -276,6 +293,9 @@ Returns the geogrid data from:
 
 
     * **with_properties** (boolean, defaults to False) – If True it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)
+
+
+    * **exclude_noninteractive** (boolean, defaults to False) – If True it will exclude non-interactive cells.
 
 
     * **as_df** (boolean, defaults to False) – If True it will return data as a pandas.DataFrame.
@@ -348,7 +368,7 @@ Returns the bounds of the geogrid.
 * **Parameters**
 
     
-    * **bbox** (*boolean**, **defaults to False*) – If True, it will return a bounding box instead of a polygon.
+    * **bbox** (*boolean**, **defaults to False*) – If True, it will return a bounding box instead of a polygon. [W, S, E, N]
 
 
     * **buffer_percent** (*float**, **optional*) – If given, this will add a buffer around the table.
@@ -506,6 +526,12 @@ Helper function to parse the LBCS and NAICS strings into dictionaries of the for
 {‘6700’: 0.3, ‘2310’: 0.21, ‘4100’: 0.49}
 
 
+#### perform_geogrid_data_update()
+Performs GEOGRIDDATA update using the functions added to the `brix.Handler` using `brix.Hanlder.add_geogrid_data_update_function()`.
+
+Returns True if an update happened, and Flase otherwise.
+
+
 #### perform_update(grid_hash_id=None, append=False)
 Performs single table update.
 
@@ -522,6 +548,14 @@ Performs single table update.
 
 #### post_geogrid_data(geogrid_data)
 Posts the given geogrid_data object, ensuring that the object is valid.
+
+Function can be called by itself or using `brix.Handler.update_geogrid_data()`.
+
+
+* **Parameters**
+
+    **geogrid_data** (*dict*) – Dictionary corresponding to a valid `brix.GEOGRIDDATA` object.
+
 
 
 #### reset_geogrid_data()
@@ -615,12 +649,14 @@ Function to update table GEOGRIDDATA.
 ### Example
 
 ```python
->>> def add_height(geogrid_data, levels):
+>>> def add_height(H, levels=1):
+                geogrid_data = H.get_geogrid_data()
                 for cell in geogrid_data:
                         cell['height'] += levels
                 return geogrid_data
+>>> levels = 3
 >>> H = Handler('tablename', quietly=False)
->>> H.update_landuse(add_height)
+>>> H.update_geogrid_data(add_height, levels=levels)
 ```
 
 
@@ -656,7 +692,7 @@ Returns the package that will be posted in CityIO.
 Parent class to build indicators from. To use, you need to define a subclass than inherets properties from this class. Doing so, ensures your indicator inherets the necessary methods and properties to connect with a CityScipe table.
 
 
-#### get_geogrid_data(as_df=False, include_geometries=None, with_properties=None)
+#### get_geogrid_data(as_df=False, include_geometries=None, with_properties=None, exclude_noninteractive=None)
 Returns the geogrid data from the linked table. Function mainly used for development. See `brix.Indicator.link_table()`. It returns the exact object that will be passed to return_indicator
 
 
@@ -670,6 +706,9 @@ Returns the geogrid data from the linked table. Function mainly used for develop
 
 
     * **with_properties** (boolean, defaults to `brix.Indicator.requires_geogrid_props`) – If True, it will override the default parameter of the Indicator.
+
+
+    * **exclude_noninteractive** (boolean, defaults to False) – If True it will exclude non-interactive cells.
 
 
 
@@ -750,7 +789,7 @@ User defined function. Used to set up the main attributed of the custom indicato
 Subclass used to define composite indicators. Composite indicators are functions of already defined indicators. By defining `brix.Indicator.setup()` and `brix.Indicator.return_indicator()`, this class allows you to define a composite indicator by just passing an aggregation function.
 
 
-#### get_geogrid_data(as_df=False, include_geometries=None, with_properties=None)
+#### get_geogrid_data(as_df=False, include_geometries=None, with_properties=None, exclude_noninteractive=None)
 Returns the geogrid data from the linked table. Function mainly used for development. See `brix.Indicator.link_table()`. It returns the exact object that will be passed to return_indicator
 
 
@@ -764,6 +803,9 @@ Returns the geogrid data from the linked table. Function mainly used for develop
 
 
     * **with_properties** (boolean, defaults to `brix.Indicator.requires_geogrid_props`) – If True, it will override the default parameter of the Indicator.
+
+
+    * **exclude_noninteractive** (boolean, defaults to False) – If True it will exclude non-interactive cells.
 
 
 
