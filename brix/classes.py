@@ -106,6 +106,18 @@ class GEOGRIDDATA(list):
 				print('Number of unique cells in geogrid_data does not match grid size')
 			return False
 
+	def fill_missing_cells(self):
+		'''
+		Fills missing cells from GEOGRID.
+
+		This is useful when working only with interactive cells.
+		'''
+		available_ids = [cell['id'] for cell in self]
+		for cell in self.GEOGRID['features']:
+			cell = cell['properties']
+			if cell['id'] not in available_ids:
+				self.append(cell)
+
 	def remap_colors(self):
 		'''
 		Forces the colors to match the define colors of the cell type. 
@@ -737,22 +749,19 @@ class Handler(Thread):
 	def _get_grid_data(self,include_geometries=False,with_properties=False,exclude_noninteractive=False):
 		geogrid_data = self.get_GEOGRIDDATA()
 		geogrid = self.get_GEOGRID()
-
-		if exclude_noninteractive:
-			basic_keys = set([])
-			for cell in geogrid_data:
-				basic_keys = basic_keys|set(cell.keys())
 		
 		geogrid_data = GEOGRIDDATA(geogrid_data)
 		geogrid_data.set_geogrid(geogrid)
 		if not geogrid_data.check_id_validity():
-			warn('WARNING: Current GEOGRIDDATA includes undefined types.')
+			geogrid_data.fill_missing_cells()
+			if not geogrid_data.check_id_validity():
+				warn('WARNING: Current GEOGRIDDATA includes undefined types.')
 	
 		if include_geometries|any([I.requires_geometry for I in self.indicators.values()]):
 			for i in range(len(geogrid_data)):
 				geogrid_data[i]['geometry'] = self.get_GEOGRID()['features'][i]['geometry']
 
-		if with_properties|any([I.requires_geogrid_props for I in self.indicators.values()])|exclude_noninteractive:
+		if with_properties|any([I.requires_geogrid_props for I in self.indicators.values()]):
 			geogrid_props = geogrid['properties']
 			types_def = geogrid_props['types'].copy()
 			if 'static_types' in geogrid_props:
@@ -761,10 +770,14 @@ class Handler(Thread):
 			for cell in geogrid_data:
 				if cell['name'] in types_def.keys():
 					cell['properties'] = types_def[cell['name']]
+
 		if exclude_noninteractive:
-			geogrid_data = [cell for cell in geogrid_data if cell['properties']['interactive']!='No']
-			if (not with_properties)&(not any([I.requires_geogrid_props for I in self.indicators.values()])):
-				geogrid_data = [{k:cell[k] for k in basic_keys} for cell in geogrid_data]
+			interactive_geogrid_data = []
+			for cell in geogrid_data:
+				if 'interactive' in cell.keys():
+					if cell['interactive']=='Web':
+						interactive_geogrid_data.append(cell)
+			geogrid_data = interactive_geogrid_data
 
 		return geogrid_data
 
@@ -909,10 +922,13 @@ class Handler(Thread):
 
 		if not self.quietly:
 			print('Performing initial update')
+
+		self.perform_geogrid_data_update()
 		self.perform_update(append=self.append_on_post)
 
 		if showFront:
 			webbrowser.open(self.front_end_url, new=2)
+		self.grid_hash_id = self.get_grid_hash()
 		while True:
 			sleep(self.sleep_time)
 			grid_hash_id = self.get_grid_hash()
@@ -984,13 +1000,22 @@ class Handler(Thread):
 			raise NameError('Type not found in table definition.')
 
 		if not geogrid_data.check_id_validity():
-			raise NameError('IDs do not match.')
+			geogrid_data.fill_missing_cells()
+			if not geogrid_data.check_id_validity():
+				raise NameError('IDs do not match.')
 
 		geogrid_data.remap_colors()
 
 		geogrid_data = list(geogrid_data)
+
+		ids = [cell['id'] for cell in geogrid_data]
+		ids = np.argsort(ids)
+		geogrid_data = [geogrid_data[i] for i in ids]
+
 		r = requests.post(self.cityIO_post_url+'/'+self.GEOGRIDDATA_varname, data=json.dumps(geogrid_data))
 		self.grid_hash_id = self.get_grid_hash()
+		if not self.quietly:
+			print('GEOGRIDDATA successfully updated:',self.grid_hash_id)
 
 
 	def update_geogrid_data(self, update_func, **kwargs):
