@@ -170,6 +170,7 @@ class Handler(Thread):
 		self.GEOGRID = None
 
 		self.indicators = {}
+		self.update_geogrid_data_functions = []
 		self.grid_hash_id = None
 		self.grid_hash_id = self.get_grid_hash()
 
@@ -339,6 +340,22 @@ class Handler(Thread):
 					self._new_value(geogrid_data,indicatorName)
 			except:
 				warn('Indicator not working: '+indicatorName)
+
+	def add_geogrid_data_update_function(self,update_func):
+		'''
+		Adds a function to update GEOGRIDDATA. 
+
+		See :func:`brix.Handler.update_geogrid_data`.
+
+		Parameters
+		----------
+		update_func : function
+			Function to update the geogriddadata (list of dicts)
+			Function should take a :class:`brix.Handler` as the first and only positional argument.
+			No keyword arguments are supported when using this feature.
+			Function should return a list of dicts that represents a valid geogriddata object.
+		'''
+		self.update_geogrid_data_functions.append(update_func)
 
 	def return_indicator(self,indicator_name):
 		'''Returns the unformatted value returned by :func:`brix.Indicator.return_indicator` function of the selected indicator.
@@ -826,6 +843,22 @@ class Handler(Thread):
 			print('Done with update')
 		self.grid_hash_id = grid_hash_id
 
+	def perform_geogrid_data_update(self):
+		'''
+		Performs GEOGRIDDATA update using the functions added to the :class:`brix.Handler` using :func:`brix.Hanlder.add_geogrid_data_update_function`.
+
+		Returns True if an update happened, and Flase otherwise.
+		'''
+		update_flag = False
+		for update_func in self.update_geogrid_data_functions:
+			new_geogrid_data = update_func(self)
+			self.post_geogrid_data(new_geogrid_data)
+			update_flag = True
+			if not self.quietly:
+				print('GEOGRIDDATA successfully updated')
+		return update_flag
+
+
 	def rollback(self):
 		''':class:`brix.Handler` keeps track of the previous value of the indicators and access values.This function rollsback the current values to whatever the locally stored values are.
 		See also :func:`brix.Handler.previous_indicators` and :func:`brix.Handler.previous_access`.
@@ -872,6 +905,8 @@ class Handler(Thread):
 			sleep(self.sleep_time)
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
+				if self.perform_geogrid_data_update()
+					grid_hash_id = self.get_grid_hash()
 				self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
 
 	def run(self):
@@ -922,6 +957,13 @@ class Handler(Thread):
 	def post_geogrid_data(self,geogrid_data):
 		'''
 		Posts the given geogrid_data object, ensuring that the object is valid.
+
+		Function can be called by itself or using :func:`brix.Handler.update_geogrid_data`.
+
+		Parameters
+		----------
+		geogrid_data: dict
+			Dictionary corresponding to a valid :class:`brix.GEOGRIDDATA` object.
 		'''
 		geogrid_data = GEOGRIDDATA(geogrid_data)
 		geogrid_data.set_geogrid(self.get_GEOGRID())
@@ -952,12 +994,14 @@ class Handler(Thread):
 
 		Example
 		-------
-		>>> def add_height(geogrid_data, levels):
+		>>> def add_height(H, levels=1):
+				geogrid_data = H.get_geogrid_data()
 				for cell in geogrid_data:
 					cell['height'] += levels
 				return geogrid_data
+		>>> levels = 3
 		>>> H = Handler('tablename', quietly=False)
-		>>> H.update_landuse(add_height)
+		>>> H.update_geogrid_data(add_height, levels=levels)
 		'''
 
 		new_geogrid_data = update_func(self, **kwargs)
