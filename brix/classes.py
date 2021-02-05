@@ -734,10 +734,15 @@ class Handler(Thread):
 			geogrid_data = None
 		return geogrid_data
 
-	def _get_grid_data(self,include_geometries=False,with_properties=False):
+	def _get_grid_data(self,include_geometries=False,with_properties=False,exclude_noninteractive=False):
 		geogrid_data = self.get_GEOGRIDDATA()
 		geogrid = self.get_GEOGRID()
 
+		if exclude_noninteractive:
+			basic_keys = set([])
+			for cell in geogrid_data:
+				basic_keys = basic_keys|set(cell.keys())
+		
 		geogrid_data = GEOGRIDDATA(geogrid_data)
 		geogrid_data.set_geogrid(geogrid)
 		if not geogrid_data.check_id_validity():
@@ -747,7 +752,7 @@ class Handler(Thread):
 			for i in range(len(geogrid_data)):
 				geogrid_data[i]['geometry'] = self.get_GEOGRID()['features'][i]['geometry']
 
-		if with_properties|any([I.requires_geogrid_props for I in self.indicators.values()]):
+		if with_properties|any([I.requires_geogrid_props for I in self.indicators.values()])|exclude_noninteractive:
 			geogrid_props = geogrid['properties']
 			types_def = geogrid_props['types'].copy()
 			if 'static_types' in geogrid_props:
@@ -756,6 +761,11 @@ class Handler(Thread):
 			for cell in geogrid_data:
 				if cell['name'] in types_def.keys():
 					cell['properties'] = types_def[cell['name']]
+		if exclude_noninteractive:
+			geogrid_data = [cell for cell in geogrid_data if cell['properties']['interactive']!='No']
+			if (not with_properties)&(not any([I.requires_geogrid_props for I in self.indicators.values()])):
+				geogrid_data = [{k:cell[k] for k in basic_keys} for cell in geogrid_data]
+
 		return geogrid_data
 
 	def _get_url(self,url,params=None):
@@ -773,7 +783,7 @@ class Handler(Thread):
 			warn('FAILED TO RETRIEVE URL: '+url)
 		return r
 
-	def get_geogrid_data(self,include_geometries=False,with_properties=False,as_df=False):
+	def get_geogrid_data(self,include_geometries=False,with_properties=False,exclude_noninteractive=False,as_df=False):
 		'''
 		Returns the geogrid data from:
 		http://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA
@@ -784,6 +794,8 @@ class Handler(Thread):
 			If `True` it will also add the geometry information for each grid unit.
 		with_properties : boolean, defaults to `False`
 			If `True` it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)
+		exclude_noninteractive : boolean, defaults to `False`
+			If `True` it will exclude non-interactive cells. 
 		as_df: boolean, defaults to `False`
 			If `True` it will return data as a pandas.DataFrame.
 
@@ -792,7 +804,7 @@ class Handler(Thread):
 		geogrid_data : dict
 			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.
 		'''
-		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
+		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties,exclude_noninteractive=exclude_noninteractive)
 
 		if as_df:
 			for cell in geogrid_data:
@@ -905,7 +917,7 @@ class Handler(Thread):
 			sleep(self.sleep_time)
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
-				if self.perform_geogrid_data_update()
+				if self.perform_geogrid_data_update():
 					grid_hash_id = self.get_grid_hash()
 				self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
 
@@ -1020,6 +1032,7 @@ class Indicator:
 		self.viz_type = 'radar'
 		self.requires_geometry = None
 		self.requires_geogrid_props = False
+		self.exclude_noninteractive = False
 		self.model_path = None
 		self.pickled_model = None
 		# self.int_types_def=None
@@ -1128,7 +1141,7 @@ class Indicator:
 		return self.tableHandler.get_geogrid_props()['header']
 
 
-	def get_geogrid_data(self,as_df=False,include_geometries=None,with_properties=None):
+	def get_geogrid_data(self,as_df=False,include_geometries=None,with_properties=None,exclude_noninteractive=None):
 		'''
 		Returns the geogrid data from the linked table. Function mainly used for development. See :func:`brix.Indicator.link_table`. It returns the exact object that will be passed to return_indicator
 
@@ -1141,14 +1154,18 @@ class Indicator:
 			If `True`, it will override the default parameter of the Indicator.
 		with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`
 			If `True`, it will override the default parameter of the Indicator.
+		exclude_noninteractive : boolean, defaults to `False`
+			If `True` it will exclude non-interactive cells. 
 
 		Returns
 		-------
 		geogrid_data : str or pandas.DataFrame
 			Data that will be passed to the :func:`brix.Indicator.return_indicator` function by the :class:`brix.Handler` when deployed.
 		'''
-		include_geometries = self.requires_geometry if include_geometries is None else include_geometries
-		with_properties    = self.requires_geogrid_props if with_properties is None else with_properties
+		include_geometries     = self.requires_geometry if include_geometries is None else include_geometries
+		with_properties        = self.requires_geogrid_props if with_properties is None else with_properties
+		exclude_noninteractive = self.exclude_noninteractive if exclude_noninteractive is None else exclude_noninteractive
+		
 		if self.tableHandler is None:
 			if self.table_name is not None:
 				self.link_table(table_name=self.table_name)
@@ -1156,7 +1173,7 @@ class Indicator:
 				warn('To use this function, please link a table first:\n> Indicator.link_table(table_name)')
 				return None
 
-		geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
+		geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties,exclude_noninteractive=exclude_noninteractive)
 		if as_df:
 			geogrid_data = pd.DataFrame(geogrid_data)
 			if include_geometries:
