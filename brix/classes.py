@@ -836,7 +836,7 @@ class Handler(Thread):
 			columns_order+= sorted([c for c in geogrid_data.columns if c.split('_')[0] in self.classification_list])
 			geogrid_data = geogrid_data[columns_order]
 			if include_geometries:
-				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
+				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
 
 		return geogrid_data
 
