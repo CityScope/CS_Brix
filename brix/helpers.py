@@ -1,4 +1,7 @@
 # Helper functions live here
+import json
+import geopandas as gpd
+
 
 def is_number(s):
 	'''
@@ -32,7 +35,6 @@ def get_buffer_size(poly,buffer_percent=0.25):
 	buffer_size = buffer_percent*max(lat_range,lon_range)
 	return buffer_size
 
-
 def has_tags(tags, target_tags):
 	'''
 	Helper function used by get_OSM_nodes. 
@@ -55,3 +57,26 @@ def has_tags(tags, target_tags):
 			if ((tags[key] in target_tags[key])):
 				return True
 	return False
+
+def to_geojson(self, heatmap):
+	'''
+	Helper function that wraps pandas.DataFrame.to_json
+
+	Parameters
+	----------
+	heatmap: geopandas.GeoDataFrame
+		Table with points and properties. 
+		If geometries are polygons, they are replaced by their centroid.
+
+	Returns
+	-------
+	json_heatmap: dict
+		Heatmap in geojson format. 
+	'''
+	heatmap = gpd.GeoDataFrame(heatmap.drop('geometry',1),geometry=heatmap['geometry'])
+	if any(heatmap.geometry.type!='Point'):
+    	heatmap.geometry = heatmap.geometry.centroid
+
+	out = json.loads(heatmap.to_json())
+	out['features'] = [{k:f[k] for k in ['geometry','properties']} for f in out['features']]
+	return out
