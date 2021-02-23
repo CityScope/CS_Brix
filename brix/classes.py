@@ -14,6 +14,7 @@ from .helpers import is_number, get_buffer_size
 from threading import Thread
 from shapely.ops import unary_union
 from shapely.geometry import shape
+from copy import deepcopy
 
 class GEOGRIDDATA(list):
 	'''
@@ -34,6 +35,10 @@ class GEOGRIDDATA(list):
 			self.append(e)
 		self.geogrid_props = None
 		self.GEOGRID = None
+		self.classification_list = []
+
+	def set_classification_list(self,classification_list):
+		self.classification_list = classification_list
 
 	def link_table(self,table_name):
 		'''
@@ -132,6 +137,27 @@ class GEOGRIDDATA(list):
 			h = GEOGRID['properties']['types'][cell['name']]['color'].replace('#','')
 			color = list(int(h[i:i+2], 16) for i in (0, 2, 4))
 			cell['color'] = color
+
+	def as_df(self):
+		geogrid_data = deepcopy(self)
+		for cell in geogrid_data:
+			if 'properties' in cell.keys():
+				cell_props = cell['properties']
+				for k in cell_props:
+					if cell_props[k] is not None:
+						if k not in self.classification_list:
+							cell[f'property_{k}'] = cell_props[k]
+						else:
+							for code in cell_props[k]:
+								cell[f'{k}_{code}'] = cell_props[k][code]
+				del cell['properties']
+		geogrid_data = pd.DataFrame(geogrid_data)
+		columns_order = [c for c in geogrid_data.columns if c.split('_')[0] not in self.classification_list]
+		columns_order+= sorted([c for c in geogrid_data.columns if c.split('_')[0] in self.classification_list])
+		geogrid_data = geogrid_data[columns_order]
+		if 'geometry' in geogrid_data.columns:
+			geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
+		return geogrid_data
 
 class Handler(Thread):
 	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
@@ -751,6 +777,7 @@ class Handler(Thread):
 		geogrid = self.get_GEOGRID()
 		
 		geogrid_data = GEOGRIDDATA(geogrid_data)
+		geogrid_data.set_classification_list(self.classification_list)
 		geogrid_data.set_geogrid(geogrid)
 		if not geogrid_data.check_id_validity():
 			geogrid_data.fill_missing_cells()
@@ -820,23 +847,25 @@ class Handler(Thread):
 		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties,exclude_noninteractive=exclude_noninteractive)
 
 		if as_df:
-			for cell in geogrid_data:
-				if 'properties' in cell.keys():
-					cell_props = cell['properties']
-					for k in cell_props:
-						if cell_props[k] is not None:
-							if k not in self.classification_list:
-								cell[f'property_{k}'] = cell_props[k]
-							else:
-								for code in cell_props[k]:
-									cell[f'{k}_{code}'] = cell_props[k][code]
-					del cell['properties']
-			geogrid_data = pd.DataFrame(geogrid_data)
-			columns_order = [c for c in geogrid_data.columns if c.split('_')[0] not in self.classification_list]
-			columns_order+= sorted([c for c in geogrid_data.columns if c.split('_')[0] in self.classification_list])
-			geogrid_data = geogrid_data[columns_order]
-			if include_geometries:
-				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
+			geogrid_data = geogrid_data.as_df()
+		# if as_df:
+		# 	for cell in geogrid_data:
+		# 		if 'properties' in cell.keys():
+		# 			cell_props = cell['properties']
+		# 			for k in cell_props:
+		# 				if cell_props[k] is not None:
+		# 					if k not in self.classification_list:
+		# 						cell[f'property_{k}'] = cell_props[k]
+		# 					else:
+		# 						for code in cell_props[k]:
+		# 							cell[f'{k}_{code}'] = cell_props[k][code]
+		# 			del cell['properties']
+		# 	geogrid_data = pd.DataFrame(geogrid_data)
+		# 	columns_order = [c for c in geogrid_data.columns if c.split('_')[0] not in self.classification_list]
+		# 	columns_order+= sorted([c for c in geogrid_data.columns if c.split('_')[0] in self.classification_list])
+		# 	geogrid_data = geogrid_data[columns_order]
+		# 	if include_geometries:
+		# 		geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
 
 		return geogrid_data
 
