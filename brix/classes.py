@@ -799,12 +799,16 @@ class Handler(Thread):
 					cell['properties'] = types_def[cell['name']]
 
 		if exclude_noninteractive:
-			interactive_geogrid_data = []
-			for cell in geogrid_data:
+			non_interative_id = []
+			for i,cell in enumerate(geogrid_data):
 				if 'interactive' in cell.keys():
-					if cell['interactive']=='Web':
-						interactive_geogrid_data.append(cell)
-			geogrid_data = interactive_geogrid_data
+					if cell['interactive']!='Web':
+						non_interative_id.append(i)
+				if 'interactive' not in cell.keys():
+					non_interative_id.append(i)
+			non_interative_id = sorted(non_interative_id)[::-1]
+			for i in non_interative_id:
+				del geogrid_data[i]
 
 		return geogrid_data
 
