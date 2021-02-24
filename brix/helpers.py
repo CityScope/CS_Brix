@@ -75,7 +75,7 @@ def to_geojson(self, heatmap):
 	'''
 	heatmap = gpd.GeoDataFrame(heatmap.drop('geometry',1),geometry=heatmap['geometry'])
 	if any(heatmap.geometry.type!='Point'):
-    	heatmap.geometry = heatmap.geometry.centroid
+		heatmap.geometry = heatmap.geometry.centroid
 
 	out = json.loads(heatmap.to_json())
 	out['features'] = [{k:f[k] for k in ['geometry','properties']} for f in out['features']]
