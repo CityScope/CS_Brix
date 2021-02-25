@@ -14,7 +14,8 @@ except:
         "joblib>=0.13.2",
         "shapely>=1.6.2",
         "geopandas>=0.6.2",
-        "geopy>=1.20.0"
+        "geopy>=1.20.0",
+        "networkx>=2.4"
     ]
 
 
