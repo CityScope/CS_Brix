@@ -185,7 +185,7 @@ class GEOGRIDDATA(list):
 
 		return geogrid_data
 
-	def as_graph(self):
+	def as_graph(self,edges_only=False):
 		'''
 		Returns the geogriddata object as a networkx.Graph.
 
