@@ -622,6 +622,14 @@ class Handler(Thread):
 				return [new_value]
 
 	def get_GEOGRID_EDGES(self):
+		'''
+		Gets the edges of a graph that connects each cell to its nearest neighbors.
+
+		Returns
+		-------
+		GEOGRID_EDGES: list
+			Edge list of cell ids. Each cell has at most 4 neighbors.
+		'''
 		if self.GEOGRID_EDGES is None:
 			geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
 			geos = gpd.GeoDataFrame(geos.drop('geometry',1),geometry=geos['geometry'].apply(lambda x: shape(x))) # no crs to avoid warning
