@@ -40,6 +40,8 @@ class GEOGRIDDATA(list):
 		self.GEOGRID = None
 		self.GEOGRID_EDGES = None
 		self.classification_list = []
+		self.df = None
+		self.graph = None
 
 	def set_classification_list(self,classification_list):
 		self.classification_list = classification_list
@@ -154,36 +156,37 @@ class GEOGRIDDATA(list):
 		include_geometries: None
 			If set, it will override the default option. 
 		'''
-		geogrid_data = deepcopy(self)
-		for cell in geogrid_data:
-			if 'properties' in cell.keys():
-				cell_props = cell['properties']
-				for k in cell_props:
-					if cell_props[k] is not None:
-						if k not in self.classification_list:
-							cell[f'property_{k}'] = cell_props[k]
-						else:
-							for code in cell_props[k]:
-								cell[f'{k}_{code}'] = cell_props[k][code]
-				del cell['properties']
-		geogrid_data = pd.DataFrame(geogrid_data)
-		columns_order = [c for c in geogrid_data.columns if c.split('_')[0] not in self.classification_list]
-		columns_order+= sorted([c for c in geogrid_data.columns if c.split('_')[0] in self.classification_list])
-		geogrid_data = geogrid_data[columns_order]
+		if self.df is None:
+			geogrid_data = deepcopy(self)
+			for cell in geogrid_data:
+				if 'properties' in cell.keys():
+					cell_props = cell['properties']
+					for k in cell_props:
+						if cell_props[k] is not None:
+							if k not in self.classification_list:
+								cell[f'property_{k}'] = cell_props[k]
+							else:
+								for code in cell_props[k]:
+									cell[f'{k}_{code}'] = cell_props[k][code]
+					del cell['properties']
+			geogrid_data = pd.DataFrame(geogrid_data)
+			columns_order = [c for c in geogrid_data.columns if c.split('_')[0] not in self.classification_list]
+			columns_order+= sorted([c for c in geogrid_data.columns if c.split('_')[0] in self.classification_list])
+			geogrid_data = geogrid_data[columns_order]
 
-		if 'geometry' in geogrid_data.columns:
-			geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
+			if 'geometry' in geogrid_data.columns:
+				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
 
-		if include_geometries is not None:
-			if include_geometries:
-				if 'geometry' not in geogrid_data.columns:
-					geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
-					geogrid_data = pd.merge(geogrid_data,geos)
-					geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
-				else:
-					geogrid_data = geogrid_data.drop('geometry',1,errors='ignore')
-
-		return geogrid_data
+			if include_geometries is not None:
+				if include_geometries:
+					if 'geometry' not in geogrid_data.columns:
+						geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
+						geogrid_data = pd.merge(geogrid_data,geos)
+						geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
+					else:
+						geogrid_data = geogrid_data.drop('geometry',1,errors='ignore')
+			self.df = geogrid_data
+		return self.df
 
 	def as_graph(self,edges_only=False):
 		'''
@@ -200,12 +203,15 @@ class GEOGRIDDATA(list):
 			Graph connecting each cell to its first neighbors.
 			If edges_only=True, returns a list of edges instead. 
 		'''
-		geogrid_data = self.as_df(include_geometries=False)
+
 		if not edges_only:
-			G = nx.Graph()
-			G.add_nodes_from([(index,dict(row)) for index,row in geogrid_data.drop('geometry',1,errors='ignore').set_index('id').iterrows()])
-			G.add_edges_from(self.GEOGRID_EDGES)
-			return G
+			if (self.graph is None)&(self.GEOGRID_EDGES is not None):
+				geogrid_data = self.as_df(include_geometries=False)
+				G = nx.Graph()
+				G.add_nodes_from([(index,dict(row)) for index,row in geogrid_data.drop('geometry',1,errors='ignore').set_index('id').iterrows()])
+				G.add_edges_from(self.GEOGRID_EDGES)
+				self.graph = G
+			return self.graph
 		else:
 			return self.GEOGRID_EDGES
 
