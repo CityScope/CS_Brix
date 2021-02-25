@@ -203,7 +203,7 @@ class GEOGRIDDATA(list):
 		geogrid_data = self.as_df(include_geometries=False)
 		if not edges_only:
 			G = nx.Graph()
-			G.add_nodes_from([(index,dict(row)) for index,row in geogrid_data.drop('geometry',1).set_index('id').iterrows()])
+			G.add_nodes_from([(index,dict(row)) for index,row in geogrid_data.drop('geometry',1,errors='ignore').set_index('id').iterrows()])
 			G.add_edges_from(self.GEOGRID_EDGES)
 			return G
 		else:
