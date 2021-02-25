@@ -908,7 +908,7 @@ class Handler(Thread):
 			warn('FAILED TO RETRIEVE URL: '+url)
 		return r
 
-	def get_geogrid_data(self,include_geometries=False,with_properties=False,as_df=False):
+	def get_geogrid_data(self,include_geometries=False,with_properties=False):
 		'''
 		Returns the geogrid data from:
 		http://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA
@@ -919,8 +919,6 @@ class Handler(Thread):
 			If `True` it will also add the geometry information for each grid unit.
 		with_properties : boolean, defaults to `False`
 			If `True` it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)
-		as_df: boolean, defaults to `False`
-			If `True` it will return data as a pandas.DataFrame.
 
 		Returns
 		-------
@@ -928,9 +926,6 @@ class Handler(Thread):
 			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.
 		'''
 		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
-
-		if as_df:
-			geogrid_data = geogrid_data.as_df()
 		return geogrid_data
 
 	def perform_update(self,grid_hash_id=None,append=False):
@@ -1258,15 +1253,13 @@ class Indicator:
 		return self.tableHandler.get_geogrid_props()['header']
 
 
-	def get_geogrid_data(self,as_df=False,include_geometries=None,with_properties=None):
+	def get_geogrid_data(self,include_geometries=None,with_properties=None):
 		'''
 		Returns the geogrid data from the linked table. Function mainly used for development. See :func:`brix.Indicator.link_table`. It returns the exact object that will be passed to return_indicator
 
 
 		Parameters
 		----------
-		as_df: boolean, defaults to `False`
-			If `True` it will return data as a pandas.DataFrame.
 		include_geometries: boolean, defaults to :attr:`brix.Indicator.requires_geometry`
 			If `True`, it will override the default parameter of the Indicator.
 		with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`
@@ -1288,10 +1281,6 @@ class Indicator:
 				return None
 
 		geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
-		if as_df:
-			geogrid_data = pd.DataFrame(geogrid_data)
-			if include_geometries:
-				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 		return geogrid_data
 
 
