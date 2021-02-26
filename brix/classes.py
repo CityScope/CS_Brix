@@ -9,11 +9,15 @@ import geopandas as gpd
 from warnings import warn
 from time import sleep
 from collections import defaultdict
-from shapely.geometry import shape
 from .helpers import is_number, get_buffer_size
 from threading import Thread
 from shapely.ops import unary_union
 from shapely.geometry import shape
+from copy import deepcopy
+try:
+	import networkx as nx
+except:
+	print('Warning: networkx no found.')
 
 class GEOGRIDDATA(list):
 	'''
@@ -34,6 +38,13 @@ class GEOGRIDDATA(list):
 			self.append(e)
 		self.geogrid_props = None
 		self.GEOGRID = None
+		self.GEOGRID_EDGES = None
+		self.classification_list = []
+		self.df = None
+		self.graph = None
+
+	def set_classification_list(self,classification_list):
+		self.classification_list = classification_list
 
 	def link_table(self,table_name):
 		'''
@@ -53,6 +64,9 @@ class GEOGRIDDATA(list):
 
 	def set_geogrid(self,GEOGRID):
 		self.GEOGRID = GEOGRID
+
+	def set_geogrid_edges(self,GEOGRID_EDGES):
+		self.GEOGRID_EDGES = GEOGRID_EDGES
 
 	def get_geogrid(self):
 		'''
@@ -133,6 +147,115 @@ class GEOGRIDDATA(list):
 			color = list(int(h[i:i+2], 16) for i in (0, 2, 4))
 			cell['color'] = color
 
+	def remap_interactive(self):
+		'''
+		Forces the colors to match the define colors of the cell type. 
+		Requires that GEOGRIDDATA is set
+		'''
+		if self.GEOGRID is None:
+			raise NameError('GEOGRIDDATA object does not have GEOGRID attribute.')
+		GEOGRID = self.GEOGRID
+		for cell in self:
+			h = GEOGRID['properties']['types'][cell['name']]
+			if 'interactive' in h.keys():
+				cell['interactive'] = h['interactive']
+			else:
+				if 'interactive' in cell.keys()
+					del cell['interactive']
+
+
+	def as_df(self,include_geometries=None):
+		'''
+		Returns the dataframe version of the geogriddata object.
+
+		Parameters
+		----------
+		include_geometries: None
+			If set, it will override the default option. 
+		'''
+		if self.df is None:
+			geogrid_data = deepcopy(self)
+			for cell in geogrid_data:
+				if 'properties' in cell.keys():
+					cell_props = cell['properties']
+					for k in cell_props:
+						if cell_props[k] is not None:
+							if k not in self.classification_list:
+								cell[f'property_{k}'] = cell_props[k]
+							else:
+								for code in cell_props[k]:
+									cell[f'{k}_{code}'] = cell_props[k][code]
+					del cell['properties']
+			geogrid_data = pd.DataFrame(geogrid_data)
+			columns_order = [c for c in geogrid_data.columns if c.split('_')[0] not in self.classification_list]
+			columns_order+= sorted([c for c in geogrid_data.columns if c.split('_')[0] in self.classification_list])
+			geogrid_data = geogrid_data[columns_order]
+
+			if 'geometry' in geogrid_data.columns:
+				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
+
+			if include_geometries is not None:
+				if include_geometries:
+					if 'geometry' not in geogrid_data.columns:
+						geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
+						geogrid_data = pd.merge(geogrid_data,geos)
+						geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
+					else:
+						geogrid_data = geogrid_data.drop('geometry',1,errors='ignore')
+			self.df = geogrid_data
+		return self.df
+
+	def as_graph(self,edges_only=False):
+		'''
+		Returns the geogriddata object as a networkx.Graph.
+
+		Parameters
+		----------
+		edges_only: boolean, defaults to `False`
+			If True, it will return the edgelist instead
+
+		Returns
+		-------
+		G: networkx.Graph
+			Graph connecting each cell to its first neighbors.
+			If edges_only=True, returns a list of edges instead. 
+		'''
+
+		if not edges_only:
+			if (self.graph is None)&(self.GEOGRID_EDGES is not None):
+				geogrid_data = self.as_df(include_geometries=False)
+				G = nx.Graph()
+				G.add_nodes_from([(index,dict(row)) for index,row in geogrid_data.drop('geometry',1,errors='ignore').set_index('id').iterrows()])
+				G.add_edges_from(self.GEOGRID_EDGES)
+				self.graph = G
+			return self.graph
+		else:
+			return self.GEOGRID_EDGES
+
+	def remove_noninteractive(self):
+		'''
+		Remove noninteractive cells from object.
+		Modification is done in-place, meaning the object is modified.
+		The function will also return the object. 
+
+		Returns
+		-------
+		self: brix.GEOGRIDDATA
+			Modified object.
+		'''
+		non_interative_id = []
+		for i,cell in enumerate(self):
+			if 'interactive' in cell.keys():
+				if cell['interactive']!='Web':
+					non_interative_id.append(i)
+			if 'interactive' not in cell.keys():
+				non_interative_id.append(i)
+		non_interative_id = sorted(non_interative_id)[::-1]
+		for i in non_interative_id:
+			del self[i]
+		return self
+
+
 class Handler(Thread):
 	'''Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.
 
@@ -180,6 +303,7 @@ class Handler(Thread):
 		self.GEOGRID_varname = GEOGRID_varname
 		self.GEOGRIDDATA_varname = GEOGRIDDATA_varname
 		self.GEOGRID = None
+		self.GEOGRID_EDGES = None
 
 		self.indicators = {}
 		self.update_geogrid_data_functions = []
@@ -514,6 +638,29 @@ class Handler(Thread):
 					new_value['viz_type'] = I.viz_type
 				return [new_value]
 
+	def get_GEOGRID_EDGES(self):
+		'''
+		Gets the edges of a graph that connects each cell to its nearest neighbors.
+
+		Returns
+		-------
+		GEOGRID_EDGES: list
+			Edge list of cell ids. Each cell has at most 4 neighbors.
+		'''
+		if self.GEOGRID_EDGES is None:
+			geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
+			geos = gpd.GeoDataFrame(geos.drop('geometry',1),geometry=geos['geometry'].apply(lambda x: shape(x))) # no crs to avoid warning
+			geos['lon'] = round(geos.geometry.centroid.x,5)
+			geos['lat'] = round(geos.geometry.centroid.y,5)
+
+			edge_list = []
+			for xlabel,ylabel in [('lon','lat'),('lat','lon')]:
+				rows = geos.groupby(xlabel)
+				for name, group in rows:
+					ids = group.sort_values(by=ylabel)['id'].values.tolist()
+					edge_list += list(zip(ids[:-1],ids[1:]))
+			self.GEOGRID_EDGES = edge_list
+		return self.GEOGRID_EDGES
 
 	def _combine_heatmap_values(self,new_values_heatmap):
 		'''
@@ -746,12 +893,16 @@ class Handler(Thread):
 			geogrid_data = None
 		return geogrid_data
 
-	def _get_grid_data(self,include_geometries=False,with_properties=False,exclude_noninteractive=False):
+	def _get_grid_data(self,include_geometries=False,with_properties=False):
 		geogrid_data = self.get_GEOGRIDDATA()
 		geogrid = self.get_GEOGRID()
+		geogrid_edges = self.get_GEOGRID_EDGES()
 		
 		geogrid_data = GEOGRIDDATA(geogrid_data)
+		geogrid_data.set_classification_list(self.classification_list)
 		geogrid_data.set_geogrid(geogrid)
+		geogrid_data.set_geogrid_edges(geogrid_edges)
+		
 		if not geogrid_data.check_id_validity():
 			geogrid_data.fill_missing_cells()
 			if not geogrid_data.check_id_validity():
@@ -771,14 +922,6 @@ class Handler(Thread):
 				if cell['name'] in types_def.keys():
 					cell['properties'] = types_def[cell['name']]
 
-		if exclude_noninteractive:
-			interactive_geogrid_data = []
-			for cell in geogrid_data:
-				if 'interactive' in cell.keys():
-					if cell['interactive']=='Web':
-						interactive_geogrid_data.append(cell)
-			geogrid_data = interactive_geogrid_data
-
 		return geogrid_data
 
 	def _get_url(self,url,params=None):
@@ -796,7 +939,7 @@ class Handler(Thread):
 			warn('FAILED TO RETRIEVE URL: '+url)
 		return r
 
-	def get_geogrid_data(self,include_geometries=False,with_properties=False,exclude_noninteractive=False,as_df=False):
+	def get_geogrid_data(self,include_geometries=False,with_properties=False):
 		'''
 		Returns the geogrid data from:
 		http://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA
@@ -807,37 +950,13 @@ class Handler(Thread):
 			If `True` it will also add the geometry information for each grid unit.
 		with_properties : boolean, defaults to `False`
 			If `True` it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)
-		exclude_noninteractive : boolean, defaults to `False`
-			If `True` it will exclude non-interactive cells. 
-		as_df: boolean, defaults to `False`
-			If `True` it will return data as a pandas.DataFrame.
 
 		Returns
 		-------
 		geogrid_data : dict
 			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.
 		'''
-		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties,exclude_noninteractive=exclude_noninteractive)
-
-		if as_df:
-			for cell in geogrid_data:
-				if 'properties' in cell.keys():
-					cell_props = cell['properties']
-					for k in cell_props:
-						if cell_props[k] is not None:
-							if k not in self.classification_list:
-								cell[f'property_{k}'] = cell_props[k]
-							else:
-								for code in cell_props[k]:
-									cell[f'{k}_{code}'] = cell_props[k][code]
-					del cell['properties']
-			geogrid_data = pd.DataFrame(geogrid_data)
-			columns_order = [c for c in geogrid_data.columns if c.split('_')[0] not in self.classification_list]
-			columns_order+= sorted([c for c in geogrid_data.columns if c.split('_')[0] in self.classification_list])
-			geogrid_data = geogrid_data[columns_order]
-			if include_geometries:
-				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
-
+		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
 		return geogrid_data
 
 	def perform_update(self,grid_hash_id=None,append=False):
@@ -868,15 +987,17 @@ class Handler(Thread):
 			print('Done with update')
 		self.grid_hash_id = grid_hash_id
 
-	def perform_geogrid_data_update(self):
+	def perform_geogrid_data_update(self,geogrid_data=None):
 		'''
 		Performs GEOGRIDDATA update using the functions added to the :class:`brix.Handler` using :func:`brix.Hanlder.add_geogrid_data_update_function`.
 
 		Returns True if an update happened, and Flase otherwise.
 		'''
 		update_flag = False
+		if geogrid_data is None
+			geogrid_data = self._get_grid_data()
 		for update_func in self.update_geogrid_data_functions:
-			new_geogrid_data = update_func(self)
+			new_geogrid_data = update_func(geogrid_data)
 			self.post_geogrid_data(new_geogrid_data)
 			update_flag = True
 			if not self.quietly:
@@ -1005,6 +1126,7 @@ class Handler(Thread):
 				raise NameError('IDs do not match.')
 
 		geogrid_data.remap_colors()
+		geogrid_data.remap_interactive()
 
 		geogrid_data = list(geogrid_data)
 
@@ -1018,7 +1140,7 @@ class Handler(Thread):
 			print('GEOGRIDDATA successfully updated:',self.grid_hash_id)
 
 
-	def update_geogrid_data(self, update_func, **kwargs):
+	def update_geogrid_data(self,update_func,geogrid_data=None, **kwargs):
 		'''
 		Function to update table GEOGRIDDATA.
 
@@ -1026,13 +1148,12 @@ class Handler(Thread):
 		----------
 		update_func : function
 			Function to update the geogriddadata (list of dicts)
-			Function should take a :class:`brix.Handler` as the first and only positional argument plus any number of keyword arguments.
+			Function should take a :class:`brix.GEOGRIDDATA` as the first and only positional argument plus any number of keyword arguments.
 			Function should return a list of dicts that represents a valid geogriddata object.
 
 		Example
 		-------
-		>>> def add_height(H, levels=1):
-				geogrid_data = H.get_geogrid_data()
+		>>> def add_height(get_geogrid_data, levels=1):
 				for cell in geogrid_data:
 					cell['height'] += levels
 				return geogrid_data
@@ -1040,8 +1161,10 @@ class Handler(Thread):
 		>>> H = Handler('tablename', quietly=False)
 		>>> H.update_geogrid_data(add_height, levels=levels)
 		'''
+		if geogrid_data is None:
+			geogrid_data = self._get_grid_data()
 
-		new_geogrid_data = update_func(self, **kwargs)
+		new_geogrid_data = update_func(geogrid_data, **kwargs)
 
 		self.post_geogrid_data(new_geogrid_data)
 		if not self.quietly:
@@ -1057,7 +1180,6 @@ class Indicator:
 		self.viz_type = 'radar'
 		self.requires_geometry = None
 		self.requires_geogrid_props = False
-		self.exclude_noninteractive = False
 		self.model_path = None
 		self.pickled_model = None
 		# self.int_types_def=None
@@ -1166,21 +1288,17 @@ class Indicator:
 		return self.tableHandler.get_geogrid_props()['header']
 
 
-	def get_geogrid_data(self,as_df=False,include_geometries=None,with_properties=None,exclude_noninteractive=None):
+	def get_geogrid_data(self,include_geometries=None,with_properties=None):
 		'''
 		Returns the geogrid data from the linked table. Function mainly used for development. See :func:`brix.Indicator.link_table`. It returns the exact object that will be passed to return_indicator
 
 
 		Parameters
 		----------
-		as_df: boolean, defaults to `False`
-			If `True` it will return data as a pandas.DataFrame.
 		include_geometries: boolean, defaults to :attr:`brix.Indicator.requires_geometry`
 			If `True`, it will override the default parameter of the Indicator.
 		with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`
 			If `True`, it will override the default parameter of the Indicator.
-		exclude_noninteractive : boolean, defaults to `False`
-			If `True` it will exclude non-interactive cells. 
 
 		Returns
 		-------
@@ -1189,7 +1307,6 @@ class Indicator:
 		'''
 		include_geometries     = self.requires_geometry if include_geometries is None else include_geometries
 		with_properties        = self.requires_geogrid_props if with_properties is None else with_properties
-		exclude_noninteractive = self.exclude_noninteractive if exclude_noninteractive is None else exclude_noninteractive
 		
 		if self.tableHandler is None:
 			if self.table_name is not None:
@@ -1198,11 +1315,7 @@ class Indicator:
 				warn('To use this function, please link a table first:\n> Indicator.link_table(table_name)')
 				return None
 
-		geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties,exclude_noninteractive=exclude_noninteractive)
-		if as_df:
-			geogrid_data = pd.DataFrame(geogrid_data)
-			if include_geometries:
-				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
+		geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
 		return geogrid_data
 
 
