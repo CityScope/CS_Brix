@@ -147,6 +147,23 @@ class GEOGRIDDATA(list):
 			color = list(int(h[i:i+2], 16) for i in (0, 2, 4))
 			cell['color'] = color
 
+	def remap_interactive(self):
+		'''
+		Forces the colors to match the define colors of the cell type. 
+		Requires that GEOGRIDDATA is set
+		'''
+		if self.GEOGRID is None:
+			raise NameError('GEOGRIDDATA object does not have GEOGRID attribute.')
+		GEOGRID = self.GEOGRID
+		for cell in self:
+			h = GEOGRID['properties']['types'][cell['name']]
+			if 'interactive' in h.keys():
+				cell['interactive'] = h['interactive']
+			else:
+				if 'interactive' in cell.keys()
+					del cell['interactive']
+
+
 	def as_df(self,include_geometries=None):
 		'''
 		Returns the dataframe version of the geogriddata object.
@@ -970,15 +987,17 @@ class Handler(Thread):
 			print('Done with update')
 		self.grid_hash_id = grid_hash_id
 
-	def perform_geogrid_data_update(self):
+	def perform_geogrid_data_update(self,geogrid_data=None):
 		'''
 		Performs GEOGRIDDATA update using the functions added to the :class:`brix.Handler` using :func:`brix.Hanlder.add_geogrid_data_update_function`.
 
 		Returns True if an update happened, and Flase otherwise.
 		'''
 		update_flag = False
+		if geogrid_data is None
+			geogrid_data = self._get_grid_data()
 		for update_func in self.update_geogrid_data_functions:
-			new_geogrid_data = update_func(self)
+			new_geogrid_data = update_func(geogrid_data)
 			self.post_geogrid_data(new_geogrid_data)
 			update_flag = True
 			if not self.quietly:
@@ -1107,6 +1126,7 @@ class Handler(Thread):
 				raise NameError('IDs do not match.')
 
 		geogrid_data.remap_colors()
+		geogrid_data.remap_interactive()
 
 		geogrid_data = list(geogrid_data)
 
@@ -1120,7 +1140,7 @@ class Handler(Thread):
 			print('GEOGRIDDATA successfully updated:',self.grid_hash_id)
 
 
-	def update_geogrid_data(self, update_func, **kwargs):
+	def update_geogrid_data(self,update_func,geogrid_data=None, **kwargs):
 		'''
 		Function to update table GEOGRIDDATA.
 
@@ -1128,13 +1148,12 @@ class Handler(Thread):
 		----------
 		update_func : function
 			Function to update the geogriddadata (list of dicts)
-			Function should take a :class:`brix.Handler` as the first and only positional argument plus any number of keyword arguments.
+			Function should take a :class:`brix.GEOGRIDDATA` as the first and only positional argument plus any number of keyword arguments.
 			Function should return a list of dicts that represents a valid geogriddata object.
 
 		Example
 		-------
-		>>> def add_height(H, levels=1):
-				geogrid_data = H.get_geogrid_data()
+		>>> def add_height(get_geogrid_data, levels=1):
 				for cell in geogrid_data:
 					cell['height'] += levels
 				return geogrid_data
@@ -1142,8 +1161,10 @@ class Handler(Thread):
 		>>> H = Handler('tablename', quietly=False)
 		>>> H.update_geogrid_data(add_height, levels=levels)
 		'''
+		if geogrid_data is None:
+			geogrid_data = self._get_grid_data()
 
-		new_geogrid_data = update_func(self, **kwargs)
+		new_geogrid_data = update_func(geogrid_data, **kwargs)
 
 		self.post_geogrid_data(new_geogrid_data)
 		if not self.quietly:
