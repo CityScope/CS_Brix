@@ -160,7 +160,7 @@ class GEOGRIDDATA(list):
 			if 'interactive' in h.keys():
 				cell['interactive'] = h['interactive']
 			else:
-				if 'interactive' in cell.keys()
+				if 'interactive' in cell.keys():
 					del cell['interactive']
 
 
