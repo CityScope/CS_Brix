@@ -116,7 +116,7 @@ def make_numeric_indicator(name,return_indicator,viz_type='bar',requires_geometr
 	I.set_return_indicator(return_indicator)
 	return I
 
-def make_static_heatmap_indicator(name,shapefile,columns=None,name=None):
+def make_static_heatmap_indicator(shapefile,columns=None,name=None):
 	'''
 	Function that constructs a heatmap indicator that only visualizes the given shapefile.
 	This function wraps :class:`brix.StaticHeatmap` to make it easier for users to find.
