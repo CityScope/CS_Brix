@@ -245,7 +245,7 @@
 
 <div class="viewcode-block" id="make_numeric_indicator"><a class="viewcode-back" href="../../functions.html#brix.make_numeric_indicator">[docs]</a><span class="k">def</span> <span class="nf">make_numeric_indicator</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">return_indicator</span><span class="p">,</span><span class="n">viz_type</span><span class="o">=</span><span class="s1">&#39;bar&#39;</span><span class="p">,</span><span class="n">requires_geometry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">requires_geogrid_props</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Function that constructs and indicator based on a user defined return_indicator function. </span>
+<span class="sd">	Function that constructs an indicator based on a user defined return_indicator function. </span>
 
 <span class="sd">	Parameters</span>
 <span class="sd">	----------</span>
@@ -272,6 +272,30 @@
 		<span class="n">viz_type</span><span class="o">=</span><span class="n">viz_type</span><span class="p">)</span>
 	<span class="n">I</span><span class="o">.</span><span class="n">set_return_indicator</span><span class="p">(</span><span class="n">return_indicator</span><span class="p">)</span>
 	<span class="k">return</span> <span class="n">I</span></div>
+
+<div class="viewcode-block" id="make_static_heatmap_indicator"><a class="viewcode-back" href="../../functions.html#brix.make_static_heatmap_indicator">[docs]</a><span class="k">def</span> <span class="nf">make_static_heatmap_indicator</span><span class="p">(</span><span class="n">shapefile</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Function that constructs a heatmap indicator that only visualizes the given shapefile.</span>
+<span class="sd">	This function wraps :class:`brix.StaticHeatmap` to make it easier for users to find.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	shapefile: geopandas.GeoDataFrame or str</span>
+<span class="sd">		Shapefile with values for each point, or path to shapefile.</span>
+<span class="sd">	columns: list</span>
+<span class="sd">		Columns to plot. If not provided, it will return all numeric columns.</span>
+<span class="sd">		The name of the indicator will be given by the name of the column.</span>
+<span class="sd">	name: str, optional</span>
+<span class="sd">		Name of the indicator.</span>
+<span class="sd">		If not provided, it will generate a name by hashing the column names.</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	Heatmap: brix.Indicator</span>
+<span class="sd">		Heatmap indicator that posts the given shapefile to the table.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="n">HM</span> <span class="o">=</span> <span class="n">StaticHeatmap</span><span class="p">(</span><span class="n">shapefile</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">HM</span></div>
 
 <div class="viewcode-block" id="get_OSM_geometries"><a class="viewcode-back" href="../../functions.html#brix.get_OSM_geometries">[docs]</a><span class="k">def</span> <span class="nf">get_OSM_geometries</span><span class="p">(</span><span class="n">H</span><span class="p">,</span><span class="n">tags</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;building&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">},</span><span class="n">buffer_percent</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span><span class="n">use_stored</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">only_polygons</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
