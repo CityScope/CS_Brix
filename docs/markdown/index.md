@@ -57,6 +57,9 @@ pip install cs-brix
     * Indicator class
 
 
+    * GEOGRIDDATA class
+
+
     * Indicator sub-classes
 
 

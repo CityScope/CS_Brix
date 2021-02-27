@@ -4,4 +4,6 @@
 
 ## Indicator class
 
+## GEOGRIDDATA class
+
 ## Indicator sub-classes

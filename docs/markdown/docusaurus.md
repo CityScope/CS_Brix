@@ -213,4 +213,6 @@ The updates triggered by `brix.Handler.listen()` follow the following order:
 
 ## Indicator class
 
+## GEOGRIDDATA class
+
 ## Indicator sub-classes
