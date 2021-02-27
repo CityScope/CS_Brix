@@ -994,7 +994,7 @@ class Handler(Thread):
 		Returns True if an update happened, and Flase otherwise.
 		'''
 		update_flag = False
-		if geogrid_data is None
+		if geogrid_data is None:
 			geogrid_data = self._get_grid_data()
 		for update_func in self.update_geogrid_data_functions:
 			new_geogrid_data = update_func(geogrid_data)
