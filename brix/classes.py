@@ -6,6 +6,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+import hashlib
 from warnings import warn
 from time import sleep
 from collections import defaultdict
@@ -160,7 +161,7 @@ class GEOGRIDDATA(list):
 			if 'interactive' in h.keys():
 				cell['interactive'] = h['interactive']
 			else:
-				if 'interactive' in cell.keys()
+				if 'interactive' in cell.keys():
 					del cell['interactive']
 
 
@@ -994,7 +995,7 @@ class Handler(Thread):
 		Returns True if an update happened, and Flase otherwise.
 		'''
 		update_flag = False
-		if geogrid_data is None
+		if geogrid_data is None:
 			geogrid_data = self._get_grid_data()
 		for update_func in self.update_geogrid_data_functions:
 			new_geogrid_data = update_func(geogrid_data)
@@ -1357,3 +1358,45 @@ class CompositeIndicator(Indicator):
 			value = self.compose_function(indicator_values)
 		return [{'name': self.name, 'value': float(value), 'raw_value': None,'units': None,'viz_type': self.viz_type}]
 
+class StaticHeatmap(Indicator):
+	'''
+	Wrapper to create a simple static heatmap indicator.
+	The indicator will post the given shapefile to the table.
+
+	Parameters
+	----------
+	shapefile: geopandas.GeoDataFrame or str
+		Shapefile with values for each point, or path to shapefile.
+	columns: list
+		Columns to plot. If not provided, it will return all numeric columns.
+		The name of the indicator will be given by the name of the column.
+	name: str, optional
+		Name of the indicator.
+		If not provided, it will generate a name by hashing the column names.
+
+	Returns
+	-------
+	Heatmap: brix.Indicator
+		Heatmap indicator that posts the given shapefile to the table. 
+
+	'''
+	def setup(self,shapefile,columns=None,name=None):
+		self.indicator_type = 'heatmap'
+		self.requires_geometry = True
+		if isinstance(shapefile,str):
+			shapefile = gpd.read_file(shapefile)
+		else:
+			shapefile = shapefile
+		if any(shapefile.geometry.type!='Point'):
+			shapefile.geometry = shapefile.geometry.centroid
+		self.shapefile = shapefile
+		if columns is None:
+			self.columns = shapefile.drop('geometry',1).select_dtypes(include=[np.number]).columns.tolist()
+		else:
+			self.columns = columns
+		hashed_columns = hashlib.md5('-'.join(list(set(self.columns))).encode('utf-8')).hexdigest()[:5]
+		self.name = (f'StaticHeatmap_{hashed_columns}' if (name is None) else name)
+
+	def return_indicator(self, geogrid_data):
+		out = json.loads(self.shapefile.to_json())['features']
+		return out

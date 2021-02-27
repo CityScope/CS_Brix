@@ -163,14 +163,19 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">shape</span>
 <span class="kn">from</span> <span class="nn">.helpers</span> <span class="kn">import</span> <span class="n">is_number</span><span class="p">,</span> <span class="n">get_buffer_size</span>
 <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
 <span class="kn">from</span> <span class="nn">shapely.ops</span> <span class="kn">import</span> <span class="n">unary_union</span>
 <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">shape</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="k">try</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="k">except</span><span class="p">:</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: networkx no found.&#39;</span><span class="p">)</span>
 
 <span class="k">class</span> <span class="nc">GEOGRIDDATA</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
@@ -191,6 +196,13 @@
 			<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">geogrid_props</span> <span class="o">=</span> <span class="kc">None</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_EDGES</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="kc">None</span>
+
+	<span class="k">def</span> <span class="nf">set_classification_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">classification_list</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span> <span class="o">=</span> <span class="n">classification_list</span>
 
 	<span class="k">def</span> <span class="nf">link_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">table_name</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
@@ -210,6 +222,9 @@
 
 	<span class="k">def</span> <span class="nf">set_geogrid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">GEOGRID</span><span class="p">):</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="o">=</span> <span class="n">GEOGRID</span>
+
+	<span class="k">def</span> <span class="nf">set_geogrid_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">GEOGRID_EDGES</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_EDGES</span> <span class="o">=</span> <span class="n">GEOGRID_EDGES</span>
 
 	<span class="k">def</span> <span class="nf">get_geogrid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
@@ -290,6 +305,115 @@
 			<span class="n">color</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 			<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
 
+	<span class="k">def</span> <span class="nf">remap_interactive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Forces the colors to match the define colors of the cell type. </span>
+<span class="sd">		Requires that GEOGRIDDATA is set</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;GEOGRIDDATA object does not have GEOGRID attribute.&#39;</span><span class="p">)</span>
+		<span class="n">GEOGRID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span>
+		<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+			<span class="n">h</span> <span class="o">=</span> <span class="n">GEOGRID</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span>
+			<span class="k">if</span> <span class="s1">&#39;interactive&#39;</span> <span class="ow">in</span> <span class="n">h</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+				<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;interactive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;interactive&#39;</span><span class="p">]</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">if</span> <span class="s1">&#39;interactive&#39;</span> <span class="ow">in</span> <span class="n">cell</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+					<span class="k">del</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;interactive&#39;</span><span class="p">]</span>
+
+
+	<span class="k">def</span> <span class="nf">as_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Returns the dataframe version of the geogriddata object.</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		include_geometries: None</span>
+<span class="sd">			If set, it will override the default option. </span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
+				<span class="k">if</span> <span class="s1">&#39;properties&#39;</span> <span class="ow">in</span> <span class="n">cell</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+					<span class="n">cell_props</span> <span class="o">=</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
+					<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cell_props</span><span class="p">:</span>
+						<span class="k">if</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+							<span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">:</span>
+								<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;property_</span><span class="si">{k}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+							<span class="k">else</span><span class="p">:</span>
+								<span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+									<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{k}</span><span class="s1">_</span><span class="si">{code}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">code</span><span class="p">]</span>
+					<span class="k">del</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
+			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+			<span class="n">columns_order</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">]</span>
+			<span class="n">columns_order</span><span class="o">+=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">])</span>
+			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">geogrid_data</span><span class="p">[</span><span class="n">columns_order</span><span class="p">]</span>
+
+			<span class="k">if</span> <span class="s1">&#39;geometry&#39;</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+				<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">geometry</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span><span class="n">crs</span><span class="o">=</span><span class="s1">&#39;EPSG:4326&#39;</span><span class="p">)</span>
+
+			<span class="k">if</span> <span class="n">include_geometries</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">include_geometries</span><span class="p">:</span>
+					<span class="k">if</span> <span class="s1">&#39;geometry&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+						<span class="n">geos</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([(</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">],</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span><span class="p">[</span><span class="s1">&#39;features&#39;</span><span class="p">]],</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+						<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">geos</span><span class="p">)</span>
+						<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">geometry</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span><span class="n">crs</span><span class="o">=</span><span class="s1">&#39;EPSG:4326&#39;</span><span class="p">)</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">geogrid_data</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+
+	<span class="k">def</span> <span class="nf">as_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">edges_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Returns the geogriddata object as a networkx.Graph.</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		edges_only: boolean, defaults to `False`</span>
+<span class="sd">			If True, it will return the edgelist instead</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		G: networkx.Graph</span>
+<span class="sd">			Graph connecting each cell to its first neighbors.</span>
+<span class="sd">			If edges_only=True, returns a list of edges instead. </span>
+<span class="sd">		&#39;&#39;&#39;</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">edges_only</span><span class="p">:</span>
+			<span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span><span class="o">&amp;</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_EDGES</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+				<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+				<span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+				<span class="n">G</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">([(</span><span class="n">index</span><span class="p">,</span><span class="nb">dict</span><span class="p">(</span><span class="n">row</span><span class="p">))</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span><span class="n">row</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()])</span>
+				<span class="n">G</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_EDGES</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">G</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_EDGES</span>
+
+	<span class="k">def</span> <span class="nf">remove_noninteractive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Remove noninteractive cells from object.</span>
+<span class="sd">		Modification is done in-place, meaning the object is modified.</span>
+<span class="sd">		The function will also return the object. </span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		self: brix.GEOGRIDDATA</span>
+<span class="sd">			Modified object.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">non_interative_id</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">cell</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+			<span class="k">if</span> <span class="s1">&#39;interactive&#39;</span> <span class="ow">in</span> <span class="n">cell</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+				<span class="k">if</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;interactive&#39;</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;Web&#39;</span><span class="p">:</span>
+					<span class="n">non_interative_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+			<span class="k">if</span> <span class="s1">&#39;interactive&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cell</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+				<span class="n">non_interative_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+		<span class="n">non_interative_id</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">non_interative_id</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">non_interative_id</span><span class="p">:</span>
+			<span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+		<span class="k">return</span> <span class="bp">self</span>
+
+
 <div class="viewcode-block" id="Handler"><a class="viewcode-back" href="../../classes.html#brix.Handler">[docs]</a><span class="k">class</span> <span class="nc">Handler</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the :func:`~brix.Handler.add_indicator` method to pass it a set of :class:`~brix.Indicator` objects.</span>
 
@@ -337,6 +461,7 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_varname</span> <span class="o">=</span> <span class="n">GEOGRID_varname</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRIDDATA_varname</span> <span class="o">=</span> <span class="n">GEOGRIDDATA_varname</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_EDGES</span> <span class="o">=</span> <span class="kc">None</span>
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">indicators</span> <span class="o">=</span> <span class="p">{}</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">update_geogrid_data_functions</span> <span class="o">=</span> <span class="p">[]</span>
@@ -671,6 +796,29 @@
 					<span class="n">new_value</span><span class="p">[</span><span class="s1">&#39;viz_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">viz_type</span>
 				<span class="k">return</span> <span class="p">[</span><span class="n">new_value</span><span class="p">]</span>
 
+<div class="viewcode-block" id="Handler.get_GEOGRID_EDGES"><a class="viewcode-back" href="../../classes.html#brix.Handler.get_GEOGRID_EDGES">[docs]</a>	<span class="k">def</span> <span class="nf">get_GEOGRID_EDGES</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Gets the edges of a graph that connects each cell to its nearest neighbors.</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		GEOGRID_EDGES: list</span>
+<span class="sd">			Edge list of cell ids. Each cell has at most 4 neighbors.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_EDGES</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">geos</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([(</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">],</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span><span class="p">[</span><span class="s1">&#39;features&#39;</span><span class="p">]],</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+			<span class="n">geos</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geos</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">geometry</span><span class="o">=</span><span class="n">geos</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span> <span class="c1"># no crs to avoid warning</span>
+			<span class="n">geos</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">geos</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">centroid</span><span class="o">.</span><span class="n">x</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+			<span class="n">geos</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">geos</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">centroid</span><span class="o">.</span><span class="n">y</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+
+			<span class="n">edge_list</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">for</span> <span class="n">xlabel</span><span class="p">,</span><span class="n">ylabel</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;lon&#39;</span><span class="p">,</span><span class="s1">&#39;lat&#39;</span><span class="p">),(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span><span class="s1">&#39;lon&#39;</span><span class="p">)]:</span>
+				<span class="n">rows</span> <span class="o">=</span> <span class="n">geos</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+				<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+					<span class="n">ids</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="n">ylabel</span><span class="p">)[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+					<span class="n">edge_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ids</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">ids</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_EDGES</span> <span class="o">=</span> <span class="n">edge_list</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID_EDGES</span></div>
 
 	<span class="k">def</span> <span class="nf">_combine_heatmap_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">new_values_heatmap</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
@@ -903,12 +1051,16 @@
 			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="kc">None</span>
 		<span class="k">return</span> <span class="n">geogrid_data</span></div>
 
-	<span class="k">def</span> <span class="nf">_get_grid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">exclude_noninteractive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">_get_grid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRIDDATA</span><span class="p">()</span>
 		<span class="n">geogrid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">()</span>
+		<span class="n">geogrid_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID_EDGES</span><span class="p">()</span>
 		
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">GEOGRIDDATA</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">set_classification_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">)</span>
 		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">set_geogrid</span><span class="p">(</span><span class="n">geogrid</span><span class="p">)</span>
+		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">set_geogrid_edges</span><span class="p">(</span><span class="n">geogrid_edges</span><span class="p">)</span>
+		
 		<span class="k">if</span> <span class="ow">not</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">check_id_validity</span><span class="p">():</span>
 			<span class="n">geogrid_data</span><span class="o">.</span><span class="n">fill_missing_cells</span><span class="p">()</span>
 			<span class="k">if</span> <span class="ow">not</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">check_id_validity</span><span class="p">():</span>
@@ -928,14 +1080,6 @@
 				<span class="k">if</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">types_def</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
 					<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">types_def</span><span class="p">[</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span>
 
-		<span class="k">if</span> <span class="n">exclude_noninteractive</span><span class="p">:</span>
-			<span class="n">interactive_geogrid_data</span> <span class="o">=</span> <span class="p">[]</span>
-			<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
-				<span class="k">if</span> <span class="s1">&#39;interactive&#39;</span> <span class="ow">in</span> <span class="n">cell</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-					<span class="k">if</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;interactive&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;Web&#39;</span><span class="p">:</span>
-						<span class="n">interactive_geogrid_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
-			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">interactive_geogrid_data</span>
-
 		<span class="k">return</span> <span class="n">geogrid_data</span>
 
 	<span class="k">def</span> <span class="nf">_get_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">url</span><span class="p">,</span><span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -953,7 +1097,7 @@
 			<span class="n">warn</span><span class="p">(</span><span class="s1">&#39;FAILED TO RETRIEVE URL: &#39;</span><span class="o">+</span><span class="n">url</span><span class="p">)</span>
 		<span class="k">return</span> <span class="n">r</span>
 
-<div class="viewcode-block" id="Handler.get_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.get_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">get_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">exclude_noninteractive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">as_df</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Handler.get_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.get_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">get_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Returns the geogrid data from:</span>
 <span class="sd">		http://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA</span>
@@ -964,37 +1108,13 @@
 <span class="sd">			If `True` it will also add the geometry information for each grid unit.</span>
 <span class="sd">		with_properties : boolean, defaults to `False`</span>
 <span class="sd">			If `True` it will add the properties of each grid unit as defined when the table was constructed (e.g. LBCS code, NAICS code, etc.)</span>
-<span class="sd">		exclude_noninteractive : boolean, defaults to `False`</span>
-<span class="sd">			If `True` it will exclude non-interactive cells. </span>
-<span class="sd">		as_df: boolean, defaults to `False`</span>
-<span class="sd">			If `True` it will return data as a pandas.DataFrame.</span>
 
 <span class="sd">		Returns</span>
 <span class="sd">		-------</span>
 <span class="sd">		geogrid_data : dict</span>
 <span class="sd">			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
-		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="n">include_geometries</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="n">with_properties</span><span class="p">,</span><span class="n">exclude_noninteractive</span><span class="o">=</span><span class="n">exclude_noninteractive</span><span class="p">)</span>
-
-		<span class="k">if</span> <span class="n">as_df</span><span class="p">:</span>
-			<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
-				<span class="k">if</span> <span class="s1">&#39;properties&#39;</span> <span class="ow">in</span> <span class="n">cell</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-					<span class="n">cell_props</span> <span class="o">=</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
-					<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cell_props</span><span class="p">:</span>
-						<span class="k">if</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-							<span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">:</span>
-								<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;property_</span><span class="si">{k}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-							<span class="k">else</span><span class="p">:</span>
-								<span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
-									<span class="n">cell</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{k}</span><span class="s1">_</span><span class="si">{code}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_props</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">code</span><span class="p">]</span>
-					<span class="k">del</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span>
-			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
-			<span class="n">columns_order</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">]</span>
-			<span class="n">columns_order</span><span class="o">+=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_list</span><span class="p">])</span>
-			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">geogrid_data</span><span class="p">[</span><span class="n">columns_order</span><span class="p">]</span>
-			<span class="k">if</span> <span class="n">include_geometries</span><span class="p">:</span>
-				<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">geometry</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
-
+		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="n">include_geometries</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="n">with_properties</span><span class="p">)</span>
 		<span class="k">return</span> <span class="n">geogrid_data</span></div>
 
 <div class="viewcode-block" id="Handler.perform_update"><a class="viewcode-back" href="../../classes.html#brix.Handler.perform_update">[docs]</a>	<span class="k">def</span> <span class="nf">perform_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">grid_hash_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -1025,15 +1145,17 @@
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done with update&#39;</span><span class="p">)</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">grid_hash_id</span> <span class="o">=</span> <span class="n">grid_hash_id</span></div>
 
-<div class="viewcode-block" id="Handler.perform_geogrid_data_update"><a class="viewcode-back" href="../../classes.html#brix.Handler.perform_geogrid_data_update">[docs]</a>	<span class="k">def</span> <span class="nf">perform_geogrid_data_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Handler.perform_geogrid_data_update"><a class="viewcode-back" href="../../classes.html#brix.Handler.perform_geogrid_data_update">[docs]</a>	<span class="k">def</span> <span class="nf">perform_geogrid_data_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Performs GEOGRIDDATA update using the functions added to the :class:`brix.Handler` using :func:`brix.Hanlder.add_geogrid_data_update_function`.</span>
 
 <span class="sd">		Returns True if an update happened, and Flase otherwise.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">update_flag</span> <span class="o">=</span> <span class="kc">False</span>
+		<span class="k">if</span> <span class="n">geogrid_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">()</span>
 		<span class="k">for</span> <span class="n">update_func</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_geogrid_data_functions</span><span class="p">:</span>
-			<span class="n">new_geogrid_data</span> <span class="o">=</span> <span class="n">update_func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+			<span class="n">new_geogrid_data</span> <span class="o">=</span> <span class="n">update_func</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">post_geogrid_data</span><span class="p">(</span><span class="n">new_geogrid_data</span><span class="p">)</span>
 			<span class="n">update_flag</span> <span class="o">=</span> <span class="kc">True</span>
 			<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
@@ -1162,6 +1284,7 @@
 				<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;IDs do not match.&#39;</span><span class="p">)</span>
 
 		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">remap_colors</span><span class="p">()</span>
+		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">remap_interactive</span><span class="p">()</span>
 
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
 
@@ -1175,7 +1298,7 @@
 			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;GEOGRIDDATA successfully updated:&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_hash_id</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Handler.update_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.update_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">update_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Handler.update_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Handler.update_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">update_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">update_func</span><span class="p">,</span><span class="n">geogrid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Function to update table GEOGRIDDATA.</span>
 
@@ -1183,13 +1306,12 @@
 <span class="sd">		----------</span>
 <span class="sd">		update_func : function</span>
 <span class="sd">			Function to update the geogriddadata (list of dicts)</span>
-<span class="sd">			Function should take a :class:`brix.Handler` as the first and only positional argument plus any number of keyword arguments.</span>
+<span class="sd">			Function should take a :class:`brix.GEOGRIDDATA` as the first and only positional argument plus any number of keyword arguments.</span>
 <span class="sd">			Function should return a list of dicts that represents a valid geogriddata object.</span>
 
 <span class="sd">		Example</span>
 <span class="sd">		-------</span>
-<span class="sd">		&gt;&gt;&gt; def add_height(H, levels=1):</span>
-<span class="sd">				geogrid_data = H.get_geogrid_data()</span>
+<span class="sd">		&gt;&gt;&gt; def add_height(get_geogrid_data, levels=1):</span>
 <span class="sd">				for cell in geogrid_data:</span>
 <span class="sd">					cell[&#39;height&#39;] += levels</span>
 <span class="sd">				return geogrid_data</span>
@@ -1197,8 +1319,10 @@
 <span class="sd">		&gt;&gt;&gt; H = Handler(&#39;tablename&#39;, quietly=False)</span>
 <span class="sd">		&gt;&gt;&gt; H.update_geogrid_data(add_height, levels=levels)</span>
 <span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">if</span> <span class="n">geogrid_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">()</span>
 
-		<span class="n">new_geogrid_data</span> <span class="o">=</span> <span class="n">update_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		<span class="n">new_geogrid_data</span> <span class="o">=</span> <span class="n">update_func</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">post_geogrid_data</span><span class="p">(</span><span class="n">new_geogrid_data</span><span class="p">)</span>
 		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
@@ -1214,7 +1338,6 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">viz_type</span> <span class="o">=</span> <span class="s1">&#39;radar&#39;</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">requires_geometry</span> <span class="o">=</span> <span class="kc">None</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">requires_geogrid_props</span> <span class="o">=</span> <span class="kc">False</span>
-		<span class="bp">self</span><span class="o">.</span><span class="n">exclude_noninteractive</span> <span class="o">=</span> <span class="kc">False</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">model_path</span> <span class="o">=</span> <span class="kc">None</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">pickled_model</span> <span class="o">=</span> <span class="kc">None</span>
 		<span class="c1"># self.int_types_def=None</span>
@@ -1323,21 +1446,17 @@
 		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tableHandler</span><span class="o">.</span><span class="n">get_geogrid_props</span><span class="p">()[</span><span class="s1">&#39;header&#39;</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="Indicator.get_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Indicator.get_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">get_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">as_df</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">exclude_noninteractive</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Indicator.get_geogrid_data"><a class="viewcode-back" href="../../classes.html#brix.Indicator.get_geogrid_data">[docs]</a>	<span class="k">def</span> <span class="nf">get_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Returns the geogrid data from the linked table. Function mainly used for development. See :func:`brix.Indicator.link_table`. It returns the exact object that will be passed to return_indicator</span>
 
 
 <span class="sd">		Parameters</span>
 <span class="sd">		----------</span>
-<span class="sd">		as_df: boolean, defaults to `False`</span>
-<span class="sd">			If `True` it will return data as a pandas.DataFrame.</span>
 <span class="sd">		include_geometries: boolean, defaults to :attr:`brix.Indicator.requires_geometry`</span>
 <span class="sd">			If `True`, it will override the default parameter of the Indicator.</span>
 <span class="sd">		with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`</span>
 <span class="sd">			If `True`, it will override the default parameter of the Indicator.</span>
-<span class="sd">		exclude_noninteractive : boolean, defaults to `False`</span>
-<span class="sd">			If `True` it will exclude non-interactive cells. </span>
 
 <span class="sd">		Returns</span>
 <span class="sd">		-------</span>
@@ -1346,7 +1465,6 @@
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">include_geometries</span>     <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">requires_geometry</span> <span class="k">if</span> <span class="n">include_geometries</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">include_geometries</span>
 		<span class="n">with_properties</span>        <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">requires_geogrid_props</span> <span class="k">if</span> <span class="n">with_properties</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">with_properties</span>
-		<span class="n">exclude_noninteractive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_noninteractive</span> <span class="k">if</span> <span class="n">exclude_noninteractive</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">exclude_noninteractive</span>
 		
 		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tableHandler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1355,11 +1473,7 @@
 				<span class="n">warn</span><span class="p">(</span><span class="s1">&#39;To use this function, please link a table first:</span><span class="se">\n</span><span class="s1">&gt; Indicator.link_table(table_name)&#39;</span><span class="p">)</span>
 				<span class="k">return</span> <span class="kc">None</span>
 
-		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tableHandler</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="n">include_geometries</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="n">with_properties</span><span class="p">,</span><span class="n">exclude_noninteractive</span><span class="o">=</span><span class="n">exclude_noninteractive</span><span class="p">)</span>
-		<span class="k">if</span> <span class="n">as_df</span><span class="p">:</span>
-			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
-			<span class="k">if</span> <span class="n">include_geometries</span><span class="p">:</span>
-				<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">geometry</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tableHandler</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="n">include_geometries</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="n">with_properties</span><span class="p">)</span>
 		<span class="k">return</span> <span class="n">geogrid_data</span></div></div>
 
 
@@ -1401,6 +1515,48 @@
 			<span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compose_function</span><span class="p">(</span><span class="n">indicator_values</span><span class="p">)</span>
 		<span class="k">return</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="s1">&#39;raw_value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span><span class="s1">&#39;viz_type&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">viz_type</span><span class="p">}]</span></div></div>
 
+<span class="k">class</span> <span class="nc">StaticHeatmap</span><span class="p">(</span><span class="n">Indicator</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Wrapper to create a simple static heatmap indicator.</span>
+<span class="sd">	The indicator will post the given shapefile to the table.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	shapefile: geopandas.GeoDataFrame or str</span>
+<span class="sd">		Shapefile with values for each point, or path to shapefile.</span>
+<span class="sd">	columns: list</span>
+<span class="sd">		Columns to plot. If not provided, it will return all numeric columns.</span>
+<span class="sd">		The name of the indicator will be given by the name of the column.</span>
+<span class="sd">	name: str, optional</span>
+<span class="sd">		Name of the indicator.</span>
+<span class="sd">		If not provided, it will generate a name by hashing the column names.</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	Heatmap: brix.Indicator</span>
+<span class="sd">		Heatmap indicator that posts the given shapefile to the table. </span>
+
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">shapefile</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">indicator_type</span> <span class="o">=</span> <span class="s1">&#39;heatmap&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">requires_geometry</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shapefile</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+			<span class="n">shapefile</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">shapefile</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">shapefile</span> <span class="o">=</span> <span class="n">shapefile</span>
+		<span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">shapefile</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">type</span><span class="o">!=</span><span class="s1">&#39;Point&#39;</span><span class="p">):</span>
+			<span class="n">shapefile</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">shapefile</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">centroid</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">shapefile</span> <span class="o">=</span> <span class="n">shapefile</span>
+		<span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">shapefile</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">columns</span>
+		<span class="n">hashed_columns</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)))</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">5</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;StaticHeatmap_</span><span class="si">{hashed_columns}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="n">name</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">return_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="p">):</span>
+		<span class="n">out</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shapefile</span><span class="o">.</span><span class="n">to_json</span><span class="p">())[</span><span class="s1">&#39;features&#39;</span><span class="p">]</span>
+		<span class="k">return</span> <span class="n">out</span>
 </pre></div>
 
            </div>
