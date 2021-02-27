@@ -4,6 +4,7 @@ from .classes import Handler
 from .classes import Indicator
 from .classes import CompositeIndicator
 from .classes import GEOGRIDDATA
+from .classes import StaticHeatmap
 from .helpers import get_buffer_size, has_tags
 
 try:
