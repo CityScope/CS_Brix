@@ -88,7 +88,7 @@ def add_height(H, levels):
 
 def make_numeric_indicator(name,return_indicator,viz_type='bar',requires_geometry=False,requires_geogrid_props=False):
 	'''
-	Function that constructs and indicator based on a user defined return_indicator function. 
+	Function that constructs an indicator based on a user defined return_indicator function. 
 
 	Parameters
 	----------
@@ -115,6 +115,30 @@ def make_numeric_indicator(name,return_indicator,viz_type='bar',requires_geometr
 		viz_type=viz_type)
 	I.set_return_indicator(return_indicator)
 	return I
+
+def make_static_heatmap_indicator(name,shapefile,columns=None,name=None):
+	'''
+	Function that constructs a heatmap indicator that only visualizes the given shapefile.
+	This function wraps :class:`brix.StaticHeatmap` to make it easier for users to find.
+
+	Parameters
+	----------
+	shapefile: geopandas.GeoDataFrame or str
+		Shapefile with values for each point, or path to shapefile.
+	columns: list
+		Columns to plot. If not provided, it will return all numeric columns.
+		The name of the indicator will be given by the name of the column.
+	name: str, optional
+		Name of the indicator.
+		If not provided, it will generate a name by hashing the column names.
+
+	Returns
+	-------
+	Heatmap: brix.Indicator
+		Heatmap indicator that posts the given shapefile to the table.
+	'''
+	HM = StaticHeatmap(shapefile,columns=columns,name=name)
+	return HM
 
 def get_OSM_geometries(H,tags = {'building':True},buffer_percent=0.25,use_stored=True,only_polygons=True):
 	'''
