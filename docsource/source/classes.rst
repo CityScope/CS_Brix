@@ -17,10 +17,23 @@ Indicator class
     :undoc-members:
     :inherited-members:
 
+GEOGRIDDATA class
+-----------------
+
+.. autoclass:: brix.GEOGRIDDATA
+    :members:
+    :undoc-members:
+    :inherited-members:
+
 Indicator sub-classes
 ---------------------
 
 .. autoclass:: brix.CompositeIndicator
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+.. autoclass:: brix.StaticHeatmap
     :members:
     :undoc-members:
     :inherited-members:
