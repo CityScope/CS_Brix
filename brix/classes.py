@@ -701,6 +701,8 @@ class Handler(Thread):
 		combined_features = {}
 		for new_value in new_values_heatmap:
 			for f in new_value['features']:
+				if f['geometry'] is None:
+					raise NameError('Unknown geometry found in heatmap:',f)
 				if f['geometry']['type']=='Point':
 					all_properties = all_properties|set(f['properties'].keys())
 					lon,lat = f['geometry']['coordinates']
@@ -1418,11 +1420,11 @@ class StaticHeatmap(Indicator):
 			shapefile = shapefile
 		if any(shapefile.geometry.type!='Point'):
 			shapefile.geometry = shapefile.geometry.centroid
-		self.shapefile = shapefile
 		if columns is None:
 			self.columns = shapefile.drop('geometry',1).select_dtypes(include=[np.number]).columns.tolist()
 		else:
 			self.columns = columns
+		self.shapefile = gpd.GeoDataFrame(shapefile[columns],geometry=shapefile['geometry'])
 		hashed_columns = hashlib.md5('-'.join(list(set(self.columns))).encode('utf-8')).hexdigest()[:5]
 		self.name = (f'StaticHeatmap_{hashed_columns}' if (name is None) else name)
 
