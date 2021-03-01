@@ -1561,6 +1561,8 @@
 <span class="sd">	name: str, optional</span>
 <span class="sd">		Name of the indicator.</span>
 <span class="sd">		If not provided, it will generate a name by hashing the column names.</span>
+<span class="sd">	normalize_values: boolean, defaults to `True`</span>
+<span class="sd">		If True, it will ensure all values are between 0 and 1. </span>
 
 <span class="sd">	Returns</span>
 <span class="sd">	-------</span>
@@ -1568,7 +1570,7 @@
 <span class="sd">		Heatmap indicator that posts the given shapefile to the table. </span>
 
 <span class="sd">	&#39;&#39;&#39;</span>
-<div class="viewcode-block" id="StaticHeatmap.setup"><a class="viewcode-back" href="../../classes.html#brix.StaticHeatmap.setup">[docs]</a>	<span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">shapefile</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="StaticHeatmap.setup"><a class="viewcode-back" href="../../classes.html#brix.StaticHeatmap.setup">[docs]</a>	<span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">shapefile</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">normalize_values</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">indicator_type</span> <span class="o">=</span> <span class="s1">&#39;heatmap&#39;</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">requires_geometry</span> <span class="o">=</span> <span class="kc">True</span>
 		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shapefile</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
@@ -1582,6 +1584,11 @@
 		<span class="k">else</span><span class="p">:</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">columns</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">shapefile</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">shapefile</span><span class="p">[</span><span class="n">columns</span><span class="p">],</span><span class="n">geometry</span><span class="o">=</span><span class="n">shapefile</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">normalize_values</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+				<span class="n">c_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shapefile</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+				<span class="n">c_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shapefile</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">shapefile</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shapefile</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">-</span><span class="n">c_min</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">c_max</span><span class="o">-</span><span class="n">c_min</span><span class="p">)</span>
 		<span class="n">hashed_columns</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)))</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">5</span><span class="p">]</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;StaticHeatmap_</span><span class="si">{hashed_columns}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="n">name</span><span class="p">)</span></div>
 

@@ -1404,6 +1404,8 @@ class StaticHeatmap(Indicator):
 	name: str, optional
 		Name of the indicator.
 		If not provided, it will generate a name by hashing the column names.
+	normalize_values: boolean, defaults to `True`
+		If True, it will ensure all values are between 0 and 1. 
 
 	Returns
 	-------
@@ -1411,7 +1413,7 @@ class StaticHeatmap(Indicator):
 		Heatmap indicator that posts the given shapefile to the table. 
 
 	'''
-	def setup(self,shapefile,columns=None,name=None):
+	def setup(self,shapefile,columns=None,name=None,normalize_values=True):
 		self.indicator_type = 'heatmap'
 		self.requires_geometry = True
 		if isinstance(shapefile,str):
@@ -1425,6 +1427,11 @@ class StaticHeatmap(Indicator):
 		else:
 			self.columns = columns
 		self.shapefile = gpd.GeoDataFrame(shapefile[columns],geometry=shapefile['geometry'])
+		if normalize_values:
+			for c in columns:
+				c_min = self.shapefile[c].min()
+				c_max = self.shapefile[c].max()
+				self.shapefile[c] = (self.shapefile[c]-c_min)/(c_max-c_min)
 		hashed_columns = hashlib.md5('-'.join(list(set(self.columns))).encode('utf-8')).hexdigest()[:5]
 		self.name = (f'StaticHeatmap_{hashed_columns}' if (name is None) else name)
 
