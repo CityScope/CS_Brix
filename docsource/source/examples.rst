@@ -474,12 +474,25 @@ This shapefile is a table of points and their properties. To build your indicato
 
 ::
 
+	from brix import StaticHeatmap
 	N = StaticHeatmap('/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp',columns=['VIVTOT'])
 
 Finally, we add it to a Handler class and check the update package:
 
 ::
 
-	H = Handler('jalisco')
+	H = Handler(table_name)
 	H.add_indicator(N)
 	H.update_package()
+
+To wrap up, once the `heatmap` file has been saved, all you need to do deploy the indicator is:
+
+::
+
+	from brix import Handler, StaticHeatmap
+	table_name = 'jalisco'
+	N = StaticHeatmap('/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp',columns=['VIVTOT'])
+	H = Handler(table_name)
+	H.add_indicator(N)
+	H.listen()
+
