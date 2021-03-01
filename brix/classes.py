@@ -194,17 +194,19 @@ class GEOGRIDDATA(list):
 
 			if 'geometry' in geogrid_data.columns:
 				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
-
-			if include_geometries is not None:
-				if include_geometries:
-					if 'geometry' not in geogrid_data.columns:
-						geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
-						geogrid_data = pd.merge(geogrid_data,geos)
-						geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
-					else:
-						geogrid_data = geogrid_data.drop('geometry',1,errors='ignore')
 			self.df = geogrid_data
-		return self.df
+
+		geogrid_data = deepcopy(self.df)
+		if include_geometries is not None:
+			if include_geometries:
+				if 'geometry' not in geogrid_data.columns:
+					geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
+					geogrid_data = pd.merge(geogrid_data,geos)
+					geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
+			else:
+				geogrid_data = geogrid_data.drop('geometry',1,errors='ignore')
+		
+		return geogrid_data
 
 	def as_graph(self,edges_only=False):
 		'''
@@ -255,6 +257,43 @@ class GEOGRIDDATA(list):
 		for i in non_interative_id:
 			del self[i]
 		return self
+
+	def bounds(self,bbox=False,buffer_percent=None):
+		'''
+		Returns the bounds of the geogrid.
+
+		Parameters
+		----------
+		bbox: boolean, defaults to False
+			If True, it will return a bounding box instead of a polygon. [W, S, E, N]
+		buffer_percent: float, optional
+			If given, this will add a buffer around the table.
+			Size of buffer in units of the grid diameter
+			See :func:`brix.get_buffer_size`.
+
+		Returns
+		-------
+		limit: shapely.Polygon or list
+			Bounds of the table. If `bbox=True` it will return a horizontal bounding box.
+		'''
+		geogrid_data = self.as_df(include_geometries=True)
+
+		# grid = [shape(cell['geometry']) for cell in self]
+		# limit = unary_union(grid)
+		limit = geogrid_data.geometry.unary_union
+		limit = limit.buffer(get_buffer_size(limit,buffer_percent=0.001))
+		limit = limit.simplify(0.00001)
+
+		if buffer_percent is not None:
+			buffer_size = get_buffer_size(limit,buffer_percent=buffer_percent)
+			limit = limit.buffer(buffer_size)
+			limit = limit.simplify(0.0001)
+
+		if bbox:
+			lons,lats = zip(*limit.exterior.coords)
+			return [min(lons),min(lats),max(lons),max(lats)]
+		else:
+			return limit
 
 
 class Handler(Thread):
