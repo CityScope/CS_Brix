@@ -554,6 +554,12 @@ First, we load the RandomIndicator and pass it to a Handler.</p>
 <span class="n">shapefile</span> <span class="o">=</span> <span class="n">shapefile</span><span class="p">[</span><span class="n">shapefile</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;N.D.&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
+<p>Since the <cite>VIVTOT</cite> column that we are interested in visualizing has a skewed distribution, we will log-transform it.</p>
+<dl class="simple">
+<dt>::</dt><dd><p>import numpy as np
+shapefile[‘log_VIVTOT’] = np.log(shapefile[‘VIVTOT’]+1)</p>
+</dd>
+</dl>
 <p>Next, we load a table and use its grid to sample the heatmap.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span>
 <span class="n">table_name</span> <span class="o">=</span> <span class="s1">&#39;jalisco&#39;</span>
@@ -561,15 +567,16 @@ First, we load the RandomIndicator and pass it to a Handler.</p>
 <span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>The next step is to use the grid to sample the values of the heatmap. We will use the <cite>VIVTOT</cite> column, and save the resulting heatmap to a file so we can load it later.</p>
+<p>The next step is to use the grid to sample the values of the heatmap. We will use the <cite>log_VIVTOT</cite> column, and save the resulting heatmap to a file so we can load it later. We will also remove the missing values.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">griddify</span>
-<span class="n">heatmap</span> <span class="o">=</span> <span class="n">griddify</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">shapefile</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">])</span>
+<span class="n">heatmap</span> <span class="o">=</span> <span class="n">griddify</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">shapefile</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;log_VIVTOT&#39;</span><span class="p">])</span>
+<span class="n">heatmap</span> <span class="o">=</span> <span class="n">heatmap</span><span class="p">[</span><span class="o">~</span><span class="n">heatmap</span><span class="p">[</span><span class="s1">&#39;log_VIVTOT&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
 <span class="n">heatmap</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This shapefile is a table of points and their properties. To build your indicator you can either load the file and pass it to the :class:brix.StaticHeatmap` constructor, or have the constructor load it for you.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">StaticHeatmap</span>
-<span class="n">N</span> <span class="o">=</span> <span class="n">StaticHeatmap</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp&#39;</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">])</span>
+<span class="n">N</span> <span class="o">=</span> <span class="n">StaticHeatmap</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp&#39;</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;log_VIVTOT&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>Finally, we add it to a Handler class and check the update package:</p>
@@ -581,7 +588,7 @@ First, we load the RandomIndicator and pass it to a Handler.</p>
 <p>To wrap up, once the <cite>heatmap</cite> file has been saved, all you need to do deploy the indicator is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span><span class="p">,</span> <span class="n">StaticHeatmap</span>
 <span class="n">table_name</span> <span class="o">=</span> <span class="s1">&#39;jalisco&#39;</span>
-<span class="n">N</span> <span class="o">=</span> <span class="n">StaticHeatmap</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp&#39;</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">])</span>
+<span class="n">N</span> <span class="o">=</span> <span class="n">StaticHeatmap</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp&#39;</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;log_VIVTOT&#39;</span><span class="p">])</span>
 <span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
 <span class="n">H</span><span class="o">.</span><span class="n">add_indicator</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
 <span class="n">H</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
