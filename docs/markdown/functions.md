@@ -71,6 +71,47 @@ This function wraps `brix.StaticHeatmap` to make it easier for users to find.
     brix.Indicator
 
 
+
+### brix.griddify(geogrid_data, shapefile, extend_grid=True, buffer_percent=1.3, columns=None, local_crs=None)
+From a shapefile with polygons and properties, it creates a shapefile with points and the properties of the polygons they fall in.
+Points are taken from the given GEOGRID and the grid is extended to incorporate a buffer.
+Points are in the center of the grid.
+
+
+* **Parameters**
+
+    
+    * **geogrid_data** (*brix.GEOGRIDDATA*) – 
+
+
+    * **shapefile** (*geopandas.GeoDataFrame*) – Shapefile in WGS84 (default) or in local_crs (if local_crs is provided)
+
+
+    * **extend_grid** (boolean, defaults to True) – If False, it will only return the values for the centroids of the grid.
+
+
+    * **buffer_percent** (*float**, **defaults to 1.3*) – Buffer to extend the grid by (in units of grid diameter).
+
+
+    * **columns** (*list**, **defaults to all numeric*) – Columns to select besides geometry. If not provided, it will default to all numeric columns.
+
+
+    * **local_crs** (*str**, **defaults to wgs84*) – ESRI code for local CRS, must match crs of shapefile.
+    Recommended: Calculating the centroids of each cell will be more precise if this is provided.
+
+
+
+* **Returns**
+
+    **joined** – Shapefile of points and their values.
+
+
+
+* **Return type**
+
+    geopandas.GeoDataFrame
+
+
 ## OSM functions
 
 These functions help you get data from Open Street Maps for your table.

@@ -360,7 +360,8 @@ This function should be treated as a low-level function, please use <a class="re
 <dl class="method">
 <dt id="brix.Handler.grid_bounds">
 <code class="sig-name descname">grid_bounds</code><span class="sig-paren">(</span><em class="sig-param">bbox=False</em>, <em class="sig-param">buffer_percent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.grid_bounds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.grid_bounds" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the bounds of the geogrid.</p>
+<dd><p>Returns the bounds of the geogrid.
+Wrapper around <a class="reference internal" href="#brix.GEOGRIDDATA.bounds" title="brix.GEOGRIDDATA.bounds"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA.bounds()</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -812,6 +813,28 @@ If edges_only=True, returns a list of edges instead.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>networkx.Graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.GEOGRIDDATA.bounds">
+<code class="sig-name descname">bounds</code><span class="sig-paren">(</span><em class="sig-param">bbox=False</em>, <em class="sig-param">buffer_percent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#GEOGRIDDATA.bounds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.GEOGRIDDATA.bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the bounds of the geogrid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bbox</strong> (<em>boolean</em><em>, </em><em>defaults to False</em>) – If True, it will return a bounding box instead of a polygon. [W, S, E, N]</p></li>
+<li><p><strong>buffer_percent</strong> (<em>float</em><em>, </em><em>optional</em>) – If given, this will add a buffer around the table.
+Size of buffer in units of the grid diameter
+See <code class="xref py py-func docutils literal notranslate"><span class="pre">brix.get_buffer_size()</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>limit</strong> – Bounds of the table. If <cite>bbox=True</cite> it will return a horizontal bounding box.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>shapely.Polygon or list</p>
 </dd>
 </dl>
 </dd></dl>

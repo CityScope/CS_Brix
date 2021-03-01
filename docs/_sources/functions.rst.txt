@@ -10,6 +10,8 @@ These functions work as shortcuts to build indicators.
 
 .. autofunction:: brix.make_static_heatmap_indicator
 
+.. autofunction:: brix.griddify
+
 OSM functions
 -------------
 

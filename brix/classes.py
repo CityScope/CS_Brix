@@ -194,17 +194,19 @@ class GEOGRIDDATA(list):
 
 			if 'geometry' in geogrid_data.columns:
 				geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
-
-			if include_geometries is not None:
-				if include_geometries:
-					if 'geometry' not in geogrid_data.columns:
-						geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
-						geogrid_data = pd.merge(geogrid_data,geos)
-						geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
-					else:
-						geogrid_data = geogrid_data.drop('geometry',1,errors='ignore')
 			self.df = geogrid_data
-		return self.df
+
+		geogrid_data = deepcopy(self.df)
+		if include_geometries is not None:
+			if include_geometries:
+				if 'geometry' not in geogrid_data.columns:
+					geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
+					geogrid_data = pd.merge(geogrid_data,geos)
+					geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)),crs='EPSG:4326')
+			else:
+				geogrid_data = geogrid_data.drop('geometry',1,errors='ignore')
+		
+		return geogrid_data
 
 	def as_graph(self,edges_only=False):
 		'''
@@ -255,6 +257,43 @@ class GEOGRIDDATA(list):
 		for i in non_interative_id:
 			del self[i]
 		return self
+
+	def bounds(self,bbox=False,buffer_percent=None):
+		'''
+		Returns the bounds of the geogrid.
+
+		Parameters
+		----------
+		bbox: boolean, defaults to False
+			If True, it will return a bounding box instead of a polygon. [W, S, E, N]
+		buffer_percent: float, optional
+			If given, this will add a buffer around the table.
+			Size of buffer in units of the grid diameter
+			See :func:`brix.get_buffer_size`.
+
+		Returns
+		-------
+		limit: shapely.Polygon or list
+			Bounds of the table. If `bbox=True` it will return a horizontal bounding box.
+		'''
+		geogrid_data = self.as_df(include_geometries=True)
+
+		# grid = [shape(cell['geometry']) for cell in self]
+		# limit = unary_union(grid)
+		limit = geogrid_data.geometry.unary_union
+		limit = limit.buffer(get_buffer_size(limit,buffer_percent=0.001))
+		limit = limit.simplify(0.00001)
+
+		if buffer_percent is not None:
+			buffer_size = get_buffer_size(limit,buffer_percent=buffer_percent)
+			limit = limit.buffer(buffer_size)
+			limit = limit.simplify(0.0001)
+
+		if bbox:
+			lons,lats = zip(*limit.exterior.coords)
+			return [min(lons),min(lats),max(lons),max(lats)]
+		else:
+			return limit
 
 
 class Handler(Thread):
@@ -325,6 +364,7 @@ class Handler(Thread):
 	def grid_bounds(self,bbox=False,buffer_percent=None):
 		'''
 		Returns the bounds of the geogrid.
+		Wrapper around :func:`brix.GEOGRIDDATA.bounds`
 
 		Parameters
 		----------
@@ -341,22 +381,8 @@ class Handler(Thread):
 			Bounds of the table. If `bbox=True` it will return a horizontal bounding box.
 		'''
 		geogrid_data = self._get_grid_data(include_geometries=True)
-
-		grid = [shape(cell['geometry']) for cell in geogrid_data]
-		limit = unary_union(grid)
-		limit = limit.buffer(get_buffer_size(limit,buffer_percent=0.001))
-		limit = limit.simplify(0.00001)
-
-		if buffer_percent is not None:
-			buffer_size = get_buffer_size(limit,buffer_percent=buffer_percent)
-			limit = limit.buffer(buffer_size)
-			limit = limit.simplify(0.0001)
-
-		if bbox:
-			lons,lats = zip(*limit.exterior.coords)
-			return [min(lons),min(lats),max(lons),max(lats)]
-		else:
-			return limit
+		bounds = geogrid_data.bounds(bbox=bbox,buffer_percent=buffer_percent)
+		return bounds
 
         
 	def check_table(self,return_value=False):
@@ -649,7 +675,10 @@ class Handler(Thread):
 			Edge list of cell ids. Each cell has at most 4 neighbors.
 		'''
 		if self.GEOGRID_EDGES is None:
-			geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
+			try:
+				geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.get_GEOGRID()['features']],columns=['id','geometry'])
+			except:
+				geos = pd.DataFrame([(i,cell['geometry']) for i,cell in enumerate(self.get_GEOGRID()['features'])],columns=['id','geometry'])
 			geos = gpd.GeoDataFrame(geos.drop('geometry',1),geometry=geos['geometry'].apply(lambda x: shape(x))) # no crs to avoid warning
 			geos['lon'] = round(geos.geometry.centroid.x,5)
 			geos['lat'] = round(geos.geometry.centroid.y,5)
@@ -672,6 +701,8 @@ class Handler(Thread):
 		combined_features = {}
 		for new_value in new_values_heatmap:
 			for f in new_value['features']:
+				if f['geometry'] is None:
+					raise NameError('Unknown geometry found in heatmap:',f)
 				if f['geometry']['type']=='Point':
 					all_properties = all_properties|set(f['properties'].keys())
 					lon,lat = f['geometry']['coordinates']
@@ -1389,11 +1420,11 @@ class StaticHeatmap(Indicator):
 			shapefile = shapefile
 		if any(shapefile.geometry.type!='Point'):
 			shapefile.geometry = shapefile.geometry.centroid
-		self.shapefile = shapefile
 		if columns is None:
 			self.columns = shapefile.drop('geometry',1).select_dtypes(include=[np.number]).columns.tolist()
 		else:
 			self.columns = columns
+		self.shapefile = gpd.GeoDataFrame(shapefile[columns],geometry=shapefile['geometry'])
 		hashed_columns = hashlib.md5('-'.join(list(set(self.columns))).encode('utf-8')).hexdigest()[:5]
 		self.name = (f'StaticHeatmap_{hashed_columns}' if (name is None) else name)
 
