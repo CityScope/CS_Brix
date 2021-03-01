@@ -675,7 +675,10 @@ class Handler(Thread):
 			Edge list of cell ids. Each cell has at most 4 neighbors.
 		'''
 		if self.GEOGRID_EDGES is None:
-			geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.GEOGRID['features']],columns=['id','geometry'])
+			try:
+				geos = pd.DataFrame([(cell['properties']['id'],cell['geometry']) for cell in self.get_GEOGRID()['features']],columns=['id','geometry'])
+			except:
+				geos = pd.DataFrame([(i,cell['geometry']) for i,cell in enumerate(self.get_GEOGRID()['features'])],columns=['id','geometry'])
 			geos = gpd.GeoDataFrame(geos.drop('geometry',1),geometry=geos['geometry'].apply(lambda x: shape(x))) # no crs to avoid warning
 			geos['lon'] = round(geos.geometry.centroid.x,5)
 			geos['lat'] = round(geos.geometry.centroid.y,5)
