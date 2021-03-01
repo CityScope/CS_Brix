@@ -1145,6 +1145,7 @@ The indicator will post the given shapefile to the table.</p>
 The name of the indicator will be given by the name of the column.</p></li>
 <li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the indicator.
 If not provided, it will generate a name by hashing the column names.</p></li>
+<li><p><strong>normalize_values</strong> (boolean, defaults to <cite>True</cite>) – If True, it will ensure all values are between 0 and 1.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1234,7 +1235,7 @@ If not provided, it will generate a name by hashing the column names.</p></li>
 
 <dl class="method">
 <dt id="brix.StaticHeatmap.setup">
-<code class="sig-name descname">setup</code><span class="sig-paren">(</span><em class="sig-param">shapefile</em>, <em class="sig-param">columns=None</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#StaticHeatmap.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.StaticHeatmap.setup" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">setup</code><span class="sig-paren">(</span><em class="sig-param">shapefile</em>, <em class="sig-param">columns=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">normalize_values=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#StaticHeatmap.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.StaticHeatmap.setup" title="Permalink to this definition">¶</a></dt>
 <dd><p>User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an <cite>__init__</cite> method.</p>
 </dd></dl>
 

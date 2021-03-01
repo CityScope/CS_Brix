@@ -552,6 +552,7 @@ First, we load the RandomIndicator and pass it to a Handler.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 <span class="n">shapefile</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/14_Manzanas_INV2016.shp&#39;</span><span class="p">)</span>
 <span class="n">shapefile</span> <span class="o">=</span> <span class="n">shapefile</span><span class="p">[</span><span class="n">shapefile</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;N.D.&#39;</span><span class="p">]</span>
+<span class="n">shapefile</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shapefile</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Since the <cite>VIVTOT</cite> column that we are interested in visualizing has a skewed distribution, we will log-transform it.</p>
@@ -562,8 +563,7 @@ shapefile[‘log_VIVTOT’] = np.log(shapefile[‘VIVTOT’]+1)</p>
 </dl>
 <p>Next, we load a table and use its grid to sample the heatmap.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span>
-<span class="n">table_name</span> <span class="o">=</span> <span class="s1">&#39;jalisco&#39;</span>
-<span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;jalisco&#39;</span><span class="p">)</span>
 <span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -580,16 +580,15 @@ shapefile[‘log_VIVTOT’] = np.log(shapefile[‘VIVTOT’]+1)</p>
 </pre></div>
 </div>
 <p>Finally, we add it to a Handler class and check the update package:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;jalisco&#39;</span><span class="p">)</span>
 <span class="n">H</span><span class="o">.</span><span class="n">add_indicator</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
 <span class="n">H</span><span class="o">.</span><span class="n">update_package</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>To wrap up, once the <cite>heatmap</cite> file has been saved, all you need to do deploy the indicator is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span><span class="p">,</span> <span class="n">StaticHeatmap</span>
-<span class="n">table_name</span> <span class="o">=</span> <span class="s1">&#39;jalisco&#39;</span>
 <span class="n">N</span> <span class="o">=</span> <span class="n">StaticHeatmap</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp&#39;</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;log_VIVTOT&#39;</span><span class="p">])</span>
-<span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;jalisco&#39;</span><span class="p">)</span>
 <span class="n">H</span><span class="o">.</span><span class="n">add_indicator</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
 <span class="n">H</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
 </pre></div>

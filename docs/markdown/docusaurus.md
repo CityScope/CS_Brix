@@ -1178,6 +1178,9 @@ The indicator will post the given shapefile to the table.
     If not provided, it will generate a name by hashing the column names.
 
 
+    * **normalize_values** (boolean, defaults to True) – If True, it will ensure all values are between 0 and 1.
+
+
 
 * **Returns**
 
@@ -1272,5 +1275,5 @@ Used to set the return_indicator method by passing a function.
 
 
 
-#### setup(shapefile, columns=None, name=None)
+#### setup(shapefile, columns=None, name=None, normalize_values=True)
 User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an __init__ method.
