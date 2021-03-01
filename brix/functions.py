@@ -14,7 +14,10 @@ except:
 import requests
 import pandas as pd
 import geopandas as gpd
+import numpy as np
 from geopandas.tools import sjoin
+from shapely.geometry import Point
+
 
 def OSM_infer_geogrid_data(H,amenity_tag_categories=None):
 	'''
@@ -262,3 +265,75 @@ def get_OSM_nodes(H,expand_tags=False,amenity_tag_categories=None,use_stored=Tru
 
 	node_data_df = gpd.GeoDataFrame(node_data_df,geometry=gpd.points_from_xy(node_data_df['lon'],node_data_df['lat']))
 	return node_data_df
+
+def griddify(geogrid_data,shapefile,extend_grid=True,buffer_percent=1.3,columns=None,local_crs=None):
+	'''
+	From a shapefile with polygons and properties, it creates a shapefile with points and the properties of the polygons they fall in.
+	Points are taken from the given GEOGRID and the grid is extended to incorporate a buffer. 
+	Points are in the center of the grid.
+
+	Parameters
+	----------
+	geogrid_data: brix.GEOGRIDDATA
+
+	shapefile: geopandas.GeoDataFrame
+		Shapefile in WGS84 (default) or in local_crs (if local_crs is provided)
+	extend_grid: boolean, defaults to `True`
+		If False, it will only return the values for the centroids of the grid.
+	buffer_percent: float, defaults to 1.3
+		Buffer to extend the grid by (in units of grid diameter). 
+	columns: list, defaults to all numeric
+		Columns to select besides geometry. If not provided, it will default to all numeric columns.
+	local_crs: str, defaults to wgs84
+		ESRI code for local CRS, must match crs of shapefile.
+		Recommended: Calculating the centroids of each cell will be more precise if this is provided.
+
+	Returns
+	-------
+	joined: geopandas.GeoDataFrame
+		Shapefile of points and their values.
+	'''
+	if columns is None:
+		columns = shapefile.drop('geometry',1).select_dtypes(include=[np.number]).columns.tolist()
+
+	geogrid_data_df = geogrid_data.as_df(include_geometries=True)
+	if local_crs is not None:
+		geogrid_data_df = geogrid_data_df.to_crs(local_crs)
+	geogrid_data_df.geometry = geogrid_data_df.geometry.centroid
+
+	if extend_grid:
+		limit = geogrid_data.bounds(buffer_percent=buffer_percent)
+		selected_shapefile = shapefile[shapefile.geometry.within(limit)]
+
+		geogrid_data_df['lat'] = geogrid_data_df.geometry.y
+		geogrid_data_df['lon'] = geogrid_data_df.geometry.x
+		lon_dx = geogrid_data_df.sort_values(by='lat')['lon'].diff().abs().median()
+		lat_dx = geogrid_data_df.sort_values(by='lon')['lat'].diff().abs().median()
+
+		s_lon_min,s_lat_min,s_lon_max,s_lat_max = selected_shapefile.total_bounds
+		lat_min = geogrid_data_df['lat'].min()
+		lat_max = geogrid_data_df['lat'].max()
+		lon_min = geogrid_data_df['lon'].min()
+		lon_max = geogrid_data_df['lon'].max()
+		all_lats = np.arange(lat_min,s_lat_min,-1*lat_dx).tolist()[::-1][:-1]+np.arange(lat_min,lat_max,lat_dx).tolist()+np.arange(lat_max,s_lat_max,lat_dx).tolist()[1:]
+		all_lons = np.arange(lon_min,s_lon_min,-1*lon_dx).tolist()[::-1][:-1]+np.arange(lon_min,lon_max,lon_dx).tolist()+np.arange(lon_max,s_lon_max,lon_dx).tolist()[1:]
+
+		extended_grid = [Point(lon,lat) for lat in all_lats for lon in all_lons]
+		extended_grid = gpd.GeoDataFrame([],geometry=extended_grid,crs='EPSG:4326').reset_index().rename(columns={'index':'extended_id'})
+		grid_match = sjoin(geogrid_data.as_df(include_geometries=True),extended_grid)
+		extended_grid = pd.merge(extended_grid,grid_match[['id','extended_id']].rename(columns={'id':'grid_id'}),how='left')
+		selected_grid = extended_grid
+		grid_ids = ['extended_id','grid_id']
+	else:
+		limit = geogrid_data.bounds()
+		selected_shapefile = shapefile[shapefile.geometry.within(limit)]
+		selected_grid = geogrid_data_df.rename(columns={'id':'grid_id'})
+		grid_ids = ['grid_id']
+
+	joined = sjoin(selected_shapefile,selected_grid,how='left')
+	joined = pd.merge(joined[grid_ids+columns],selected_grid[grid_ids+['geometry']],how='outer')
+	for c in columns:
+		joined[c] = joined[c].astype(float)
+	joined = joined[~joined['geometry'].isna()]
+	joined = gpd.GeoDataFrame(joined.drop('geometry',1),geometry=joined['geometry'])
+	return joined
