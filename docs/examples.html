@@ -94,7 +94,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#numeric-indicator-diversity">Numeric indicator: diversity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#composite-indicator-average">Composite indicator: average</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#heatmap-indicator">Heatmap indicator</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#static-heatmap-indicator">Static-Heatmap indicator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#multiple-tables-simultaneously">Multiple tables simultaneously</a></li>
 </ul>
 </li>
@@ -102,6 +101,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#diversity-of-land-use-indicator-step-by-step">Diversity of land-use indicator - step by step</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#composite-indicator-step-by-step-tutorial">Composite indicator – step by step tutorial</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#heatmap-indicator-step-by-step-tutorial">Heatmap indicator – step by step tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#static-heatmap-indicator">Static-Heatmap indicator</a></li>
 </ul>
 </li>
 </ul>
@@ -274,41 +274,6 @@ The example below shows an indicator that returns noise for every point in the c
                         <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
                 <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span><span class="s1">&#39;FeatureCollection&#39;</span><span class="p">,</span><span class="s1">&#39;features&#39;</span><span class="p">:</span><span class="n">features</span><span class="p">}</span>
                 <span class="k">return</span> <span class="n">out</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="static-heatmap-indicator">
-<h3>Static-Heatmap indicator<a class="headerlink" href="#static-heatmap-indicator" title="Permalink to this headline">¶</a></h3>
-<p>The <a class="reference internal" href="classes.html#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a> class provides a flexible way to define any type of indicator. In some cases, a simple approach is needed. Let’s assume we want to build a simple heatmap indicator that just visualizes a given shapefile, and does not react to changes in geogriddata. We can use <a class="reference internal" href="classes.html#brix.StaticHeatmap" title="brix.StaticHeatmap"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.StaticHeatmap</span></code></a> to build that.</p>
-<p>In this example, we will use the number of houses by block in Guadalajara, Mexico. You can download the shapefile from <a class="reference external" href="https://www.inegi.org.mx/contenidos/masiva/indicadores/inv/14_Manzanas_INV2016_shp.zip">HERE</a>. We will not be using our trusted <cite>dungeonmaster</cite> table, as it does not overlap with the data. Instead we will use <cite>jalisco</cite>.</p>
-<p>The first step will be to “griddify” our shapefile, meaning we will transform it from polygons to sampling points. Please note that you can use any sampling method for this, and that the sampling points do not need to match the grid. To make things easier, we have provided <a class="reference internal" href="functions.html#brix.griddify" title="brix.griddify"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.griddify()</span></code></a>, which uses the centroids of the grid to sample the values of the heatmap.</p>
-<p>We start by loading the shapefile and removing the missing values:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
-<span class="n">shapefile</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/14_Manzanas_INV2016.shp&#39;</span><span class="p">)</span>
-<span class="n">shapefile</span> <span class="o">=</span> <span class="n">shapefile</span><span class="p">[</span><span class="n">shapefile</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;N.D.&#39;</span><span class="p">]</span>
-</pre></div>
-</div>
-<p>Next, we load a table and use its grid to sample the heatmap.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span>
-<span class="n">table_name</span> <span class="o">=</span> <span class="s1">&#39;jalisco&#39;</span>
-<span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
-<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>The next step is to use the grid to sample the values of the heatmap. We will use the <cite>VIVTOT</cite> column, and save the resulting heatmap to a file so we can load it later.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">griddify</span>
-<span class="n">heatmap</span> <span class="o">=</span> <span class="n">griddify</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">shapefile</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">])</span>
-<span class="n">heatmap</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>This shapefile is a table of points and their properties. To build your indicator you can either load the file and pass it to the :class:brix.StaticHeatmap` constructor, or have the constructor load it for you.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="n">StaticHeatmap</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp&#39;</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>Finally, we add it to a Handler class and check the update package:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;jalisco&#39;</span><span class="p">)</span>
-<span class="n">H</span><span class="o">.</span><span class="n">add_indicator</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
-<span class="n">H</span><span class="o">.</span><span class="n">update_package</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -575,6 +540,41 @@ First, we load the RandomIndicator and pass it to a Handler.</p>
 <span class="n">P</span> <span class="o">=</span> <span class="n">ProximityIndicator</span><span class="p">()</span>
 <span class="n">H</span><span class="o">.</span><span class="n">add_indicator</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
 <span class="n">H</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="static-heatmap-indicator">
+<h3>Static-Heatmap indicator<a class="headerlink" href="#static-heatmap-indicator" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="classes.html#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a> class provides a flexible way to define any type of indicator. In some cases, a simple approach is needed. Let’s assume we want to build a simple heatmap indicator that just visualizes a given shapefile, and does not react to changes in geogriddata. We can use <a class="reference internal" href="classes.html#brix.StaticHeatmap" title="brix.StaticHeatmap"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.StaticHeatmap</span></code></a> to build that.</p>
+<p>In this example, we will use the number of houses by block in Guadalajara, Mexico. You can download the shapefile from <a class="reference external" href="https://www.inegi.org.mx/contenidos/masiva/indicadores/inv/14_Manzanas_INV2016_shp.zip">HERE</a>. We will not be using our trusted <cite>dungeonmaster</cite> table, as it does not overlap with the data. Instead we will use <cite>jalisco</cite>.</p>
+<p>The first step will be to “griddify” our shapefile, meaning we will transform it from polygons to sampling points. Please note that you can use any sampling method for this, and that the sampling points do not need to match the grid. To make things easier, we have provided <a class="reference internal" href="functions.html#brix.griddify" title="brix.griddify"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.griddify()</span></code></a>, which uses the centroids of the grid to sample the values of the heatmap.</p>
+<p>We start by loading the shapefile and removing the missing values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="n">shapefile</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/14_Manzanas_INV2016.shp&#39;</span><span class="p">)</span>
+<span class="n">shapefile</span> <span class="o">=</span> <span class="n">shapefile</span><span class="p">[</span><span class="n">shapefile</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;N.D.&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Next, we load a table and use its grid to sample the heatmap.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span>
+<span class="n">table_name</span> <span class="o">=</span> <span class="s1">&#39;jalisco&#39;</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The next step is to use the grid to sample the values of the heatmap. We will use the <cite>VIVTOT</cite> column, and save the resulting heatmap to a file so we can load it later.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">griddify</span>
+<span class="n">heatmap</span> <span class="o">=</span> <span class="n">griddify</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">shapefile</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">])</span>
+<span class="n">heatmap</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This shapefile is a table of points and their properties. To build your indicator you can either load the file and pass it to the :class:brix.StaticHeatmap` constructor, or have the constructor load it for you.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="n">StaticHeatmap</span><span class="p">(</span><span class="s1">&#39;/Users/username/Downloads/14_Manzanas_INV2016_shp/HEATMAP.shp&#39;</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;VIVTOT&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Finally, we add it to a Handler class and check the update package:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;jalisco&#39;</span><span class="p">)</span>
+<span class="n">H</span><span class="o">.</span><span class="n">add_indicator</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+<span class="n">H</span><span class="o">.</span><span class="n">update_package</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
