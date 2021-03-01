@@ -364,6 +364,7 @@ class Handler(Thread):
 	def grid_bounds(self,bbox=False,buffer_percent=None):
 		'''
 		Returns the bounds of the geogrid.
+		Wrapper around :func:`brix.GEOGRIDDATA.bounds`
 
 		Parameters
 		----------
@@ -380,22 +381,8 @@ class Handler(Thread):
 			Bounds of the table. If `bbox=True` it will return a horizontal bounding box.
 		'''
 		geogrid_data = self._get_grid_data(include_geometries=True)
-
-		grid = [shape(cell['geometry']) for cell in geogrid_data]
-		limit = unary_union(grid)
-		limit = limit.buffer(get_buffer_size(limit,buffer_percent=0.001))
-		limit = limit.simplify(0.00001)
-
-		if buffer_percent is not None:
-			buffer_size = get_buffer_size(limit,buffer_percent=buffer_percent)
-			limit = limit.buffer(buffer_size)
-			limit = limit.simplify(0.0001)
-
-		if bbox:
-			lons,lats = zip(*limit.exterior.coords)
-			return [min(lons),min(lats),max(lons),max(lats)]
-		else:
-			return limit
+		bounds = geogrid_data.bounds(bbox=bbox,buffer_percent=buffer_percent)
+		return bounds
 
         
 	def check_table(self,return_value=False):
