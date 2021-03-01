@@ -335,5 +335,6 @@ def griddify(geogrid_data,shapefile,extend_grid=True,buffer_percent=1.3,columns=
 	for c in columns:
 		joined[c] = joined[c].astype(float)
 	joined = joined[~joined['geometry'].isna()]
+	joined = joined[~joined[columns].isnull().all(axis=1)] # Drops rows with all null values
 	joined = gpd.GeoDataFrame(joined.drop('geometry',1),geometry=joined['geometry'])
 	return joined
