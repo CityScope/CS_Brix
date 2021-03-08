@@ -256,6 +256,7 @@ class GEOGRIDDATA(list):
 		non_interative_id = sorted(non_interative_id)[::-1]
 		for i in non_interative_id:
 			del self[i]
+		self.df = None
 		return self
 
 	def bounds(self,bbox=False,buffer_percent=None):
