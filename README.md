@@ -2,6 +2,8 @@ Brix is a python library for CityScope modules which handles communication with 
 
 Full documentation can be found [here](https://cityscope.media.mit.edu/CS_Brix/).
 
+Please note that brix is still being developed, which is why some features might change fairly quickly. You can follow the updates by keeping track of brix development in the [github repo](https://github.com/CityScope/CS_Brix).
+
 # Introduction
 
 What is this library for? If you have never heard of a CityScope before, you might want to stop reading and learn about them [here](https://cityscope.media.mit.edu/). CityScope is an awesome way to interact, explore, and co-create urban interventions in a way that can be accessed by multiple people with different background. If you know what they are, please keep reading.
