@@ -1426,6 +1426,7 @@ class StaticHeatmap(Indicator):
 			self.columns = shapefile.drop('geometry',1).select_dtypes(include=[np.number]).columns.tolist()
 		else:
 			self.columns = columns
+		shapefile = shapefile[~shapefile[columns].isnull().all(axis=1)] # Drops rows with all null values
 		self.shapefile = gpd.GeoDataFrame(shapefile[columns],geometry=shapefile['geometry'])
 		if normalize_values:
 			for c in columns:
