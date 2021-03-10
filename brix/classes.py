@@ -542,7 +542,7 @@ class Handler(Thread):
 		else:
 			return I.return_indicator(geogrid_data)
 
-	def _format_geojson(self,new_value):
+	def _format_geojson(self,new_value,indicator_name):
 		'''
 		Formats the result of the return_indicator function into a valid geojson (not a cityIO geojson)
 		'''
@@ -633,7 +633,7 @@ class Handler(Thread):
 
 		if I.indicator_type in ['access','heatmap']:
 			new_value = I.return_indicator(geogrid_data)
-			new_value = self._format_geojson(new_value)
+			new_value = self._format_geojson(new_value,indicator_name)
 			return [new_value]
 		elif I.indicator_type in ['numeric']:
 			new_value = I.return_indicator(geogrid_data)
@@ -806,7 +806,7 @@ class Handler(Thread):
 			if len(new_values_heatmap)!=0:
 				current_access = self.see_current(indicator_type='access')
 				self.previous_access = current_access
-				current_access = self._format_geojson(current_access)
+				current_access = self._format_geojson(current_access,None)
 				new_values_heatmap = [current_access]+new_values_heatmap
 
 		new_values_heatmap = self._combine_heatmap_values(new_values_heatmap)
