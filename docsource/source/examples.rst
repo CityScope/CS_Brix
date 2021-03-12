@@ -142,6 +142,40 @@ The following examples instantiates three :class:`brix.Handler` objects for thre
 	for h in handler_list:
 		h.listen()
 
+
+Hybrid indicator
+^^^^^^^^^^^^^^^^
+
+For more complex uses cases, where a module runs a big simulation and wants to show both a heatmap and a numeric indicator, you can use a `hybrid` indicator. To start, set:
+
+::
+
+	self.indicator_type = 'hybrid'
+
+Ensure your 
+
+from brix import Indicator
+from numpy import mean
+import random
+class HybridNoise(Indicator):
+    def setup(self,name=None):
+        self.indicator_type = 'hybrid'
+        self.name = ('noise' if name is None else name)
+        self.requires_geometry = True
+
+    def return_indicator(self, geogrid_data):
+        features = []
+        for cell in geogrid_data:
+            feature = {}
+            lat,lon = zip(*cell['geometry']['coordinates'][0])
+            lat,lon = mean(lat),mean(lon)
+            feature['geometry'] = {'coordinates': [lat,lon],'type': 'Point'}
+            feature['properties'] = {self.name:random.random()}
+            features.append(feature)
+        out = {'type':'FeatureCollection','features':features}
+        mean_noise = mean([cell['properties'][self.name] for cell in features])
+        return {'heatmap':out,'numeric':mean_noise}
+
 Step by step examples
 ---------------------
 
