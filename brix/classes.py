@@ -134,6 +134,16 @@ class GEOGRIDDATA(list):
 
 
 	def check_id_validity(self,quietly=True):
+		'''
+		Checks if all ids are in GEOGRIDDATA or if some are missing by comparing the number of unique ids of the current object with the grid size as return by :func:`brix.GEOGRIDDATA.grid_size`.
+		Does not raise an error, but returns a boolean. 
+		See :func:`brix.GEOGRIDDATA.fill_missing_cells`
+
+		Returns
+		-------
+		validity: boolean
+			If `False`, the number of unique ids does not match the grid size. 
+		'''
 		n_unique_ids = len(set([cell['id'] for cell in self]))
 		if n_unique_ids==self.grid_size():
 			return True
@@ -1031,7 +1041,6 @@ class Handler(Thread):
 		new_values = self.update_package(append=append)
 
 		if len(new_values['numeric'])!=0:
-
 			r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(new_values['numeric']))
 
 		if len(new_values['heatmap']['features'])!=0:
