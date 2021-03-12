@@ -92,25 +92,46 @@ class GEOGRIDDATA(list):
 		return self.GEOGRID['properties']
 
 	def grid_size(self):
+		'''
+		Returns size of the grid (total numer of cells).
+		'''
 		return len(self.get_geogrid()['features'])
 
 	def get_type_info(self):
+		'''
+
+		'''
 		return self.get_geogrid_props()['types']
 
 	def get_type_set(self):
+		'''
+		Returns set with all types defined in GEOGRID.
+		'''
 		return set(self.get_geogrid_props()['types'])
 
 	def number_of_types(self):
 		return len(self.get_type_set())
 
-	def check_type_validity(self,quietly=True):
+	def check_type_validity(self,raise_error=True):
+		'''
+		Checks if all types in the given GEOGRIDDATA object correspond to a type defined in GEOGRID.
+		This function raises an error by default.
+
+		Parameters
+		----------
+		raise_error: boolean, defaults to `True`
+			If False, it will not raise the error by return a boolean of whether the types are valid or not. 
+		'''
 		non_defined_cells = set([cell['name'] for cell in self]).difference(self.get_type_set())
-		if len(non_defined_cells)==0:
-			return True
+		if len(non_defined_cells)!=0:
+			if raise_error:
+				raise NameError('Some types defined in GEOGRIDDATA do not match those in GEOGRID\n. Unrecognized types:',non_defined_cells)
+			else:
+				return False
 		else:
-			if not quietly:
-				print('Unrecognized types:',non_defined_cells)
-			return False
+			if not raise_error:
+				return True
+
 
 	def check_id_validity(self,quietly=True):
 		n_unique_ids = len(set([cell['id'] for cell in self]))
@@ -140,8 +161,7 @@ class GEOGRIDDATA(list):
 		'''
 		if self.GEOGRID is None:
 			raise NameError('GEOGRIDDATA object does not have GEOGRID attribute.')
-		if not self.check_type_validity(quietly=False):
-			raise NameError('Type not found in table definition.')
+		self.check_type_validity()
 		GEOGRID = self.GEOGRID
 		for cell in self:
 			h = GEOGRID['properties']['types'][cell['name']]['color'].replace('#','')
@@ -1150,8 +1170,7 @@ class Handler(Thread):
 		geogrid_data = GEOGRIDDATA(geogrid_data)
 		geogrid_data.set_geogrid(self.get_GEOGRID())
 
-		if not geogrid_data.check_type_validity(quietly=False):
-			raise NameError('Type not found in table definition.')
+		geogrid_data.check_type_validity()
 
 		if not geogrid_data.check_id_validity():
 			geogrid_data.fill_missing_cells()
