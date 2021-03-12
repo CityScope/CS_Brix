@@ -524,7 +524,7 @@ class Handler(Thread):
 		self.indicators[indicatorName] = I
 		if test:
 			geogrid_data = self._get_grid_data()
-			if I.indicator_type not in set(['numeric','heatmap','access']):
+			if I.indicator_type not in set(['numeric','heatmap','access','hybrid']):
 				raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(I.indicator_type))
 			try:
 				if I.is_composite:
