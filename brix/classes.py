@@ -1333,7 +1333,8 @@ class Indicator:
 		pass
 
 	def return_indicator(self,geogrid_data):
-		'''User defined function. This function defines the value of the indicator as a function of the table state passed as `geogrid_data`. Function must return either a dictionary, a list, or a number. When returning a dict follow the format: ``{'name': 'Indicator_NAME', 'value': 1.00}``. 
+		'''
+		User defined function. This function defines the value of the indicator as a function of the table state passed as `geogrid_data`. Function must return either a dictionary, a list, or a number. When returning a dict follow the format: ``{'name': 'Indicator_NAME', 'value': 1.00}``. 
 
 		Parameters
 		----------
@@ -1345,10 +1346,28 @@ class Indicator:
 		indicator_value : list, dict, or float
 			Value of indicator or list of values. When returning a dict, please use the format ``{'name': 'Indicator Name', 'value': indicator_value}``. When returning a list, please return a list of dictionaries in the same format. 
 		'''
-		if self.return_indicator_user is not None:
-			return self.return_indicator_user(geogrid_data)
+		if self.indicator_type=='hybrid':
+			out = {}
+			out['numeric'] = self.return_indicator_numeric(geogrid_data)
+			out['heatmap'] = self.return_indicator_heatmap(geogrid_data)
+			return out
 		else:
-			return {}
+			if self.return_indicator_user is not None:
+				return self.return_indicator_user(geogrid_data)
+			else:
+				return {}
+
+	def return_indicator_numeric(self,geogrid_data):
+		'''
+		Placeholder for user to define.
+		'''
+		return []
+
+	def return_indicator_heatmap(self,geogrid_data):
+		'''
+		Placeholder for user to define.
+		'''
+		return None
 
 	def set_return_indicator(self,return_indicator):
 		'''
