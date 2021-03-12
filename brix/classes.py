@@ -688,13 +688,15 @@ class Handler(Thread):
 	def _new_value_heatmap(self,new_value,I,indicator_name):
 		'''
 		Handles multiple formats of a new_value for a heatmap indicator.
-		ONLY GEOJSON IS SUPPORTED AT THE MOMENT, BUT THIS WILL ALSO INCLUDE GEOPANDAS.GEODATAFRAME
+		GEOPANDAS.GEODATAFRAME IS ALSO SUPPORTED BUT HAS NOT BEEN TESTED
 
 		Parameters
 		----------
 		new_value: object
 			Object returned by some subclass of :func:`brix.Indicator.return_indicator` when :attr:`brix.Indicator.indicator_type` is `heatmap` or `access`.
 		'''
+		if isinstance(new_value, gpd.GeoDataFrame):
+			new_value = json.loads(new_value.to_json())
 		new_value = self._format_geojson(new_value,indicator_name)
 		return [new_value]
 
