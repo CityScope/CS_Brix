@@ -95,6 +95,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#composite-indicator-average">Composite indicator: average</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#heatmap-indicator">Heatmap indicator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#multiple-tables-simultaneously">Multiple tables simultaneously</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hybrid-indicator">Hybrid indicator</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#step-by-step-examples">Step by step examples</a><ul>
@@ -295,6 +296,54 @@ The example below shows an indicator that returns noise for every point in the c
 
 <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">handler_list</span><span class="p">:</span>
         <span class="n">h</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="hybrid-indicator">
+<h3>Hybrid indicator<a class="headerlink" href="#hybrid-indicator" title="Permalink to this headline">¶</a></h3>
+<p>For more complex uses cases, where a module runs a big simulation and wants to show both a heatmap and a numeric indicator, you can use a <cite>hybrid</cite> indicator. To start, set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">indicator_type</span> <span class="o">=</span> <span class="s1">&#39;hybrid&#39;</span>
+</pre></div>
+</div>
+<p>If you set your indicator as <cite>hybrid</cite> you need to define a numeric and a heatmap part. The following example generates a heatmap with noise and the average noise as a numeric indicator.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Indicator</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">mean</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="k">class</span> <span class="nc">HybridNoise</span><span class="p">(</span><span class="n">Indicator</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">indicator_type</span> <span class="o">=</span> <span class="s1">&#39;hybrid&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;noise&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">requires_geometry</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mynoise</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">def</span> <span class="nf">return_indicator_heatmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="p">):</span>
+                <span class="n">features</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
+                        <span class="n">feature</span> <span class="o">=</span> <span class="p">{}</span>
+                        <span class="n">lat</span><span class="p">,</span><span class="n">lon</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;coordinates&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">lat</span><span class="p">,</span><span class="n">lon</span> <span class="o">=</span> <span class="n">mean</span><span class="p">(</span><span class="n">lat</span><span class="p">),</span><span class="n">mean</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+                        <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;coordinates&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">lat</span><span class="p">,</span><span class="n">lon</span><span class="p">],</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Point&#39;</span><span class="p">}</span>
+                        <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()}</span>
+                        <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mynoise</span> <span class="o">=</span> <span class="n">features</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span><span class="s1">&#39;FeatureCollection&#39;</span><span class="p">,</span><span class="s1">&#39;features&#39;</span><span class="p">:</span><span class="n">features</span><span class="p">}</span>
+                <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">def</span> <span class="nf">return_indicator_numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="p">):</span>
+                <span class="n">mean_noise</span> <span class="o">=</span> <span class="n">mean</span><span class="p">([</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mynoise</span><span class="p">])</span>
+                <span class="k">return</span> <span class="n">mean_noise</span>
+</pre></div>
+</div>
+<p>By default, brix will run the heatmap indicator first, followed by the numeric indicator. If you need more control over how these functions interact with each other, you can always re-define the <cite>return_indicator</cite> function. If you choose to do so, make sure that it returns a dictionary with two keys (‘heatmap’ and ‘numeric’):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;heatmap&#39;</span><span class="p">:</span> <span class="n">heatmap_values</span><span class="p">,</span> <span class="s1">&#39;numeric&#39;</span><span class="p">:</span> <span class="n">numeric_values</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>In the previous example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">return_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;heatmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_indicator_heatmap</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;numeric&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_indicator_numeric</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
 </pre></div>
 </div>
 </div>

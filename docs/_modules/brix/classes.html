@@ -249,27 +249,58 @@
 		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="GEOGRIDDATA.grid_size"><a class="viewcode-back" href="../../classes.html#brix.GEOGRIDDATA.grid_size">[docs]</a>	<span class="k">def</span> <span class="nf">grid_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Returns size of the grid (total numer of cells).</span>
+<span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_geogrid</span><span class="p">()[</span><span class="s1">&#39;features&#39;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="GEOGRIDDATA.get_type_info"><a class="viewcode-back" href="../../classes.html#brix.GEOGRIDDATA.get_type_info">[docs]</a>	<span class="k">def</span> <span class="nf">get_type_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_geogrid_props</span><span class="p">()[</span><span class="s1">&#39;types&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="GEOGRIDDATA.get_type_set"><a class="viewcode-back" href="../../classes.html#brix.GEOGRIDDATA.get_type_set">[docs]</a>	<span class="k">def</span> <span class="nf">get_type_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Returns set with all types defined in GEOGRID.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_geogrid_props</span><span class="p">()[</span><span class="s1">&#39;types&#39;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="GEOGRIDDATA.number_of_types"><a class="viewcode-back" href="../../classes.html#brix.GEOGRIDDATA.number_of_types">[docs]</a>	<span class="k">def</span> <span class="nf">number_of_types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_type_set</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="GEOGRIDDATA.check_type_validity"><a class="viewcode-back" href="../../classes.html#brix.GEOGRIDDATA.check_type_validity">[docs]</a>	<span class="k">def</span> <span class="nf">check_type_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">quietly</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="GEOGRIDDATA.check_type_validity"><a class="viewcode-back" href="../../classes.html#brix.GEOGRIDDATA.check_type_validity">[docs]</a>	<span class="k">def</span> <span class="nf">check_type_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">raise_error</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Checks if all types in the given GEOGRIDDATA object correspond to a type defined in GEOGRID.</span>
+<span class="sd">		This function raises an error by default.</span>
+
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		raise_error: boolean, defaults to `True`</span>
+<span class="sd">			If False, it will not raise the error by return a boolean of whether the types are valid or not. </span>
+<span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">non_defined_cells</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_type_set</span><span class="p">())</span>
-		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_defined_cells</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
-			<span class="k">return</span> <span class="kc">True</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_defined_cells</span><span class="p">)</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">raise_error</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Some types defined in GEOGRIDDATA do not match those in GEOGRID</span><span class="se">\n</span><span class="s1">. Unrecognized types:&#39;</span><span class="p">,</span><span class="n">non_defined_cells</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">return</span> <span class="kc">False</span>
 		<span class="k">else</span><span class="p">:</span>
-			<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
-				<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unrecognized types:&#39;</span><span class="p">,</span><span class="n">non_defined_cells</span><span class="p">)</span>
-			<span class="k">return</span> <span class="kc">False</span></div>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">raise_error</span><span class="p">:</span>
+				<span class="k">return</span> <span class="kc">True</span></div>
+
 
 <div class="viewcode-block" id="GEOGRIDDATA.check_id_validity"><a class="viewcode-back" href="../../classes.html#brix.GEOGRIDDATA.check_id_validity">[docs]</a>	<span class="k">def</span> <span class="nf">check_id_validity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">quietly</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Checks if all ids are in GEOGRIDDATA or if some are missing by comparing the number of unique ids of the current object with the grid size as return by :func:`brix.GEOGRIDDATA.grid_size`.</span>
+<span class="sd">		Does not raise an error, but returns a boolean. </span>
+<span class="sd">		See :func:`brix.GEOGRIDDATA.fill_missing_cells`</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		validity: boolean</span>
+<span class="sd">			If `False`, the number of unique ids does not match the grid size. </span>
+<span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">n_unique_ids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]))</span>
 		<span class="k">if</span> <span class="n">n_unique_ids</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_size</span><span class="p">():</span>
 			<span class="k">return</span> <span class="kc">True</span>
@@ -297,8 +328,7 @@
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;GEOGRIDDATA object does not have GEOGRID attribute.&#39;</span><span class="p">)</span>
-		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_type_validity</span><span class="p">(</span><span class="n">quietly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Type not found in table definition.&#39;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">check_type_validity</span><span class="p">()</span>
 		<span class="n">GEOGRID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GEOGRID</span>
 		<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
 			<span class="n">h</span> <span class="o">=</span> <span class="n">GEOGRID</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
@@ -413,6 +443,7 @@
 		<span class="n">non_interative_id</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">non_interative_id</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">non_interative_id</span><span class="p">:</span>
 			<span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="kc">None</span>
 		<span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="GEOGRIDDATA.bounds"><a class="viewcode-back" href="../../classes.html#brix.GEOGRIDDATA.bounds">[docs]</a>	<span class="k">def</span> <span class="nf">bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">bbox</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">buffer_percent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -698,7 +729,7 @@
 		<span class="k">else</span><span class="p">:</span>
 			<span class="k">return</span> <span class="n">I</span><span class="o">.</span><span class="n">return_indicator</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span></div>
 
-	<span class="k">def</span> <span class="nf">_format_geojson</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">new_value</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">_format_geojson</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">new_value</span><span class="p">,</span><span class="n">indicator_name</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Formats the result of the return_indicator function into a valid geojson (not a cityIO geojson)</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -789,7 +820,7 @@
 
 		<span class="k">if</span> <span class="n">I</span><span class="o">.</span><span class="n">indicator_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;access&#39;</span><span class="p">,</span><span class="s1">&#39;heatmap&#39;</span><span class="p">]:</span>
 			<span class="n">new_value</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">return_indicator</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
-			<span class="n">new_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_geojson</span><span class="p">(</span><span class="n">new_value</span><span class="p">)</span>
+			<span class="n">new_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_geojson</span><span class="p">(</span><span class="n">new_value</span><span class="p">,</span><span class="n">indicator_name</span><span class="p">)</span>
 			<span class="k">return</span> <span class="p">[</span><span class="n">new_value</span><span class="p">]</span>
 		<span class="k">elif</span> <span class="n">I</span><span class="o">.</span><span class="n">indicator_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;numeric&#39;</span><span class="p">]:</span>
 			<span class="n">new_value</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">return_indicator</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
@@ -962,7 +993,7 @@
 			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_values_heatmap</span><span class="p">)</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
 				<span class="n">current_access</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">see_current</span><span class="p">(</span><span class="n">indicator_type</span><span class="o">=</span><span class="s1">&#39;access&#39;</span><span class="p">)</span>
 				<span class="bp">self</span><span class="o">.</span><span class="n">previous_access</span> <span class="o">=</span> <span class="n">current_access</span>
-				<span class="n">current_access</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_geojson</span><span class="p">(</span><span class="n">current_access</span><span class="p">)</span>
+				<span class="n">current_access</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_geojson</span><span class="p">(</span><span class="n">current_access</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
 				<span class="n">new_values_heatmap</span> <span class="o">=</span> <span class="p">[</span><span class="n">current_access</span><span class="p">]</span><span class="o">+</span><span class="n">new_values_heatmap</span>
 
 		<span class="n">new_values_heatmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_heatmap_values</span><span class="p">(</span><span class="n">new_values_heatmap</span><span class="p">)</span>
@@ -1167,7 +1198,6 @@
 		<span class="n">new_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_package</span><span class="p">(</span><span class="n">append</span><span class="o">=</span><span class="n">append</span><span class="p">)</span>
 
 		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_values</span><span class="p">[</span><span class="s1">&#39;numeric&#39;</span><span class="p">])</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
-
 			<span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_post_url</span><span class="o">+</span><span class="s1">&#39;/indicators&#39;</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">new_values</span><span class="p">[</span><span class="s1">&#39;numeric&#39;</span><span class="p">]))</span>
 
 		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_values</span><span class="p">[</span><span class="s1">&#39;heatmap&#39;</span><span class="p">][</span><span class="s1">&#39;features&#39;</span><span class="p">])</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
@@ -1306,8 +1336,7 @@
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">GEOGRIDDATA</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
 		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">set_geogrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">())</span>
 
-		<span class="k">if</span> <span class="ow">not</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">check_type_validity</span><span class="p">(</span><span class="n">quietly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Type not found in table definition.&#39;</span><span class="p">)</span>
+		<span class="n">geogrid_data</span><span class="o">.</span><span class="n">check_type_validity</span><span class="p">()</span>
 
 		<span class="k">if</span> <span class="ow">not</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">check_id_validity</span><span class="p">():</span>
 			<span class="n">geogrid_data</span><span class="o">.</span><span class="n">fill_missing_cells</span><span class="p">()</span>

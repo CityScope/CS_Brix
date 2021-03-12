@@ -842,12 +842,30 @@ See <code class="xref py py-func docutils literal notranslate"><span class="pre"
 <dl class="method">
 <dt id="brix.GEOGRIDDATA.check_id_validity">
 <code class="sig-name descname">check_id_validity</code><span class="sig-paren">(</span><em class="sig-param">quietly=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#GEOGRIDDATA.check_id_validity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.GEOGRIDDATA.check_id_validity" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Checks if all ids are in GEOGRIDDATA or if some are missing by comparing the number of unique ids of the current object with the grid size as return by <a class="reference internal" href="#brix.GEOGRIDDATA.grid_size" title="brix.GEOGRIDDATA.grid_size"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA.grid_size()</span></code></a>.
+Does not raise an error, but returns a boolean.
+See <a class="reference internal" href="#brix.GEOGRIDDATA.fill_missing_cells" title="brix.GEOGRIDDATA.fill_missing_cells"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA.fill_missing_cells()</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>validity</strong> – If <cite>False</cite>, the number of unique ids does not match the grid size.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>boolean</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="brix.GEOGRIDDATA.check_type_validity">
-<code class="sig-name descname">check_type_validity</code><span class="sig-paren">(</span><em class="sig-param">quietly=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#GEOGRIDDATA.check_type_validity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.GEOGRIDDATA.check_type_validity" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">check_type_validity</code><span class="sig-paren">(</span><em class="sig-param">raise_error=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#GEOGRIDDATA.check_type_validity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.GEOGRIDDATA.check_type_validity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if all types in the given GEOGRIDDATA object correspond to a type defined in GEOGRID.
+This function raises an error by default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>raise_error</strong> (boolean, defaults to <cite>True</cite>) – If False, it will not raise the error by return a boolean of whether the types are valid or not.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="brix.GEOGRIDDATA.clear">
@@ -916,12 +934,14 @@ See <code class="xref py py-func docutils literal notranslate"><span class="pre"
 <dl class="method">
 <dt id="brix.GEOGRIDDATA.get_type_set">
 <code class="sig-name descname">get_type_set</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#GEOGRIDDATA.get_type_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.GEOGRIDDATA.get_type_set" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns set with all types defined in GEOGRID.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="brix.GEOGRIDDATA.grid_size">
 <code class="sig-name descname">grid_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#GEOGRIDDATA.grid_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.GEOGRIDDATA.grid_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns size of the grid (total numer of cells).</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="brix.GEOGRIDDATA.index">

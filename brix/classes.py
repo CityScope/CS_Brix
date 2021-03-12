@@ -92,27 +92,58 @@ class GEOGRIDDATA(list):
 		return self.GEOGRID['properties']
 
 	def grid_size(self):
+		'''
+		Returns size of the grid (total numer of cells).
+		'''
 		return len(self.get_geogrid()['features'])
 
 	def get_type_info(self):
+		'''
+
+		'''
 		return self.get_geogrid_props()['types']
 
 	def get_type_set(self):
+		'''
+		Returns set with all types defined in GEOGRID.
+		'''
 		return set(self.get_geogrid_props()['types'])
 
 	def number_of_types(self):
 		return len(self.get_type_set())
 
-	def check_type_validity(self,quietly=True):
+	def check_type_validity(self,raise_error=True):
+		'''
+		Checks if all types in the given GEOGRIDDATA object correspond to a type defined in GEOGRID.
+		This function raises an error by default.
+
+		Parameters
+		----------
+		raise_error: boolean, defaults to `True`
+			If False, it will not raise the error by return a boolean of whether the types are valid or not. 
+		'''
 		non_defined_cells = set([cell['name'] for cell in self]).difference(self.get_type_set())
-		if len(non_defined_cells)==0:
-			return True
+		if len(non_defined_cells)!=0:
+			if raise_error:
+				raise NameError('Some types defined in GEOGRIDDATA do not match those in GEOGRID\n. Unrecognized types:',non_defined_cells)
+			else:
+				return False
 		else:
-			if not quietly:
-				print('Unrecognized types:',non_defined_cells)
-			return False
+			if not raise_error:
+				return True
+
 
 	def check_id_validity(self,quietly=True):
+		'''
+		Checks if all ids are in GEOGRIDDATA or if some are missing by comparing the number of unique ids of the current object with the grid size as return by :func:`brix.GEOGRIDDATA.grid_size`.
+		Does not raise an error, but returns a boolean. 
+		See :func:`brix.GEOGRIDDATA.fill_missing_cells`
+
+		Returns
+		-------
+		validity: boolean
+			If `False`, the number of unique ids does not match the grid size. 
+		'''
 		n_unique_ids = len(set([cell['id'] for cell in self]))
 		if n_unique_ids==self.grid_size():
 			return True
@@ -140,8 +171,7 @@ class GEOGRIDDATA(list):
 		'''
 		if self.GEOGRID is None:
 			raise NameError('GEOGRIDDATA object does not have GEOGRID attribute.')
-		if not self.check_type_validity(quietly=False):
-			raise NameError('Type not found in table definition.')
+		self.check_type_validity()
 		GEOGRID = self.GEOGRID
 		for cell in self:
 			h = GEOGRID['properties']['types'][cell['name']]['color'].replace('#','')
@@ -256,6 +286,7 @@ class GEOGRIDDATA(list):
 		non_interative_id = sorted(non_interative_id)[::-1]
 		for i in non_interative_id:
 			del self[i]
+		self.df = None
 		return self
 
 	def bounds(self,bbox=False,buffer_percent=None):
@@ -541,7 +572,7 @@ class Handler(Thread):
 		else:
 			return I.return_indicator(geogrid_data)
 
-	def _format_geojson(self,new_value):
+	def _format_geojson(self,new_value,indicator_name):
 		'''
 		Formats the result of the return_indicator function into a valid geojson (not a cityIO geojson)
 		'''
@@ -632,7 +663,7 @@ class Handler(Thread):
 
 		if I.indicator_type in ['access','heatmap']:
 			new_value = I.return_indicator(geogrid_data)
-			new_value = self._format_geojson(new_value)
+			new_value = self._format_geojson(new_value,indicator_name)
 			return [new_value]
 		elif I.indicator_type in ['numeric']:
 			new_value = I.return_indicator(geogrid_data)
@@ -805,7 +836,7 @@ class Handler(Thread):
 			if len(new_values_heatmap)!=0:
 				current_access = self.see_current(indicator_type='access')
 				self.previous_access = current_access
-				current_access = self._format_geojson(current_access)
+				current_access = self._format_geojson(current_access,None)
 				new_values_heatmap = [current_access]+new_values_heatmap
 
 		new_values_heatmap = self._combine_heatmap_values(new_values_heatmap)
@@ -1010,7 +1041,6 @@ class Handler(Thread):
 		new_values = self.update_package(append=append)
 
 		if len(new_values['numeric'])!=0:
-
 			r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(new_values['numeric']))
 
 		if len(new_values['heatmap']['features'])!=0:
@@ -1149,8 +1179,7 @@ class Handler(Thread):
 		geogrid_data = GEOGRIDDATA(geogrid_data)
 		geogrid_data.set_geogrid(self.get_GEOGRID())
 
-		if not geogrid_data.check_type_validity(quietly=False):
-			raise NameError('Type not found in table definition.')
+		geogrid_data.check_type_validity()
 
 		if not geogrid_data.check_id_validity():
 			geogrid_data.fill_missing_cells()
