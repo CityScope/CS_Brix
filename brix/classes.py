@@ -660,41 +660,82 @@ class Handler(Thread):
 			}
 		'''
 		I = self.indicators[indicator_name]
+		new_value_raw = I.return_indicator(geogrid_data)
 
 		if I.indicator_type in ['access','heatmap']:
-			new_value = I.return_indicator(geogrid_data)
-			new_value = self._format_geojson(new_value,indicator_name)
-			return [new_value]
+			return self._new_value_heatmap(new_value_raw,I,indicator_name)
+
 		elif I.indicator_type in ['numeric']:
-			new_value = I.return_indicator(geogrid_data)
-			if isinstance(new_value,list)|isinstance(new_value,tuple):
-				for i in range(len(new_value)):
-					val = new_value[i]
-					if not isinstance(val,dict):
-						try:
-							json.dumps(val)
-							new_value[i] = {'value':val}
-						except:
-							warn('Indicator return invalid type:'+str(indicator_name))
-					if ('indicator_type' not in val.keys())&(I.indicator_type is not None):
-						val['indicator_type'] = I.indicator_type
-					if ('viz_type' not in val.keys())&(I.viz_type is not None):
-						val['viz_type'] = I.viz_type
-				return list(new_value)
+			return self._new_value_numeric(new_value_raw,I,indicator_name)
+
+		elif I.indicator_type in ['hybrid']:
+			if   'access'  in new_value_raw.keys():
+				new_value_heatmap = new_value_raw['access']
+			elif 'heatmap' in new_value_raw.keys():
+				new_value_heatmap = new_value_raw['heatmap']
 			else:
-				if not isinstance(new_value,dict):
+				raise NameError('No heatmap value found for hybrid indicator:',indicator_name)
+			new_value_heatmap = self._new_value_heatmap(new_value_heatmap,I,indicator_name)
+
+			if 'numeric' in new_value_raw.keys():
+				new_value_numeric = new_value_raw['numeric']
+			else:
+				raise NameError('No numeric value found for hybrid indicator:',indicator_name)
+			new_value_numeric = self._new_value_numeric(new_value_numeric,I,indicator_name)
+
+			return {'numeric':new_value_numeric,'heatmap':new_value_heatmap}
+
+	def _new_value_heatmap(self,new_value,I,indicator_name):
+		'''
+		Handles multiple formats of a new_value for a heatmap indicator.
+		ONLY GEOJSON IS SUPPORTED AT THE MOMENT, BUT THIS WILL ALSO INCLUDE GEOPANDAS.GEODATAFRAME
+
+		Parameters
+		----------
+		new_value: object
+			Object returned by some subclass of :func:`brix.Indicator.return_indicator` when :attr:`brix.Indicator.indicator_type` is `heatmap` or `access`.
+		'''
+		new_value = self._format_geojson(new_value,indicator_name)
+		return [new_value]
+
+
+	def _new_value_numeric(self,new_value,I,indicator_name):
+		'''
+		Handles multiple formats of a new_value for a numeric indicator.
+
+		Parameters
+		----------
+		new_value: object
+			Object returned by some subclass of :func:`brix.Indicator.return_indicator` when :attr:`brix.Indicator.indicator_type` is `numeric`.
+		'''
+		if isinstance(new_value,list)|isinstance(new_value,tuple):
+			for i in range(len(new_value)):
+				val = new_value[i]
+				if not isinstance(val,dict):
 					try:
-						json.dumps(new_value)
-						new_value = {'value':new_value}
+						json.dumps(val)
+						new_value[i] = {'value':val}
 					except:
 						warn('Indicator return invalid type:'+str(indicator_name))
-				if ('name' not in new_value.keys()):
-					new_value['name'] = indicator_name
-				if ('indicator_type' not in new_value.keys())&(I.indicator_type is not None):
-					new_value['indicator_type'] = I.indicator_type
-				if ('viz_type' not in new_value.keys())&(I.viz_type is not None):
-					new_value['viz_type'] = I.viz_type
-				return [new_value]
+				if ('indicator_type' not in val.keys())&(I.indicator_type is not None):
+					val['indicator_type'] = I.indicator_type
+				if ('viz_type' not in val.keys())&(I.viz_type is not None):
+					val['viz_type'] = I.viz_type
+			return list(new_value)
+		else:
+			if not isinstance(new_value,dict):
+				try:
+					json.dumps(new_value)
+					new_value = {'value':new_value}
+				except:
+					warn('Indicator return invalid type:'+str(indicator_name))
+			if ('name' not in new_value.keys()):
+				new_value['name'] = indicator_name
+			if ('indicator_type' not in new_value.keys())&(I.indicator_type is not None):
+				new_value['indicator_type'] = I.indicator_type
+			if ('viz_type' not in new_value.keys())&(I.viz_type is not None):
+				new_value['viz_type'] = I.viz_type
+			return [new_value]
 
 	def get_GEOGRID_EDGES(self):
 		'''
@@ -755,7 +796,7 @@ class Handler(Thread):
 
 	def get_indicator_values(self,geogrid_data=None,include_composite=False):
 		'''
-		Returns the current values of numeric indicators. Used for developing a composite indicator.
+		Returns the current values of NUMERIC indicators. Used for developing a composite indicator.
 
 		Parameters
 		----------
@@ -770,10 +811,14 @@ class Handler(Thread):
 		if geogrid_data is None:
 			geogrid_data = self._get_grid_data()
 		new_values_numeric = []
+
 		for indicator_name in self.indicators:
 			I = self.indicators[indicator_name]
 			if (I.indicator_type not in ['access','heatmap'])&(not I.is_composite):
-				new_values_numeric += self._new_value(geogrid_data,indicator_name)
+				if I.indicator_type=='hybrid':
+					new_values_numeric += self._new_value(geogrid_data,indicator_name)['numeric']
+				else:
+					new_values_numeric += self._new_value(geogrid_data,indicator_name)
 		indicator_values = {i['name']:i['value'] for i in new_values_numeric}
 		if include_composite:
 			for indicator_name in self.indicators:
@@ -807,7 +852,11 @@ class Handler(Thread):
 		for indicator_name in self.indicators:
 			try:
 				I = self.indicators[indicator_name]
-				if I.indicator_type in ['access','heatmap']:
+				if I.indicator_type in ['hybrid']:
+					new_value_hybrid = self._new_value(geogrid_data,indicator_name)
+					new_values_heatmap += new_value_hybrid['heatmap']
+					new_values_numeric += new_value_hybrid['numeric']
+				elif I.indicator_type in ['access','heatmap']:
 					new_values_heatmap += self._new_value(geogrid_data,indicator_name)
 				elif not I.is_composite:
 					new_values_numeric += self._new_value(geogrid_data,indicator_name)
