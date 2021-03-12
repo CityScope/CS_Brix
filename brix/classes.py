@@ -1335,9 +1335,14 @@ class Indicator:
 			Value of indicator or list of values. When returning a dict, please use the format ``{'name': 'Indicator Name', 'value': indicator_value}``. When returning a list, please return a list of dictionaries in the same format. 
 		'''
 		if self.indicator_type=='hybrid':
-			out = {}
-			out['numeric'] = self.return_indicator_numeric(geogrid_data)
-			out['heatmap'] = self.return_indicator_heatmap(geogrid_data)
+			try:
+				out = {}
+				out['heatmap'] = self.return_indicator_heatmap(geogrid_data)
+				out['numeric'] = self.return_indicator_numeric(geogrid_data)
+			except:
+				out = {}
+				out['numeric'] = self.return_indicator_numeric(geogrid_data)
+				out['heatmap'] = self.return_indicator_heatmap(geogrid_data)
 			return out
 		else:
 			if self.return_indicator_user is not None:
