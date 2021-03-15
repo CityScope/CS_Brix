@@ -1153,19 +1153,25 @@ class Handler(Thread):
 		else:
 			self._listen(showFront=showFront)
 
-	def reset_geogrid_data(self):
+	def reset_geogrid_data(self,override_verification=True):
 		'''
 		Resets the GEOGRIDDATA endpoint to the initial value.
 		If the GEOGRIDDATA has not been updated, this will update it. 
+
+		Parameters
+		----------
+		override_verification: boolean, defaults to `True`
+			If True, it will ensure the object defined in GEOGRID/features is a valid GEOGRIDDATA object.
+			If False, it will post the object in GEOGRID/features to GEOGRIDDATa without any verification. 
 		'''
 		geogrid_data = []
 		for i,cell in enumerate(self.get_GEOGRID()['features']):
 			cell = cell['properties']
 			cell['id'] = i
 			geogrid_data.append(cell)
-		self.post_geogrid_data(geogrid_data)
+		self.post_geogrid_data(geogrid_data,override_verification=override_verification)
 
-	def post_geogrid_data(self,geogrid_data):
+	def post_geogrid_data(self,geogrid_data,override_verification=False):
 		'''
 		Posts the given geogrid_data object, ensuring that the object is valid.
 
@@ -1175,19 +1181,20 @@ class Handler(Thread):
 		----------
 		geogrid_data: dict
 			Dictionary corresponding to a valid :class:`brix.GEOGRIDDATA` object.
+		override_verification: boolean, defaults to `False`
+			If True, it will override the verification of the input as a valid object.
 		'''
-		geogrid_data = GEOGRIDDATA(geogrid_data)
-		geogrid_data.set_geogrid(self.get_GEOGRID())
-
-		geogrid_data.check_type_validity()
-
-		if not geogrid_data.check_id_validity():
-			geogrid_data.fill_missing_cells()
+		if not override_verification:
+			geogrid_data = GEOGRIDDATA(geogrid_data)
+			geogrid_data.set_geogrid(self.get_GEOGRID())
+			geogrid_data.check_type_validity()
 			if not geogrid_data.check_id_validity():
-				raise NameError('IDs do not match.')
+				geogrid_data.fill_missing_cells()
+				if not geogrid_data.check_id_validity():
+					raise NameError('IDs do not match.')
 
-		geogrid_data.remap_colors()
-		geogrid_data.remap_interactive()
+			geogrid_data.remap_colors()
+			geogrid_data.remap_interactive()
 
 		geogrid_data = list(geogrid_data)
 
