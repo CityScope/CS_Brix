@@ -174,8 +174,12 @@ class GEOGRIDDATA(list):
 		self.check_type_validity()
 		GEOGRID = self.GEOGRID
 		for cell in self:
+			if 'color' in cell.keys():
+				current_color = cell['color']
 			h = GEOGRID['properties']['types'][cell['name']]['color'].replace('#','')
 			color = list(int(h[i:i+2], 16) for i in (0, 2, 4))
+			if len(current_color)==4:
+				color.append(current_color[-1]) #used to handle user-defined transparencies
 			cell['color'] = color
 
 	def remap_interactive(self):
