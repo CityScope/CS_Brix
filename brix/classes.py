@@ -520,7 +520,7 @@ class Handler(Thread):
 			indicatorName = ('0000'+str(len(self.indicators)+1))[-4:]
 
 		if I.tableHandler is not None:
-			warn(f'Indicator {indicatorName} has a table linked to it. Remember you do not need to link_table when using the Handler class')
+			warn(f'Indicator {indicatorName} has a table linked to it. This functionality will be deprecated soon.')
 
 		if indicatorName in self.indicators.keys():
 			warn(f'Indicator {indicatorName} already exists and will be overwritten')
@@ -1343,6 +1343,7 @@ class Indicator:
 		table_name: str or :class:`brix.Handler`
 			Name of the table or Handler object.
 		'''
+		warn('Indicator.link_table will be deprecated soon. Please use Handler class.')
 		if (table_name is None) & (self.table_name is None):
 			raise NameError('Please provide a table_name to link')
 		if table_name is None:
@@ -1354,6 +1355,7 @@ class Indicator:
 
 	def get_table_properties(self):
 		'''Gets table properties from the linked table. See :func:`brix.Indicator.link_table` and :func:`brix.Handler.get_table_properties`.'''
+		warn('Indicator.get_table_properties will be deprecated soon. Please use Handler.get_geogrid_props()[\'header\'].')
 		if (self.tableHandler is None)& (self.table_name is None):
 			raise NameError('No table linked: use Indicator.link_table(table_name)')
 		elif (self.tableHandler is None)& (self.table_name is not None):
@@ -1378,6 +1380,7 @@ class Indicator:
 		geogrid_data : str or pandas.DataFrame
 			Data that will be passed to the :func:`brix.Indicator.return_indicator` function by the :class:`brix.Handler` when deployed.
 		'''
+		warn('Indicator.get_geogrid_data will be deprecated soon. Please use Handler.get_geogrid_data.')
 		include_geometries     = self.requires_geometry if include_geometries is None else include_geometries
 		with_properties        = self.requires_geogrid_props if with_properties is None else with_properties
 		
