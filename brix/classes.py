@@ -166,8 +166,8 @@ class GEOGRIDDATA(list):
 
 	def remap_colors(self):
 		'''
-		Forces the colors to match the define colors of the cell type. 
-		Requires that GEOGRIDDATA is set
+		Forces the colors to match the define colors of the cell type.
+		Requires that GEOGRIDDATA is set.
 		'''
 		if self.GEOGRID is None:
 			raise NameError('GEOGRIDDATA object does not have GEOGRID attribute.')
@@ -525,6 +525,7 @@ class Handler(Thread):
 		if indicatorName in self.indicators.keys():
 			warn(f'Indicator {indicatorName} already exists and will be overwritten')
 
+		I.table_name = self.table_name
 		self.indicators[indicatorName] = I
 		if test:
 			geogrid_data = self._get_grid_data()
