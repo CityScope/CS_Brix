@@ -21,7 +21,7 @@ except:
 
 setuptools.setup(
     name="cs-brix",
-    version="0.0.7",
+    version="0.0.8",
     license='GNU General Public License v3.0 only (GPL-3.0-only)',
     author="CityScience MIT",
     author_email="csadmin@media.mit.edu",
@@ -29,7 +29,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/CityScope/CS_Brix",
-    download_url = 'https://github.com/CityScope/CS_Brix/archive/v_0.0.7.tar.gz',
+    download_url = 'https://github.com/CityScope/CS_Brix/archive/v_0.0.8.tar.gz',
     packages=setuptools.find_packages(),
     install_requires=INSTALL_REQUIRES,
     classifiers=[
