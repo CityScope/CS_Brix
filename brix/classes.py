@@ -360,17 +360,18 @@ class Handler(Thread):
 
 		super(Handler, self).__init__()
 
-		
-		self.host = 'https://cityiotest.mirage.city' # 'https://cityio.media.mit.edu'
-		self.host = 'http://127.0.0.1:5000/' if host_mode=='local' else self.host
-		self.post_headers = {'Content-type': 'application/json'}
+		if host_mode=='local':
+			self.host = 'http://127.0.0.1:5000/'
+		else:
+			# self.host = 'https://cityio.media.mit.edu'
+			self.host = 'https://cityiotest.mirage.city'
+		self.table_name = table_name
+		self.quietly = quietly
 
 		self.sleep_time = 0.5
 		self.nAttempts = 5
 		self.append_on_post = False
 
-		self.table_name = table_name
-	
 		self.front_end_url   = f'https://cityscope.media.mit.edu/CS_cityscopeJS/?cityscope={self.table_name}'
 		self.cityIO_get_url  = urljoin(self.host,'api/table',self.table_name)
 		self.cityIO_post_url = urljoin(self.host,'api/table',self.table_name)
