@@ -1405,13 +1405,20 @@ class Indicator:
 		'''
 		if self.indicator_type=='hybrid':
 			try:
-				out = {}
-				out['heatmap'] = self.return_indicator_heatmap(geogrid_data)
-				out['numeric'] = self.return_indicator_numeric(geogrid_data)
+				heatmap = self.return_indicator_heatmap(geogrid_data)
+				numeric = self.return_indicator_numeric(geogrid_data)
+				textual = self.return_indicator_textual(geogrid_data)
 			except:
-				out = {}
-				out['numeric'] = self.return_indicator_numeric(geogrid_data)
-				out['heatmap'] = self.return_indicator_heatmap(geogrid_data)
+				numeric = self.return_indicator_numeric(geogrid_data)
+				heatmap = self.return_indicator_heatmap(geogrid_data)
+				textual = self.return_indicator_textual(geogrid_data)
+			out = {}
+			if heatmap is not None:
+				out['heatmap'] = heatmap
+			if numeric is not None:
+				out['numeric'] = numeric
+			if textual is not None:
+				out['textual'] = textual
 			return out
 		else:
 			if self.return_indicator_user is not None:
@@ -1423,9 +1430,15 @@ class Indicator:
 		'''
 		Placeholder for user to define.
 		'''
-		return []
+		return None
 
 	def return_indicator_heatmap(self,geogrid_data):
+		'''
+		Placeholder for user to define.
+		'''
+		return None
+
+	def return_indicator_textual(self,geogrid_data):
 		'''
 		Placeholder for user to define.
 		'''
