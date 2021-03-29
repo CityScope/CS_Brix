@@ -667,28 +667,63 @@ class Handler(Thread):
 		I = self.indicators[indicator_name]
 		new_value_raw = I.return_indicator(geogrid_data)
 
-		if I.indicator_type in ['access','heatmap']:
+		if I.indicator_type   in ['access','heatmap']:
 			return self._new_value_heatmap(new_value_raw,I,indicator_name)
 
 		elif I.indicator_type in ['numeric']:
 			return self._new_value_numeric(new_value_raw,I,indicator_name)
 
-		elif I.indicator_type in ['hybrid']:
-			if   'access'  in new_value_raw.keys():
-				new_value_heatmap = new_value_raw['access']
-			elif 'heatmap' in new_value_raw.keys():
-				new_value_heatmap = new_value_raw['heatmap']
-			else:
-				raise NameError('No heatmap value found for hybrid indicator:',indicator_name)
-			new_value_heatmap = self._new_value_heatmap(new_value_heatmap,I,indicator_name)
+		elif I.indicator_type in ['text','textual','annotation']:
+			return self._new_value_textual(new_value_raw,I,indicator_name)
 
+		elif I.indicator_type in ['hybrid']:
+			new_value_heatmap = None
+			for k in ['access','heatmap']:
+				if k in new_value_raw.keys():
+					new_value_heatmap = new_value_raw[k]
+					break
+			if new_value_heatmap is not None:
+				new_value_heatmap = self._new_value_heatmap(new_value_heatmap,I,indicator_name)
+
+			new_value_numeric = None
 			if 'numeric' in new_value_raw.keys():
 				new_value_numeric = new_value_raw['numeric']
-			else:
-				raise NameError('No numeric value found for hybrid indicator:',indicator_name)
-			new_value_numeric = self._new_value_numeric(new_value_numeric,I,indicator_name)
+			if new_value_numeric is not None:
+				new_value_numeric = self._new_value_numeric(new_value_numeric,I,indicator_name)
 
-			return {'numeric':new_value_numeric,'heatmap':new_value_heatmap}
+			new_value_textual = None
+			for k in ['textual','text','annotation']:
+				if k in new_value_raw.keys():
+					new_value_textual = new_value_raw[k]
+					break
+			if new_value_textual is not None:
+				new_value_textual = self._new_value_textual(new_value_textual,I,indicator_name)
+
+			out = {}
+			if new_value_numeric is not None:
+				out['numeric'] = new_value_numeric
+			if new_value_heatmap is not None:
+				out['heatmap'] = new_value_heatmap
+			if new_value_textual is not None:
+				out['textual'] = new_value_textual
+
+			if len(out)>0:
+				return out
+			else:
+				raise NameError(f'Hybrid indicator {I.indicator_type} returned empty values.')
+
+	def _new_value_textual(self,new_value,I,indicator_name):
+		'''
+		Checks if the provided textual indicator is a dict, and turns into a list of dicts.
+
+		Parameters
+		----------
+		new_value: object
+			Object returned by some subclass of :func:`brix.Indicator.return_indicator` when :attr:`brix.Indicator.indicator_type` is `heatmap` or `access`.
+		'''
+		if isinstance(new_value,dict):
+			new_value = [new_value]
+		return new_value
 
 	def _new_value_heatmap(self,new_value,I,indicator_name):
 		'''
@@ -855,21 +890,32 @@ class Handler(Thread):
 			geogrid_data = self._get_grid_data()
 		new_values_numeric = []
 		new_values_heatmap = []
+		new_values_textual = []
 
+		# Get values for non-composite indicators first
 		for indicator_name in self.indicators:
 			try:
 				I = self.indicators[indicator_name]
 				if I.indicator_type in ['hybrid']:
 					new_value_hybrid = self._new_value(geogrid_data,indicator_name)
-					new_values_heatmap += new_value_hybrid['heatmap']
-					new_values_numeric += new_value_hybrid['numeric']
+					if 'heatmap' in new_value_hybrid.keys():
+						new_values_heatmap += new_value_hybrid['heatmap']
+					if 'numeric' in new_value_hybrid.keys():
+						new_values_numeric += new_value_hybrid['numeric']
+					if 'textual' in new_value_hybrid.keys():
+						new_values_textual += new_value_hybrid['textual']
 				elif I.indicator_type in ['access','heatmap']:
 					new_values_heatmap += self._new_value(geogrid_data,indicator_name)
-				elif not I.is_composite:
+				elif I.indicator_type in ['text','textual','annotation']:
+					new_values_textual += self._new_value(geogrid_data,indicator_name)
+				elif (I.indicator_type in ['numeric'])&(not I.is_composite):
 					new_values_numeric += self._new_value(geogrid_data,indicator_name)
+				else:
+					raise NameError(f'Unrecognized indicator type {I.indicator_type} for {indicator_name}')
 			except:
 				warn('Indicator not working:'+str(indicator_name))
 
+		# Get values for composite indicators
 		for indicator_name in self.indicators:
 			I = self.indicators[indicator_name]
 			if (I.is_composite)&(I.indicator_type not in ['access','heatmap']):
@@ -896,7 +942,14 @@ class Handler(Thread):
 				new_values_heatmap = [current_access]+new_values_heatmap
 
 		new_values_heatmap = self._combine_heatmap_values(new_values_heatmap)
-		return {'numeric':new_values_numeric,'heatmap':new_values_heatmap}
+		out = {}
+		if len(new_values_numeric)>0:
+			out['numeric'] = new_values_numeric
+		if len(new_values_heatmap)>0:
+			out['heatmap'] = new_values_heatmap
+		if len(new_values_textual)>0:
+			out['textual'] = new_values_textual
+		return out
 		
 	def test_indicators(self):
 		'''Dry run over all indicators.'''
@@ -1097,10 +1150,14 @@ class Handler(Thread):
 		new_values = self.update_package(append=append)
 
 		if len(new_values['numeric'])!=0:
-			r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(new_values['numeric']))
+			r = requests.post(self.cityIO_post_url+'/indicators', data=json.dumps(new_values['numeric']))
 
 		if len(new_values['heatmap']['features'])!=0:
-			r = requests.post(self.cityIO_post_url+'/access', data = json.dumps(new_values['heatmap']))
+			r = requests.post(self.cityIO_post_url+'/access',     data=json.dumps(new_values['heatmap']))
+
+		if len(new_values['textual'])!=0:
+			r = requests.post(self.cityIO_post_url+'/textual',    data=json.dumps(new_values['textual']))
+
 		if not self.quietly:
 			print('Done with update')
 		self.grid_hash_id = grid_hash_id
