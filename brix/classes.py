@@ -1403,7 +1403,7 @@ class Indicator:
 		indicator_value : list, dict, or float
 			Value of indicator or list of values. When returning a dict, please use the format ``{'name': 'Indicator Name', 'value': indicator_value}``. When returning a list, please return a list of dictionaries in the same format. 
 		'''
-		if self.indicator_type=='hybrid':
+		if (self.return_indicator_user is None)&(self.indicator_type=='hybrid'):
 			try:
 				heatmap = self.return_indicator_heatmap(geogrid_data)
 				numeric = self.return_indicator_numeric(geogrid_data)
@@ -1420,11 +1420,10 @@ class Indicator:
 			if textual is not None:
 				out['textual'] = textual
 			return out
+		elif self.return_indicator_user is not None:
+			return self.return_indicator_user(geogrid_data)
 		else:
-			if self.return_indicator_user is not None:
-				return self.return_indicator_user(geogrid_data)
-			else:
-				return {}
+			return {}
 
 	def return_indicator_numeric(self,geogrid_data):
 		'''
