@@ -2,6 +2,9 @@
 import json
 import geopandas as gpd
 
+def urljoin(*args,trailing_slash=True):
+	trailing_slash_char = '/' if trailing_slash else ''
+	return "/".join(map(lambda x: str(x).strip('/'), args)) + trailing_slash_char
 
 def is_number(s):
 	'''
