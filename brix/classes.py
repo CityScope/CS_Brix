@@ -10,7 +10,7 @@ import hashlib
 from warnings import warn
 from time import sleep
 from collections import defaultdict
-from .helpers import is_number, get_buffer_size
+from .helpers import is_number, get_buffer_size, urljoin
 from threading import Thread
 from shapely.ops import unary_union
 from shapely.geometry import shape
@@ -363,7 +363,8 @@ class Handler(Thread):
 		if host_mode=='local':
 			self.host = 'http://127.0.0.1:5000/'
 		else:
-			self.host = 'https://cityio.media.mit.edu/'
+			# self.host = 'https://cityio.media.mit.edu'
+			self.host = 'https://cityiotest.mirage.city'
 		self.table_name = table_name
 		self.quietly = quietly
 
@@ -371,9 +372,10 @@ class Handler(Thread):
 		self.nAttempts = 5
 		self.append_on_post = False
 
-		self.front_end_url   = 'https://cityscope.media.mit.edu/CS_cityscopeJS/?cityscope='+self.table_name
-		self.cityIO_get_url  = self.host+'api/table/'+self.table_name
-		self.cityIO_post_url = self.host+'api/table/update/'+self.table_name
+		self.front_end_url   = f'https://cityscope.media.mit.edu/CS_cityscopeJS/?cityscope={self.table_name}'
+		self.cityIO_get_url  = urljoin(self.host,'api/table',self.table_name)
+		self.cityIO_post_url = urljoin(self.host,'api/table',self.table_name)
+
 		
 		self.GEOGRID_varname = GEOGRID_varname
 		self.GEOGRIDDATA_varname = GEOGRIDDATA_varname
@@ -453,11 +455,11 @@ class Handler(Thread):
 		if indicator_type in ['numeric']:
 			if not self.quietly:
 				print(self.cityIO_get_url+'/indicators')
-			r = self._get_url(self.cityIO_get_url+'/indicators')
+			r = self._get_url(urljoin(self.cityIO_get_url,'indicators'))
 		elif indicator_type in ['heatmap','access']:
 			if not self.quietly:
 				print(self.cityIO_get_url+'/access')
-			r = self._get_url(self.cityIO_get_url+'/access')
+			r = self._get_url(urljoin(self.cityIO_get_url,'access'))
 		else:
 			raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(indicator_type))
 		if r.status_code==200:
@@ -986,7 +988,7 @@ class Handler(Thread):
 		Retreives the GEOGRID hash from:
 		http://cityio.media.mit.edu/api/table/table_name/meta/hashes
 		'''
-		r = self._get_url(self.cityIO_get_url+'/meta/hashes')
+		r = self._get_url(urljoin(self.cityIO_get_url,'meta/hashes'))
 		if r.status_code==200:
 			hashes = r.json()
 			try:
@@ -1002,7 +1004,7 @@ class Handler(Thread):
 
 	def get_GEOGRID(self):
 		if self.GEOGRID is None:
-			r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRID_varname)
+			r = self._get_url(urljoin(self.cityIO_get_url,self.GEOGRID_varname))
 			if r.status_code==200:
 				geogrid = r.json()
 				try:
@@ -1056,7 +1058,7 @@ class Handler(Thread):
 		Returns the raw GEOGRIDDATA object.
 		This function should be treated as a low-level function, please use :func:`brix.Handler.get_geogrid_data` instead.
 		'''
-		r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRIDDATA_varname)
+		r = self._get_url(urljoin(self.cityIO_get_url,self.GEOGRIDDATA_varname))
 		if r.status_code==200:
 			geogrid_data = r.json()
 		else:
@@ -1150,13 +1152,11 @@ class Handler(Thread):
 		new_values = self.update_package(append=append)
 
 		if len(new_values['numeric'])!=0:
-			r = requests.post(self.cityIO_post_url+'/indicators', data=json.dumps(new_values['numeric']))
-
+			r = requests.post(urljoin(self.cityIO_post_url,'indicators'), data = json.dumps(new_values['numeric']))
 		if len(new_values['heatmap']['features'])!=0:
-			r = requests.post(self.cityIO_post_url+'/access',     data=json.dumps(new_values['heatmap']))
-
+			r = requests.post(urljoin(self.cityIO_post_url,'access'),     data = json.dumps(new_values['heatmap']))
 		if len(new_values['textual'])!=0:
-			r = requests.post(self.cityIO_post_url+'/textual',    data=json.dumps(new_values['textual']))
+			r = requests.post(urljoin(self.cityIO_post_url,'textual'),    data = json.dumps(new_values['textual']))
 
 		if not self.quietly:
 			print('Done with update')
@@ -1184,15 +1184,15 @@ class Handler(Thread):
 		''':class:`brix.Handler` keeps track of the previous value of the indicators and access values.This function rollsback the current values to whatever the locally stored values are.
 		See also :func:`brix.Handler.previous_indicators` and :func:`brix.Handler.previous_access`.
 		'''
-		r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(self.previous_indicators))
-		r = requests.post(self.cityIO_post_url+'/access', data = json.dumps(self.previous_access))
+		r = requests.post(urljoin(self.cityIO_post_url,'indicators'), data = json.dumps(self.previous_indicators))
+		r = requests.post(urljoin(self.cityIO_post_url,'access'),     data = json.dumps(self.previous_access))
 
 	def clear_table(self):
 		'''Clears all indicators from the table.'''
 		grid_hash_id = self.get_grid_hash()
 		empty_update = {'numeric': [],'heatmap': {'type': 'FeatureCollection', 'properties': [], 'features': []}}
-		r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(empty_update['numeric']))
-		r = requests.post(self.cityIO_post_url+'/access', data = json.dumps(empty_update['heatmap']))
+		r = requests.post(urljoin(self.cityIO_post_url,'indicators'), data = json.dumps(empty_update['numeric']))
+		r = requests.post(urljoin(self.cityIO_post_url,'access')    , data = json.dumps(empty_update['heatmap']))
 		if not self.quietly:
 			print('Cleared table')
 		self.grid_hash_id = grid_hash_id
@@ -1315,7 +1315,7 @@ class Handler(Thread):
 		ids = np.argsort(ids)
 		geogrid_data = [geogrid_data[i] for i in ids]
 
-		r = requests.post(self.cityIO_post_url+'/'+self.GEOGRIDDATA_varname, data=json.dumps(geogrid_data))
+		r = requests.post(urljoin(self.cityIO_post_url,self.GEOGRIDDATA_varname), data=json.dumps(geogrid_data))
 		self.grid_hash_id = self.get_grid_hash()
 		if not self.quietly:
 			print('GEOGRIDDATA successfully updated:',self.grid_hash_id)
