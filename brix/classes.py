@@ -362,8 +362,8 @@ class Handler(Thread):
 
 		super(Handler, self).__init__()
 
-		# self.host = 'https://cityio.media.mit.edu'
-		self.host = 'https://cityiotest.mirage.city'
+		
+		self.host = 'https://cityiotest.mirage.city' # 'https://cityio.media.mit.edu'
 		self.host = 'http://127.0.0.1:5000/' if host_mode=='local' else self.host
 		self.post_headers = {'Content-type': 'application/json'}
 
