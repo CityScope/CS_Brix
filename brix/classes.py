@@ -368,18 +368,17 @@ class Handler(Thread):
 
 		super(Handler, self).__init__()
 
-		if host_mode=='local':
-			self.host = 'http://127.0.0.1:5000/'
-		else:
-			# self.host = 'https://cityio.media.mit.edu'
-			self.host = 'https://cityiotest.mirage.city'
-		self.table_name = table_name
-		self.quietly = quietly
+		# self.host = 'https://cityio.media.mit.edu'
+		self.host = 'https://cityiotest.mirage.city'
+		self.host = 'http://127.0.0.1:5000/' if host_mode=='local' else self.host
+		self.post_headers = {'Content-type': 'application/json'}
 
 		self.sleep_time = 0.5
 		self.nAttempts = 5
 		self.append_on_post = False
 
+		self.table_name = table_name
+	
 		self.front_end_url   = f'https://cityscope.media.mit.edu/CS_cityscopeJS/?cityscope={self.table_name}'
 		self.cityIO_get_url  = urljoin(self.host,'api/table',self.table_name)
 		self.cityIO_post_url = urljoin(self.host,'api/table',self.table_name)
@@ -1187,11 +1186,13 @@ class Handler(Thread):
 
 		new_values = self.update_package(append=append)
 
-		if len(new_values['numeric'])!=0:
+		if ('numeric' in new_values.keys()) and (len(new_values['numeric'])!=0):
 			r = requests.post(urljoin(self.cityIO_post_url,'indicators'), data=json.dumps(new_values['numeric']), headers=self.post_headers)
-		if len(new_values['heatmap']['features'])!=0:
+
+		if ('heatmap' in new_values.keys()) and (len(new_values['heatmap']['features'])!=0):
 			r = requests.post(urljoin(self.cityIO_post_url,'access'),     data=json.dumps(new_values['heatmap']), headers=self.post_headers)
-		if len(new_values['textual'])!=0:
+
+		if ('textual' in new_values.keys()) and (len(new_values['textual'])!=0):
 			r = requests.post(urljoin(self.cityIO_post_url,'textual'),    data=json.dumps(new_values['textual']), headers=self.post_headers)
 
 		if not self.quietly:
