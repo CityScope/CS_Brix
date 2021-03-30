@@ -943,12 +943,9 @@ class Handler(Thread):
 
 		new_values_heatmap = self._combine_heatmap_values(new_values_heatmap)
 		out = {}
-		if len(new_values_numeric)>0:
-			out['numeric'] = new_values_numeric
-		if len(new_values_heatmap)>0:
-			out['heatmap'] = new_values_heatmap
-		if len(new_values_textual)>0:
-			out['textual'] = new_values_textual
+		out['numeric'] = new_values_numeric
+		out['heatmap'] = new_values_heatmap
+		out['textual'] = new_values_textual
 		return out
 		
 	def test_indicators(self):
@@ -1149,13 +1146,13 @@ class Handler(Thread):
 
 		new_values = self.update_package(append=append)
 
-		if len(new_values['numeric'])!=0:
+		if ('numeric' in new_values.keys()) and (len(new_values['numeric'])!=0):
 			r = requests.post(self.cityIO_post_url+'/indicators', data=json.dumps(new_values['numeric']))
 
-		if len(new_values['heatmap']['features'])!=0:
+		if ('heatmap' in new_values.keys()) and (len(new_values['heatmap']['features'])!=0):
 			r = requests.post(self.cityIO_post_url+'/access',     data=json.dumps(new_values['heatmap']))
 
-		if len(new_values['textual'])!=0:
+		if ('textual' in new_values.keys()) and (len(new_values['textual'])!=0):
 			r = requests.post(self.cityIO_post_url+'/textual',    data=json.dumps(new_values['textual']))
 
 		if not self.quietly:
