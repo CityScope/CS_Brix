@@ -34,7 +34,7 @@ class User(Handler):
 	To use, instantiate the class, and run User.start_user().
 	This will create a new thread with a user running. 
 	'''
-	def __init__(self,*args,sleep_time=5,**kwargs):
+	def __init__(self,*args,sleep_time=7,**kwargs):
 		super(User, self).__init__(*args,**kwargs)
 		self.sleep_time = sleep_time
 		self.types_set = list(self.get_GEOGRID()['properties']['types'].keys())
