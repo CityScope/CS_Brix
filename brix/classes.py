@@ -356,22 +356,22 @@ class Handler(Thread):
 	GEOGRIDDATA_endpoint = 'GEOGRIDDATA'
 	GEOGRID_endpoint     = 'GEOGRID'
 	cityio_post_headers  = {'Content-Type': 'application/json'}
-	_indicator_instances = set()
-
 	def __init__(self, table_name, 
-		GEOGRIDDATA_varname = 'GEOGRIDDATA', 
-		GEOGRID_varname = 'GEOGRID', 
-		quietly=True, 
-		host_mode ='remote', 
-		reference = None,
-		shell_mode = False
+			quietly=True, 
+			host_mode ='remote', 
+			host_name = None,
+			reference = None,
+			shell_mode = False
 		):
 
 		super(Handler, self).__init__()
 
-		self.host = 'https://cityiotest.mirage.city' # 'https://cityio.media.mit.edu'
+		if host_name is None:
+			self.host = self.remote_host
+		else:
+			self.host = host_name.strip('/')
 		self.host = 'http://127.0.0.1:5000/' if host_mode=='local' else self.host
-		self.post_headers = {'Content-Type': 'application/json'}
+		self.post_headers = self.cityio_post_headers
 
 		self.sleep_time = 0.5
 		self.nAttempts = 5
