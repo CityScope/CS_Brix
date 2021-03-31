@@ -1,4 +1,5 @@
 # Author: C. Jara-Figueroa
+# Last updated: March 31st, 2021
 # Unittest for new cityio API using requests and cs-brix
 # This test copies a table from cityio.media.mit.edu into cityiotest.mirage.city and runs tests on it
 # Deletes table afterwars
