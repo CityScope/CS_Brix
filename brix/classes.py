@@ -339,34 +339,39 @@ class Handler(Thread):
 	table_name : str
 		Table name to lisen to.
 		https://cityio.media.mit.edu/api/table/table_name
-	GEOGRIDDATA_varname : str, defaults to `GEOGRIDDATA`
-		Name of geogrid-data variable in the table API.
-		The object located at:
-		https://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA_varname
-		will be used as input for the return_indicator function in each indicator class.
-	GEOGRID_varname : str, defaults to `GEOGRID`
-		Name of variable with geometries.
 	quietly : boolean, defaults to `True`
 		If True, it will show the status of every API call.
+	host_mode : str, defaults to 'remote'
+		If 'local' it will use http://127.0.0.1:5000/ as host.
+	host_name : str, defaults to class remote_host
+		If passed, it will override the class host. 
+	
 	reference : dict, optional
 		Dictionary for reference values for each indicator.
+	shell_mode : Boolean, optional defaults to False
+		If True, it will not get the current hash when instantiating the class. Useful for testing. 
 	'''
-	remote_host = 'https://cityio.media.mit.edu'
+	remote_host = 'https://cityiotest.mirage.city' # 'https://cityio.media.mit.edu'
+	GEOGRIDDATA_endpoint = 'GEOGRIDDATA'
+	GEOGRID_endpoint     = 'GEOGRID'
+	cityio_post_headers  = {'Content-Type': 'application/json'}
 
 	def __init__(self, table_name, 
-		GEOGRIDDATA_varname = 'GEOGRIDDATA', 
-		GEOGRID_varname = 'GEOGRID', 
-		quietly=True, 
-		host_mode ='remote', 
-		reference = None,
-		shell_mode = False
+			quietly=True, 
+			host_mode ='remote', 
+			host_name = None,
+			reference = None,
+			shell_mode = False
 		):
 
 		super(Handler, self).__init__()
 
-		self.host = 'https://cityiotest.mirage.city' # 'https://cityio.media.mit.edu'
+		if host_name is None:
+			self.host = self.remote_host
+		else:
+			self.host = host_name.strip('/')
 		self.host = 'http://127.0.0.1:5000/' if host_mode=='local' else self.host
-		self.post_headers = {'Content-Type': 'application/json'}
+		self.post_headers = self.cityio_post_headers
 
 		self.sleep_time = 0.5
 		self.nAttempts = 5
@@ -379,8 +384,8 @@ class Handler(Thread):
 		self.cityIO_post_url = urljoin(self.host,'api/table',self.table_name)
 
 		
-		self.GEOGRID_varname = GEOGRID_varname
-		self.GEOGRIDDATA_varname = GEOGRIDDATA_varname
+		self.GEOGRID_varname = self.GEOGRID_endpoint
+		self.GEOGRIDDATA_varname = self.GEOGRIDDATA_endpoint
 		self.GEOGRID = None
 		self.GEOGRID_EDGES = None
 
