@@ -1,3 +1,8 @@
+# Author: C. Jara-Figueroa
+# Unittest for new cityio API using requests and cs-brix
+# This test copies a table from cityio.media.mit.edu into cityiotest.mirage.city and runs tests on it
+# Deletes table afterwars
+
 import unittest
 from brix.classes import Handler
 from brix.helpers import urljoin
@@ -87,7 +92,6 @@ class TestEndpoints(unittest.TestCase):
 			msg=f'test_deep_get_post Failed, test-table could not be posted: table_name={self.table_name}, status_code={r.status_code}, url={self.cityIO_post_url}'
 		)
 
-		print('Testing deep get and deep post')
 		for branch in self.table_data.keys():
 			url = urljoin(self.cityIO_get_url,branch)
 			r = requests.get(url)
