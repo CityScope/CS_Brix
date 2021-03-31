@@ -7,7 +7,12 @@ import json
 
 class TestEndpoints(unittest.TestCase):
 	def setUp(self):
-		# Pick a vaild table from cityio.media to test with
+		'''
+		Pick a random valid table from cityio.media to clone.
+		Valid tables have at least a GEOGRID endpoint and are not restricted access.
+		Uses the get and post urls from brix.Handler. This also tests brix's behavior. 
+
+		'''
 		r = requests.get('https://cityio.media.mit.edu/api/tables/list/')
 		table_list = r.json()
 		valid_table = False
@@ -32,23 +37,32 @@ class TestEndpoints(unittest.TestCase):
 
 
 	def tearDown(self):
+		'''
+		Delete the table that we tested with.
+		'''
 		print('Cleaning up')
 		print('Deleting:',self.table_name)
 		r = requests.delete(self.cityIO_get_url)
 
 	def test_create_table(self):
+		'''
+		Tests create table endpoint by posting the table_data.
+		'''
 		r = requests.post(self.cityIO_post_url, data=json.dumps(self.table_data), headers=self.post_headers)
 		self.assertEqual(
 			r.status_code,200,
-			msg=f"test_create_table Failed: table_name={self.table_name}, status_code={r.status_code}"
+			msg=f"test_create_table Failed: table_name={self.table_name}, status_code={r.status_code}, url={self.cityIO_post_url}, post_headers={self.post_headers}"
 		)
 
 	def test_get(self):
-		# Test get for entire table
+		'''
+		Test GET for entire table. 
+		As test methos run asynchronously, this method posts the table again and alerts when post failed.
+		'''
 		r = requests.post(self.cityIO_post_url, data=json.dumps(self.table_data), headers=self.post_headers)
 		self.assertEqual(
 			r.status_code,200,
-			msg=f'test_get Failed, table could not be posted: table_name={self.table_name}, status_code={r.status_code}'
+			msg=f'test_get Failed, test-table could not be posted: table_name={self.table_name}, status_code={r.status_code}, url={self.cityIO_post_url}'
 		)
 		r = requests.get(self.cityIO_get_url)
 		self.assertEqual(
@@ -61,11 +75,15 @@ class TestEndpoints(unittest.TestCase):
 		)
 
 	def test_deep_get_post(self):
-		# Test deep get and deep post
+		'''
+		Tests GET and POST from deeper endpoints, going through all available table_name/endpoint. 
+		Tests that meta is not writeable.
+		As test methos run asynchronously, this method posts the table again and alerts when post failed.
+		'''
 		r = requests.post(self.cityIO_post_url, data=json.dumps(self.table_data), headers=self.post_headers)
 		self.assertEqual(
 			r.status_code,200,
-			msg=f'test_deep_get_post Failed, table could not be posted: table_name={self.table_name}, status_code={r.status_code}'
+			msg=f'test_deep_get_post Failed, test-table could not be posted: table_name={self.table_name}, status_code={r.status_code}, url={self.cityIO_post_url}'
 		)
 
 		print('Testing deep get and deep post')
@@ -78,20 +96,29 @@ class TestEndpoints(unittest.TestCase):
 			)
 			if (r.status_code==200) and (r.headers['Content-Type']=='application/json'):
 				data = r.json()
-				r = requests.post(urljoin(self.cityIO_post_url,branch), data=json.dumps(data), headers=self.post_headers)
+				url = urljoin(self.cityIO_post_url,branch)
+				r = requests.post(url, data=json.dumps(data), headers=self.post_headers)
 				if branch!='meta':
 					self.assertEqual(
 						r.status_code,200,
-						msg=f'test_deep_get_post POST Failed: table_name={self.table_name}, branch={branch}, status_code={r.status_code}'
+						msg=f'test_deep_get_post POST Failed: table_name={self.table_name}, branch={branch}, status_code={r.status_code}, url={url}, post_headers={self.post_headers}'
 					)
 				else:
 					self.assertEqual(
 						r.status_code,406,
-						msg=f'test_deep_get_post POST Failed for meta branch: table_name={self.table_name}, branch={branch}, status_code={r.status_code}'
+						msg=f'test_deep_get_post POST Failed for meta branch: table_name={self.table_name}, branch={branch}, status_code={r.status_code}, url={url}, post_headers={self.post_headers}'
 					)
 
 	def table_delete(self):
-		# Test table deletion
+		'''
+		Tests whether the table can be deleted.
+		As test methos run asynchronously, this method posts the table again and alerts when post failed.
+		'''
+		r = requests.post(self.cityIO_post_url, data=json.dumps(self.table_data), headers=self.post_headers)
+		self.assertEqual(
+			r.status_code,200,
+			msg=f'table_delete Failed, test-table could not be posted: table_name={self.table_name}, status_code={r.status_code}, url={self.cityIO_post_url}, post_headers={self.post_headers}'
+		)
 		r = requests.delete(self.cityIO_get_url)
 		self.assertEqual(
 			r.status_code,200,
