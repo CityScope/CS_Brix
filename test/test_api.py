@@ -20,16 +20,21 @@ class TestEndpoints(unittest.TestCase):
 		Uses the get and post urls from brix.Handler. This also tests brix's behavior. 
 
 		'''
-		r = requests.get('https://cityio.media.mit.edu/api/tables/list/')
+		stable_host = 'cityio.media.mit.edu'
+
+		r = requests.get(f'https://{stable_host}/api/tables/list/')
 		table_list = r.json()
-		r = requests.get('https://cityiotest.mirage.city/api/tables/list/')
+
+		H = Handler('',shell_mode=True) # used to get the host from brix
+		r = requests.get(urljoin(H.host,'api/tables/list'))
+
 		table_list_mirage = r.json()
 		valid_table = False
 		while not valid_table:
 			raw_table_name = random.choice(table_list).strip('/').split('/')[-1]
 			table_name = f'{raw_table_name}_brix_table_for_unittest'
 			if table_name not in table_list_mirage:
-				r = requests.get(f'https://cityio.media.mit.edu/api/table/{raw_table_name}')
+				r = requests.get(f'https://{stable_host}/api/table/{raw_table_name}')
 				if (r.status_code==200) and (r.headers['Content-Type']=='application/json'):
 					table_data = r.json()
 					if (table_data!='access restricted') and ('GEOGRID' in table_data.keys()):
@@ -38,7 +43,7 @@ class TestEndpoints(unittest.TestCase):
 		self.table_data = table_data
 		self.table_name = table_name
 
-		H = Handler(self.table_name,shell_mode=True)
+		H = Handler(self.table_name,shell_mode=True) # used to get the GET and POST urls from brix
 		self.cityIO_post_url = H.cityIO_post_url
 		self.cityIO_get_url  = H.cityIO_get_url
 		self.post_headers    = H.post_headers
