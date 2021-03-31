@@ -359,11 +359,12 @@ class Handler(Thread):
 	_indicator_instances = set()
 
 	def __init__(self, table_name, 
-			quietly=True, 
-			host_mode ='remote', 
-			host_name = None,
-			reference = None,
-			shell_mode = False
+		GEOGRIDDATA_varname = 'GEOGRIDDATA', 
+		GEOGRID_varname = 'GEOGRID', 
+		quietly=True, 
+		host_mode ='remote', 
+		reference = None,
+		shell_mode = False
 		):
 
 		super(Handler, self).__init__()
