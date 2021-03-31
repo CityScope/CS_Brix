@@ -2,74 +2,78 @@ import unittest
 from brix.classes import Handler
 from brix.helpers import urljoin
 import requests
-import random
 import json
 
 class TestEndpoints(unittest.TestCase):
 
 	def setUp(self):
-		self.table_list   = ['dungeonmaster']
+		self.table_name = 'dungeonmaster'
 
-	def test_get(self):
-		for table_name in self.table_list:
-			H = Handler(table_name)
+		self.post_headers = Handler.cityio_post_headers
+		self.GEOGRID_varname = Handler.GEOGRID_endpoint
+		self.GEOGRIDDATA_varname = Handler.GEOGRIDDATA_endpoint
 
-			r = requests.get(H.cityIO_get_url)
-			self.assertEqual(r.status_code,200)
-			self.assertEqual(r.headers['Content-Type'],'application/json')
+		H = Handler(self.table_name)
+		self.cityIO_get_url = H.cityIO_get_url
+		self.cityIO_post_url = H.cityIO_post_url
 
-	def test_deep_get(self):
-		for table_name in self.table_list:
-			H = Handler(table_name)
+	def tearDown(self):
+		pass
 
-			r = requests.get(urljoin(H.cityIO_get_url,'indicators'))
-			self.assertEqual(r.status_code,200)
-			self.assertEqual(r.headers['Content-Type'],'application/json')
+	def test_get(self):	
+		r = requests.get(self.cityIO_get_url)
+		self.assertEqual(r.status_code,200)
+		self.assertEqual(r.headers['Content-Type'],'application/json')
 
-			# r = requests.get(urljoin(H.cityIO_get_url,'access'))
-			# self.assertEqual(r.status_code,200)
-			# self.assertEqual(r.headers['Content-Type'],'application/json')
+	def getpost_branch(self,branch,expected_get_exit_status=200,expected_post_exit_status=200):
+		r = requests.get(urljoin(self.cityIO_get_url,branch))
+		self.assertEqual(
+			r.status_code, expected_get_exit_status,
+			msg=f'GET Failed for {branch}, status_code={r.status_code}'
+		)
+		self.assertEqual(
+			r.headers['Content-Type'], 'application/json',
+			msg=f"GET Failed for {branch}, wrong Content-Type, Content-Type={r.headers['Content-Type']}"
+		)
+		if (r.status_code==expected_get_exit_status) and (r.headers['Content-Type']=='application/json'):
+			data = r.json()
+			r = requests.post(urljoin(self.cityIO_post_url,branch), data=json.dumps(data), headers=self.post_headers)
+			self.assertEqual(
+				r.status_code,expected_post_exit_status,
+				msg=f'POST Failed for {branch}, status_code={r.status_code}'
+			)
 
-			r = requests.get(urljoin(H.cityIO_get_url,H.GEOGRIDDATA_varname))
-			self.assertEqual(r.status_code,200)
-			self.assertEqual(r.headers['Content-Type'],'application/json')
+	def test_getpost_meta(self):
+		branch = 'meta'
+		self.getpost_branch(branch,expected_post_exit_status=406)
+		
+	def test_getpost_indicators(self):
+		branch = 'indicators'
+		self.getpost_branch(branch)
 
-			r = requests.get(urljoin(H.cityIO_get_url,H.GEOGRID_varname))
-			self.assertEqual(r.status_code,200)
-			self.assertEqual(r.headers['Content-Type'],'application/json')
+	def test_getpost_access(self):
+		branch = 'access'
+		self.getpost_branch(branch)
 
-			r = requests.get(urljoin(H.cityIO_get_url,H.GEOGRID_varname,'features'))
-			self.assertEqual(r.status_code,200)
-			self.assertEqual(r.headers['Content-Type'],'application/json')
+	def test_get_GEOGRIDDATA(self):
+		branch = self.GEOGRIDDATA_varname
+		self.getpost_branch(branch)
 
-			r = requests.get(urljoin(H.cityIO_get_url,H.GEOGRID_varname,'properties'))
-			self.assertEqual(r.status_code,200)
-			self.assertEqual(r.headers['Content-Type'],'application/json')
+	def test_get_GEOGRID(self):
+		branch = self.GEOGRID_varname
+		self.getpost_branch(branch)
+	
+	def test_get_GEOGRID_features(self):
+		branch = self.GEOGRID_varname+'/features'
+		self.getpost_branch(branch)
 
-			r = requests.get(urljoin(H.cityIO_get_url,H.GEOGRID_varname,'type'))
-			self.assertEqual(r.status_code,200)
-			self.assertEqual(r.headers['Content-Type'],'application/json')
+	def test_get_GEOGRID_properties(self):
+		branch = self.GEOGRID_varname+'/properties'
+		self.getpost_branch(branch)
 
-	def test_post(self):
-		for table_name in self.table_list:
-			H = Handler(table_name)
-
-			r = requests.get(H.cityIO_get_url)
-			if (r.status_code==200) and (r.headers['Content-Type']=='application/json'):
-				data = r.json()
-				r = requests.post(H.cityIO_post_url, data=json.dumps(r.json()), headers=H.post_headers)
-				self.assertEqual(r.status_code,200)
-
-	def test_deep_post(self):
-		for table_name in self.table_list:
-			H = Handler(table_name)
-
-			r = requests.get(urljoin(H.cityIO_get_url,H.GEOGRIDDATA_varname))
-			if (r.status_code==200) and (r.headers['Content-Type']=='application/json'):
-				data = r.json()
-				r = requests.post(urljoin(H.cityIO_post_url,H.GEOGRIDDATA_varname), data=json.dumps(r.json()), headers=H.post_headers)
-				self.assertEqual(r.status_code,200)
-
+	def test_get_GEOGRID_type(self):
+		branch = self.GEOGRID_varname+'/type'
+		self.getpost_branch(branch)
 
 if __name__ == '__main__':
 	unittest.main()
