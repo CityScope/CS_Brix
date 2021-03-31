@@ -12,6 +12,8 @@ import random
 import json
 
 class TestEndpoints(unittest.TestCase):
+	stable_host = 'cityio.media.mit.edu'
+	use_brix = True
 
 	def setUp(self):
 		'''
@@ -20,35 +22,42 @@ class TestEndpoints(unittest.TestCase):
 		Uses the get and post urls from brix.Handler. This also tests brix's behavior. 
 
 		'''
-		stable_host = 'cityio.media.mit.edu'
+		if self.use_brix: # Get parameters directly from brix
+			self.host = Handler.remote_host
+			self.post_headers = Handler.cityio_post_headers
+		else:
+			self.host = 'https://cityiotest.mirage.city' 
+			self.post_headers  = {'Content-Type': 'application/json'}
 
-		r = requests.get(f'https://{stable_host}/api/tables/list/')
+		r = requests.get(f'https://{self.stable_host}/api/tables/list/')
 		table_list = r.json()
 
-		H = Handler('',shell_mode=True) # used to get the host from brix
-		r = requests.get(urljoin(H.host,'api/tables/list'))
-
+		r = requests.get(urljoin(self.host,'api/tables/list'))
 		table_list_mirage = r.json()
+
 		valid_table = False
 		while not valid_table:
 			raw_table_name = random.choice(table_list).strip('/').split('/')[-1]
 			table_name = f'{raw_table_name}_brix_table_for_unittest'
 			if table_name not in table_list_mirage:
-				r = requests.get(f'https://{stable_host}/api/table/{raw_table_name}')
+				r = requests.get(f'https://{self.stable_host}/api/table/{raw_table_name}')
 				if (r.status_code==200) and (r.headers['Content-Type']=='application/json'):
 					table_data = r.json()
 					if (table_data!='access restricted') and ('GEOGRID' in table_data.keys()):
 						valid_table = True
-
 		self.table_data = table_data
 		self.table_name = table_name
 
-		H = Handler(self.table_name,shell_mode=True) # used to get the GET and POST urls from brix
-		self.cityIO_post_url = H.cityIO_post_url
-		self.cityIO_get_url  = H.cityIO_get_url
-		self.post_headers    = H.post_headers
+		
+		if self.use_brix: # retrieve GET and POST urls directly from brix
+			H = Handler(self.table_name,shell_mode=True) 
+			self.cityIO_post_url = H.cityIO_post_url
+			self.cityIO_get_url  = H.cityIO_get_url
+		else:
+			self.cityIO_get_url  = urljoin(self.host,'api/table',self.table_name)
+			self.cityIO_post_url = urljoin(self.host,'api/table',self.table_name)
 
-		print('Testing with table:',raw_table_name,'as',table_name)
+		print('Testing with table:',raw_table_name,'as',table_name,'in',self.host,f'brix={self.use_brix}')
 
 
 	def tearDown(self):
