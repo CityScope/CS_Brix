@@ -355,8 +355,10 @@ class Handler(Thread):
 		GEOGRIDDATA_varname = 'GEOGRIDDATA', 
 		GEOGRID_varname = 'GEOGRID', 
 		quietly=True, 
-		host_mode ='remote' , 
-		reference = None):
+		host_mode ='remote', 
+		reference = None,
+		shell_mode = False
+		):
 
 		super(Handler, self).__init__()
 
@@ -385,7 +387,8 @@ class Handler(Thread):
 		self.indicators = {}
 		self.update_geogrid_data_functions = []
 		self.grid_hash_id = None
-		self.grid_hash_id = self.get_grid_hash()
+		if not shell_mode:
+			self.grid_hash_id = self.get_grid_hash()
 
 		self.previous_indicators = None
 		self.previous_access = None
