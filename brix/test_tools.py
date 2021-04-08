@@ -1,6 +1,7 @@
 import random
 import threading
 import weakref
+import numpy as np
 from time import sleep
 from .classes import Handler
 
@@ -79,7 +80,7 @@ class User(Handler):
 		self.run_user = True
 		self.update_count = 0
 		while self.run_user:
-			sleep(self.sleep_time)
+			sleep(max([np.random.normal(self.sleep_time),0.5]))
 			r = random.random()
 			if r>0.99:
 				self.reset_geogrid_data()
