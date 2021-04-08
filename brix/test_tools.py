@@ -1,5 +1,6 @@
 import random
 import threading
+import weakref
 from time import sleep
 from .classes import Handler
 
@@ -25,7 +26,6 @@ def flip_random(geogrid_data,types_set=[]):
 			cell['name'] = new_type
 			break
 	return geogrid_data
-	
 
 class User(Handler):
 	'''
@@ -34,13 +34,26 @@ class User(Handler):
 	To use, instantiate the class, and run User.start_user().
 	This will create a new thread with a user running. 
 	'''
-	def __init__(self,*args,sleep_time=7,**kwargs):
+	_instances = set()
+	def __init__(self,*args,sleep_time=7,name=None,**kwargs):
 		super(User, self).__init__(*args,**kwargs)
 		self.sleep_time = sleep_time
 		self.types_set = list(self.get_GEOGRID()['properties']['types'].keys())
-		self.name = 'Simulated user'
+		self.name = ('Simulated user' if name is None else name)
 		self.run_user = True
 		self.update_count = 0
+		self._instances.add(weakref.ref(self))
+
+	@classmethod
+	def getinstances(cls):
+		dead = set()
+		for ref in cls._instances:
+			obj = ref()
+			if obj is not None:
+				yield obj
+			else:
+				dead.add(ref)
+		cls._instances -= dead
 
 	def run(self):
 		'''
@@ -82,14 +95,77 @@ class User(Handler):
 	def stop_user(self):
 		self.run_user = False
 
+	def is_running(self):
+		if self.name in [thread.name for thread in threading.enumerate()]:
+			return True
+		else:
+			return False
+
 	def user_status(self):
-		running_users = [thread.name for thread in threading.enumerate() if thread.name==self.name]
-		if len(running_users)>0:
-			print('1 Running user')
+		running_threads = [thread.name for thread in threading.enumerate()]
+		if self.name in running_threads>0:
+			print('Running user')
 			print('Total updates:',self.update_count)
 			print('To stop, run: U.stop_user()')
 		else:
 			print('No running users')
 			print('To start, run: U.start_user()')
+
+
+def spin_users(table_name,n_users,sleep_time=7):
+	'''
+	Creates and starts multiple users for testing.
+
+	Parameters
+	----------
+	table_name: str
+		Table to link users to.
+	n_users: int
+		Number of users to generate.
+	'''
+	user_objects = []
+	for i in range(n_users):
+		U = User(table_name, name=f'Simulated user {i}', sleep_time=sleep_time)
+		U.start_user()
+		user_objects.append(U)
+	return user_objects
+
+def stop_users():
+	'''
+	Stops all running users.
+	'''
+	for u in User.getinstances():
+		u.stop_user()
+
+def start_users():
+	'''
+	Starts all stopped users.
+	'''
+	for u in User.getinstances():
+		if not u.is_running():
+			u.start_user()
+
+def list_users(verbose=False):
+	'''
+	Lists all users and their status.
+	'''
+	n_running_users = 0
+	n_users = 0
+	update_count = 0
+	for u in User.getinstances():
+		n_users+=1
+		if u.is_running():
+			n_running_users+=1
+			update_count+=u.update_count
+	print(f'{n_users} User instances')
+	print(f'{n_running_users} Running users')
+	print('Total updates:',update_count)
+	if verbose:
+		for u in User.getinstances():
+			if u.is_running():
+				print(f'\t{u.name} Running')
+				print(f'\tTotal updates:',u.update_count)
+			else:
+				print(f'\t{u.name} stopped')
 
 
