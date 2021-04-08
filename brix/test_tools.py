@@ -158,15 +158,8 @@ class User(Handler):
 	def stop_user(self):
 		self.run_user = False
 
-	def is_running(self):
-		if self.name in [thread.name for thread in threading.enumerate()]:
-			return True
-		else:
-			return False
-
 	def user_status(self):
-		running_threads = [thread.name for thread in threading.enumerate()]
-		if self.name in running_threads:
+		if self.is_alive():
 			print('Running user')
 			print('Total updates:',self.update_count)
 			print('Total failed updates:',self.fail_count)
@@ -305,7 +298,7 @@ def start_users():
 	Starts all stopped users.
 	'''
 	for u in User.getinstances():
-		if not u.is_running():
+		if not u.is_alive():
 			u.start_user()
 
 def list_users(verbose=False):
@@ -318,7 +311,7 @@ def list_users(verbose=False):
 	fail_count = 0
 	for u in User.getinstances():
 		n_users+=1
-		if u.is_running():
+		if u.is_alive():
 			n_running_users+=1
 			update_count+=u.update_count
 			fail_count+=u.fail_count
@@ -329,7 +322,7 @@ def list_users(verbose=False):
 
 	if verbose:
 		for u in User.getinstances():
-			if u.is_running():
+			if u.is_alive():
 				print(f'\t{u.name} Running')
 				print(f'\tTotal updates:',u.update_count)
 				print(f'\tTotal failed updates:',u.update_count)
