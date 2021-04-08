@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import hashlib
+import weakref
 from warnings import warn
 from time import sleep
 from collections import defaultdict
@@ -355,6 +356,7 @@ class Handler(Thread):
 	GEOGRIDDATA_endpoint = 'GEOGRIDDATA'
 	GEOGRID_endpoint     = 'GEOGRID'
 	cityio_post_headers  = {'Content-Type': 'application/json'}
+	_indicator_instances = set()
 
 	def __init__(self, table_name, 
 			quietly=True, 
@@ -487,6 +489,35 @@ class Handler(Thread):
 			List of indicator names.
 		'''
 		return [name for name in self.indicators]
+
+	@classmethod
+	def list_all_indicator_instances(cls):
+		'''
+		Returns the instance of every indicator instance.
+		'''
+		dead = set()
+		for ref in cls._indicator_instances:
+			obj = ref()
+			if obj is not None:
+				yield obj
+			else:
+				dead.add(ref)
+		cls._indicator_instances -= dead
+
+	def list_unlinked_indicators(self):
+		'''
+		Returns the names of all the unlinked indicators.
+
+		Returns
+		-------
+		indicators_names : list
+			List of indicator names.
+		'''
+		unlinked_indicators = []
+		for obj in self.list_all_indicator_instances():
+			if obj.name not in self.list_indicators():
+				unlinked_indicators.append(obj.name)
+		return unlinked_indicators
 
 	def indicator(self,name):
 		'''Returns the :class:`brix.Indicator` with the given name.
@@ -1270,6 +1301,11 @@ class Handler(Thread):
 			If `True` it will append the new indicators to whatever is already there.
 			This option will be deprecated soon. We recommend not using it unless strictly necessary.
 		'''
+
+		unlinked_indicators = self.list_unlinked_indicators()
+		if len(unlinked_indicators)>0:
+			unlinked_indicators = ', '.join(unlinked_indicators)
+			warn(f'You have unlinked indicators: {unlinked_indicators}')
 		self.append_on_post = append
 		if new_thread:
 			self.start()
@@ -1393,7 +1429,7 @@ class Indicator:
 				self.requires_geometry = False
 
 		self.return_indicator_user = None
-
+		Handler._indicator_instances.add(weakref.ref(self))
 
 	def setup(self):
 		'''User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an `__init__` method.'''
