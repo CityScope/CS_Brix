@@ -837,8 +837,8 @@ class Handler(Thread):
 			except:
 				geos = pd.DataFrame([(i,cell['geometry']) for i,cell in enumerate(self.get_GEOGRID()['features'])],columns=['id','geometry'])
 			geos = gpd.GeoDataFrame(geos.drop('geometry',1),geometry=geos['geometry'].apply(lambda x: shape(x))) # no crs to avoid warning
-			geos['lon'] = round(geos.geometry.centroid.x,5)
-			geos['lat'] = round(geos.geometry.centroid.y,5)
+			geos['lon'] = round(geos.geometry.centroid.x,4)
+			geos['lat'] = round(geos.geometry.centroid.y,4)
 
 			edge_list = []
 			for xlabel,ylabel in [('lon','lat'),('lat','lon')]:
