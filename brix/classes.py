@@ -356,6 +356,8 @@ class Handler(Thread):
 	GEOGRIDDATA_endpoint = 'GEOGRIDDATA'
 	GEOGRID_endpoint     = 'GEOGRID'
 	cityio_post_headers  = {'Content-Type': 'application/json'}
+	_indicator_instances = set()
+
 	def __init__(self, table_name, 
 			quietly=True, 
 			host_mode ='remote', 
