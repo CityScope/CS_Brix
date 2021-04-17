@@ -385,9 +385,15 @@ class Handler(Thread):
 		self.cityIO_get_url  = urljoin(self.host,'api/table',self.table_name)
 		self.cityIO_post_url = urljoin(self.host,'api/table',self.table_name)
 
-		
 		self.GEOGRID_varname = self.GEOGRID_endpoint
 		self.GEOGRIDDATA_varname = self.GEOGRIDDATA_endpoint
+
+		self.cityIO_GEOGRID_get_url  = urljoin(self.cityIO_get_url,  self.GEOGRID_varname)
+		self.cityIO_GEOGRID_post_url = urljoin(self.cityIO_post_url, self.GEOGRID_varname)
+
+		self.cityIO_GEOGRIDDATA_get_url  = urljoin(self.cityIO_get_url,  self.GEOGRIDDATA_varname)
+		self.cityIO_GEOGRIDDATA_post_url = urljoin(self.cityIO_post_url, self.GEOGRIDDATA_varname)
+
 		self.GEOGRID = None
 		self.GEOGRID_EDGES = None
 
