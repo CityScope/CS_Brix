@@ -363,7 +363,7 @@ class Handler(Thread):
 		if host_mode=='local':
 			self.host = 'http://127.0.0.1:5000/'
 		else:
-			self.host = 'https://cityio.media.mit.edu/'
+			self.host = 'http://cityio.media.mit.edu/'
 		self.table_name = table_name
 		self.quietly = quietly
 
