@@ -11,12 +11,31 @@ Checks if table exists.
 
 * **Parameters**
 
-    **table_name** (*str*) – Name of table to check.
+    
+    * **table_name** (*str*) – Name of table to check.
+
+
+    * **Returns** – 
+
+
+    * **is_table** (*boolean*) – True if table exists.
 
 
 
 ### brix.list_tables()
 Returns a list of table names for all all tables.
+
+
+* **Returns**
+
+    **table_list** – List of table names (strings).
+
+
+
+* **Return type**
+
+    list
+
 
 ## Wrapper functions
 
