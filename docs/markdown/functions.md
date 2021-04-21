@@ -1,5 +1,23 @@
 # Functions
 
+## Helper functions
+
+These functions are used for quickly checking properties of a table or the server.
+
+
+### brix.is_table(table_name)
+Checks if table exists.
+
+
+* **Parameters**
+
+    **table_name** (*str*) – Name of table to check.
+
+
+
+### brix.list_tables()
+Returns a list of table names for all all tables.
+
 ## Wrapper functions
 
 These functions work as shortcuts to build indicators.

@@ -1,6 +1,16 @@
 Functions
 =========
 
+Helper functions
+----------------
+
+These functions are used for quickly checking properties of a table or the server.
+
+.. autofunction:: brix.is_table
+
+.. autofunction:: brix.list_tables
+
+
 Wrapper functions
 -----------------
 
