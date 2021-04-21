@@ -19,6 +19,29 @@ from geopandas.tools import sjoin
 from shapely.geometry import Point
 
 
+def is_table(table_name):
+	'''
+	Checks if table exists.
+
+	Parameters
+	----------
+	table_name : str
+		Name of table to check.
+	'''
+	table_list = list_tables()
+	return (table_name in table_list)
+
+def list_tables():
+	'''
+	Returns a list of table names for all all tables.
+	'''
+	table_list_url = Handler.remote_host.strip('/')+'/api/tables/list/'
+	r = requests.get(table_list_url)
+	if r.status_code!=200:
+		raise NameError(f'Unable to retrieve list of tables: status code ={r.status_code}')
+	else:
+		return [t.strip('/').split('/')[-1] for t in r.json()]
+
 def OSM_infer_geogrid_data(H,amenity_tag_categories=None):
 	'''
 	Infers the cell type based on the OSM tags classified into categories in amenity_tag_categories.

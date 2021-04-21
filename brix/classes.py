@@ -166,16 +166,20 @@ class GEOGRIDDATA(list):
 
 	def remap_colors(self):
 		'''
-		Forces the colors to match the define colors of the cell type. 
-		Requires that GEOGRIDDATA is set
+		Forces the colors to match the define colors of the cell type.
+		Requires that GEOGRIDDATA is set.
 		'''
 		if self.GEOGRID is None:
 			raise NameError('GEOGRIDDATA object does not have GEOGRID attribute.')
 		self.check_type_validity()
 		GEOGRID = self.GEOGRID
 		for cell in self:
+			if 'color' in cell.keys():
+				current_color = cell['color']
 			h = GEOGRID['properties']['types'][cell['name']]['color'].replace('#','')
 			color = list(int(h[i:i+2], 16) for i in (0, 2, 4))
+			if len(current_color)==4:
+				color.append(current_color[-1]) #used to handle user-defined transparencies
 			cell['color'] = color
 
 	def remap_interactive(self):
@@ -347,6 +351,8 @@ class Handler(Thread):
 	reference : dict, optional
 		Dictionary for reference values for each indicator.
 	'''
+	remote_host = 'https://cityio.media.mit.edu'
+
 	def __init__(self, table_name, 
 		GEOGRIDDATA_varname = 'GEOGRIDDATA', 
 		GEOGRID_varname = 'GEOGRID', 
@@ -356,10 +362,12 @@ class Handler(Thread):
 
 		super(Handler, self).__init__()
 
-		if host_mode=='local':
-			self.host = 'http://127.0.0.1:5000/'
+		if host_name is None:
+			self.host = self.remote_host
 		else:
-			self.host = 'https://cityio.media.mit.edu/'
+			self.host = host_name.strip('/')
+		self.host = 'http://127.0.0.1:5000/' if host_mode=='local' else self.host
+		
 		self.table_name = table_name
 		self.quietly = quietly
 
@@ -516,15 +524,16 @@ class Handler(Thread):
 			indicatorName = ('0000'+str(len(self.indicators)+1))[-4:]
 
 		if I.tableHandler is not None:
-			warn(f'Indicator {indicatorName} has a table linked to it. Remember you do not need to link_table when using the Handler class')
+			warn(f'Indicator {indicatorName} has a table linked to it. This functionality will be deprecated soon.')
 
 		if indicatorName in self.indicators.keys():
 			warn(f'Indicator {indicatorName} already exists and will be overwritten')
 
+		I.table_name = self.table_name
 		self.indicators[indicatorName] = I
 		if test:
 			geogrid_data = self._get_grid_data()
-			if I.indicator_type not in set(['numeric','heatmap','access']):
+			if I.indicator_type not in set(['numeric','heatmap','access','hybrid']):
 				raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(I.indicator_type))
 			try:
 				if I.is_composite:
@@ -660,41 +669,119 @@ class Handler(Thread):
 			}
 		'''
 		I = self.indicators[indicator_name]
+		new_value_raw = I.return_indicator(geogrid_data)
 
-		if I.indicator_type in ['access','heatmap']:
-			new_value = I.return_indicator(geogrid_data)
-			new_value = self._format_geojson(new_value,indicator_name)
-			return [new_value]
+		if I.indicator_type   in ['access','heatmap']:
+			return self._new_value_heatmap(new_value_raw,I,indicator_name)
+
 		elif I.indicator_type in ['numeric']:
-			new_value = I.return_indicator(geogrid_data)
-			if isinstance(new_value,list)|isinstance(new_value,tuple):
-				for i in range(len(new_value)):
-					val = new_value[i]
-					if not isinstance(val,dict):
-						try:
-							json.dumps(val)
-							new_value[i] = {'value':val}
-						except:
-							warn('Indicator return invalid type:'+str(indicator_name))
-					if ('indicator_type' not in val.keys())&(I.indicator_type is not None):
-						val['indicator_type'] = I.indicator_type
-					if ('viz_type' not in val.keys())&(I.viz_type is not None):
-						val['viz_type'] = I.viz_type
-				return list(new_value)
+			return self._new_value_numeric(new_value_raw,I,indicator_name)
+
+		elif I.indicator_type in ['text','textual','annotation']:
+			return self._new_value_textual(new_value_raw,I,indicator_name)
+
+		elif I.indicator_type in ['hybrid']:
+			new_value_heatmap = None
+			for k in ['access','heatmap']:
+				if k in new_value_raw.keys():
+					new_value_heatmap = new_value_raw[k]
+					break
+			if new_value_heatmap is not None:
+				new_value_heatmap = self._new_value_heatmap(new_value_heatmap,I,indicator_name)
+
+			new_value_numeric = None
+			if 'numeric' in new_value_raw.keys():
+				new_value_numeric = new_value_raw['numeric']
+			if new_value_numeric is not None:
+				new_value_numeric = self._new_value_numeric(new_value_numeric,I,indicator_name)
+
+			new_value_textual = None
+			for k in ['textual','text','annotation']:
+				if k in new_value_raw.keys():
+					new_value_textual = new_value_raw[k]
+					break
+			if new_value_textual is not None:
+				new_value_textual = self._new_value_textual(new_value_textual,I,indicator_name)
+
+			out = {}
+			if new_value_numeric is not None:
+				out['numeric'] = new_value_numeric
+			if new_value_heatmap is not None:
+				out['heatmap'] = new_value_heatmap
+			if new_value_textual is not None:
+				out['textual'] = new_value_textual
+
+			if len(out)>0:
+				return out
 			else:
-				if not isinstance(new_value,dict):
+				raise NameError(f'Hybrid indicator {I.indicator_type} returned empty values.')
+
+	def _new_value_textual(self,new_value,I,indicator_name):
+		'''
+		Checks if the provided textual indicator is a dict, and turns into a list of dicts.
+
+		Parameters
+		----------
+		new_value: object
+			Object returned by some subclass of :func:`brix.Indicator.return_indicator` when :attr:`brix.Indicator.indicator_type` is `heatmap` or `access`.
+		'''
+		if isinstance(new_value,dict):
+			new_value = [new_value]
+		return new_value
+
+	def _new_value_heatmap(self,new_value,I,indicator_name):
+		'''
+		Handles multiple formats of a new_value for a heatmap indicator.
+		GEOPANDAS.GEODATAFRAME IS ALSO SUPPORTED BUT HAS NOT BEEN TESTED
+
+		Parameters
+		----------
+		new_value: object
+			Object returned by some subclass of :func:`brix.Indicator.return_indicator` when :attr:`brix.Indicator.indicator_type` is `heatmap` or `access`.
+		'''
+		if isinstance(new_value, gpd.GeoDataFrame):
+			new_value = json.loads(new_value.to_json())
+		new_value = self._format_geojson(new_value,indicator_name)
+		return [new_value]
+
+
+	def _new_value_numeric(self,new_value,I,indicator_name):
+		'''
+		Handles multiple formats of a new_value for a numeric indicator.
+
+		Parameters
+		----------
+		new_value: object
+			Object returned by some subclass of :func:`brix.Indicator.return_indicator` when :attr:`brix.Indicator.indicator_type` is `numeric`.
+		'''
+		if isinstance(new_value,list)|isinstance(new_value,tuple):
+			for i in range(len(new_value)):
+				val = new_value[i]
+				if not isinstance(val,dict):
 					try:
-						json.dumps(new_value)
-						new_value = {'value':new_value}
+						json.dumps(val)
+						new_value[i] = {'value':val}
 					except:
 						warn('Indicator return invalid type:'+str(indicator_name))
-				if ('name' not in new_value.keys()):
-					new_value['name'] = indicator_name
-				if ('indicator_type' not in new_value.keys())&(I.indicator_type is not None):
-					new_value['indicator_type'] = I.indicator_type
-				if ('viz_type' not in new_value.keys())&(I.viz_type is not None):
-					new_value['viz_type'] = I.viz_type
-				return [new_value]
+				if ('indicator_type' not in val.keys())&(I.indicator_type is not None):
+					val['indicator_type'] = I.indicator_type
+				if ('viz_type' not in val.keys())&(I.viz_type is not None):
+					val['viz_type'] = I.viz_type
+			return list(new_value)
+		else:
+			if not isinstance(new_value,dict):
+				try:
+					json.dumps(new_value)
+					new_value = {'value':new_value}
+				except:
+					warn('Indicator return invalid type:'+str(indicator_name))
+			if ('name' not in new_value.keys()):
+				new_value['name'] = indicator_name
+			if ('indicator_type' not in new_value.keys())&(I.indicator_type is not None):
+				new_value['indicator_type'] = I.indicator_type
+			if ('viz_type' not in new_value.keys())&(I.viz_type is not None):
+				new_value['viz_type'] = I.viz_type
+			return [new_value]
 
 	def get_GEOGRID_EDGES(self):
 		'''
@@ -755,7 +842,7 @@ class Handler(Thread):
 
 	def get_indicator_values(self,geogrid_data=None,include_composite=False):
 		'''
-		Returns the current values of numeric indicators. Used for developing a composite indicator.
+		Returns the current values of NUMERIC indicators. Used for developing a composite indicator.
 
 		Parameters
 		----------
@@ -770,10 +857,14 @@ class Handler(Thread):
 		if geogrid_data is None:
 			geogrid_data = self._get_grid_data()
 		new_values_numeric = []
+
 		for indicator_name in self.indicators:
 			I = self.indicators[indicator_name]
 			if (I.indicator_type not in ['access','heatmap'])&(not I.is_composite):
-				new_values_numeric += self._new_value(geogrid_data,indicator_name)
+				if I.indicator_type=='hybrid':
+					new_values_numeric += self._new_value(geogrid_data,indicator_name)['numeric']
+				else:
+					new_values_numeric += self._new_value(geogrid_data,indicator_name)
 		indicator_values = {i['name']:i['value'] for i in new_values_numeric}
 		if include_composite:
 			for indicator_name in self.indicators:
@@ -803,17 +894,32 @@ class Handler(Thread):
 			geogrid_data = self._get_grid_data()
 		new_values_numeric = []
 		new_values_heatmap = []
+		new_values_textual = []
 
+		# Get values for non-composite indicators first
 		for indicator_name in self.indicators:
 			try:
 				I = self.indicators[indicator_name]
-				if I.indicator_type in ['access','heatmap']:
+				if I.indicator_type in ['hybrid']:
+					new_value_hybrid = self._new_value(geogrid_data,indicator_name)
+					if 'heatmap' in new_value_hybrid.keys():
+						new_values_heatmap += new_value_hybrid['heatmap']
+					if 'numeric' in new_value_hybrid.keys():
+						new_values_numeric += new_value_hybrid['numeric']
+					if 'textual' in new_value_hybrid.keys():
+						new_values_textual += new_value_hybrid['textual']
+				elif I.indicator_type in ['access','heatmap']:
 					new_values_heatmap += self._new_value(geogrid_data,indicator_name)
-				elif not I.is_composite:
+				elif I.indicator_type in ['text','textual','annotation']:
+					new_values_textual += self._new_value(geogrid_data,indicator_name)
+				elif (I.indicator_type in ['numeric'])&(not I.is_composite):
 					new_values_numeric += self._new_value(geogrid_data,indicator_name)
+				else:
+					raise NameError(f'Unrecognized indicator type {I.indicator_type} for {indicator_name}')
 			except:
 				warn('Indicator not working:'+str(indicator_name))
 
+		# Get values for composite indicators
 		for indicator_name in self.indicators:
 			I = self.indicators[indicator_name]
 			if (I.is_composite)&(I.indicator_type not in ['access','heatmap']):
@@ -840,7 +946,11 @@ class Handler(Thread):
 				new_values_heatmap = [current_access]+new_values_heatmap
 
 		new_values_heatmap = self._combine_heatmap_values(new_values_heatmap)
-		return {'numeric':new_values_numeric,'heatmap':new_values_heatmap}
+		out = {}
+		out['numeric'] = new_values_numeric
+		out['heatmap'] = new_values_heatmap
+		out['textual'] = new_values_textual
+		return out
 		
 	def test_indicators(self):
 		'''Dry run over all indicators.'''
@@ -1040,11 +1150,15 @@ class Handler(Thread):
 
 		new_values = self.update_package(append=append)
 
-		if len(new_values['numeric'])!=0:
-			r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(new_values['numeric']))
+		if ('numeric' in new_values.keys()) and (len(new_values['numeric'])!=0):
+			r = requests.post(self.cityIO_post_url+'/indicators', data=json.dumps(new_values['numeric']))
 
-		if len(new_values['heatmap']['features'])!=0:
-			r = requests.post(self.cityIO_post_url+'/access', data = json.dumps(new_values['heatmap']))
+		if ('heatmap' in new_values.keys()) and (len(new_values['heatmap']['features'])!=0):
+			r = requests.post(self.cityIO_post_url+'/access',     data=json.dumps(new_values['heatmap']))
+
+		if ('textual' in new_values.keys()) and (len(new_values['textual'])!=0):
+			r = requests.post(self.cityIO_post_url+'/textual',    data=json.dumps(new_values['textual']))
+
 		if not self.quietly:
 			print('Done with update')
 		self.grid_hash_id = grid_hash_id
@@ -1153,19 +1267,25 @@ class Handler(Thread):
 		else:
 			self._listen(showFront=showFront)
 
-	def reset_geogrid_data(self):
+	def reset_geogrid_data(self,override_verification=True):
 		'''
 		Resets the GEOGRIDDATA endpoint to the initial value.
 		If the GEOGRIDDATA has not been updated, this will update it. 
+
+		Parameters
+		----------
+		override_verification: boolean, defaults to `True`
+			If True, it will ensure the object defined in GEOGRID/features is a valid GEOGRIDDATA object.
+			If False, it will post the object in GEOGRID/features to GEOGRIDDATa without any verification. 
 		'''
 		geogrid_data = []
 		for i,cell in enumerate(self.get_GEOGRID()['features']):
 			cell = cell['properties']
 			cell['id'] = i
 			geogrid_data.append(cell)
-		self.post_geogrid_data(geogrid_data)
+		self.post_geogrid_data(geogrid_data,override_verification=override_verification)
 
-	def post_geogrid_data(self,geogrid_data):
+	def post_geogrid_data(self,geogrid_data,override_verification=False):
 		'''
 		Posts the given geogrid_data object, ensuring that the object is valid.
 
@@ -1175,19 +1295,20 @@ class Handler(Thread):
 		----------
 		geogrid_data: dict
 			Dictionary corresponding to a valid :class:`brix.GEOGRIDDATA` object.
+		override_verification: boolean, defaults to `False`
+			If True, it will override the verification of the input as a valid object.
 		'''
-		geogrid_data = GEOGRIDDATA(geogrid_data)
-		geogrid_data.set_geogrid(self.get_GEOGRID())
-
-		geogrid_data.check_type_validity()
-
-		if not geogrid_data.check_id_validity():
-			geogrid_data.fill_missing_cells()
+		if not override_verification:
+			geogrid_data = GEOGRIDDATA(geogrid_data)
+			geogrid_data.set_geogrid(self.get_GEOGRID())
+			geogrid_data.check_type_validity()
 			if not geogrid_data.check_id_validity():
-				raise NameError('IDs do not match.')
+				geogrid_data.fill_missing_cells()
+				if not geogrid_data.check_id_validity():
+					raise NameError('IDs do not match.')
 
-		geogrid_data.remap_colors()
-		geogrid_data.remap_interactive()
+			geogrid_data.remap_colors()
+			geogrid_data.remap_interactive()
 
 		geogrid_data = list(geogrid_data)
 
@@ -1270,7 +1391,8 @@ class Indicator:
 		pass
 
 	def return_indicator(self,geogrid_data):
-		'''User defined function. This function defines the value of the indicator as a function of the table state passed as `geogrid_data`. Function must return either a dictionary, a list, or a number. When returning a dict follow the format: ``{'name': 'Indicator_NAME', 'value': 1.00}``. 
+		'''
+		User defined function. This function defines the value of the indicator as a function of the table state passed as `geogrid_data`. Function must return either a dictionary, a list, or a number. When returning a dict follow the format: ``{'name': 'Indicator_NAME', 'value': 1.00}``. 
 
 		Parameters
 		----------
@@ -1282,10 +1404,45 @@ class Indicator:
 		indicator_value : list, dict, or float
 			Value of indicator or list of values. When returning a dict, please use the format ``{'name': 'Indicator Name', 'value': indicator_value}``. When returning a list, please return a list of dictionaries in the same format. 
 		'''
-		if self.return_indicator_user is not None:
+		if (self.return_indicator_user is None)&(self.indicator_type=='hybrid'):
+			try:
+				heatmap = self.return_indicator_heatmap(geogrid_data)
+				numeric = self.return_indicator_numeric(geogrid_data)
+				textual = self.return_indicator_textual(geogrid_data)
+			except:
+				numeric = self.return_indicator_numeric(geogrid_data)
+				heatmap = self.return_indicator_heatmap(geogrid_data)
+				textual = self.return_indicator_textual(geogrid_data)
+			out = {}
+			if heatmap is not None:
+				out['heatmap'] = heatmap
+			if numeric is not None:
+				out['numeric'] = numeric
+			if textual is not None:
+				out['textual'] = textual
+			return out
+		elif self.return_indicator_user is not None:
 			return self.return_indicator_user(geogrid_data)
 		else:
 			return {}
+
+	def return_indicator_numeric(self,geogrid_data):
+		'''
+		Placeholder for user to define.
+		'''
+		return None
+
+	def return_indicator_heatmap(self,geogrid_data):
+		'''
+		Placeholder for user to define.
+		'''
+		return None
+
+	def return_indicator_textual(self,geogrid_data):
+		'''
+		Placeholder for user to define.
+		'''
+		return None
 
 	def set_return_indicator(self,return_indicator):
 		'''
@@ -1331,6 +1488,7 @@ class Indicator:
 		table_name: str or :class:`brix.Handler`
 			Name of the table or Handler object.
 		'''
+		warn('Indicator.link_table will be deprecated soon. Please use Handler class.')
 		if (table_name is None) & (self.table_name is None):
 			raise NameError('Please provide a table_name to link')
 		if table_name is None:
@@ -1342,6 +1500,7 @@ class Indicator:
 
 	def get_table_properties(self):
 		'''Gets table properties from the linked table. See :func:`brix.Indicator.link_table` and :func:`brix.Handler.get_table_properties`.'''
+		warn('Indicator.get_table_properties will be deprecated soon. Please use Handler.get_geogrid_props()[\'header\'].')
 		if (self.tableHandler is None)& (self.table_name is None):
 			raise NameError('No table linked: use Indicator.link_table(table_name)')
 		elif (self.tableHandler is None)& (self.table_name is not None):
@@ -1366,6 +1525,7 @@ class Indicator:
 		geogrid_data : str or pandas.DataFrame
 			Data that will be passed to the :func:`brix.Indicator.return_indicator` function by the :class:`brix.Handler` when deployed.
 		'''
+		warn('Indicator.get_geogrid_data will be deprecated soon. Please use Handler.get_geogrid_data.')
 		include_geometries     = self.requires_geometry if include_geometries is None else include_geometries
 		with_properties        = self.requires_geogrid_props if with_properties is None else with_properties
 		

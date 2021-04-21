@@ -337,7 +337,7 @@ This function should be treated as a low-level function, please use <a class="re
 <dl class="method">
 <dt id="brix.Handler.get_indicator_values">
 <code class="sig-name descname">get_indicator_values</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data=None</em>, <em class="sig-param">include_composite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_indicator_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_indicator_values" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the current values of numeric indicators. Used for developing a composite indicator.</p>
+<dd><p>Returns the current values of NUMERIC indicators. Used for developing a composite indicator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>include_composite</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will also include the composite indicators, using the <a class="reference internal" href="#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a> <cite>is_composite</cite> parameter.</p>
@@ -539,21 +539,35 @@ This represents the Thread ID as reported by the kernel.</p>
 
 <dl class="method">
 <dt id="brix.Handler.post_geogrid_data">
-<code class="sig-name descname">post_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.post_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.post_geogrid_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">post_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em>, <em class="sig-param">override_verification=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.post_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.post_geogrid_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Posts the given geogrid_data object, ensuring that the object is valid.</p>
 <p>Function can be called by itself or using <a class="reference internal" href="#brix.Handler.update_geogrid_data" title="brix.Handler.update_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.update_geogrid_data()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>geogrid_data</strong> (<em>dict</em>) – Dictionary corresponding to a valid <a class="reference internal" href="#brix.GEOGRIDDATA" title="brix.GEOGRIDDATA"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA</span></code></a> object.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>geogrid_data</strong> (<em>dict</em>) – Dictionary corresponding to a valid <a class="reference internal" href="#brix.GEOGRIDDATA" title="brix.GEOGRIDDATA"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA</span></code></a> object.</p></li>
+<li><p><strong>override_verification</strong> (boolean, defaults to <cite>False</cite>) – If True, it will override the verification of the input as a valid object.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="brix.Handler.remote_host">
+<code class="sig-name descname">remote_host</code><em class="property"> = 'https://cityio.media.mit.edu'</em><a class="headerlink" href="#brix.Handler.remote_host" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="brix.Handler.reset_geogrid_data">
-<code class="sig-name descname">reset_geogrid_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.reset_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.reset_geogrid_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">reset_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">override_verification=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.reset_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.reset_geogrid_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resets the GEOGRIDDATA endpoint to the initial value.
 If the GEOGRIDDATA has not been updated, this will update it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>override_verification</strong> (boolean, defaults to <cite>True</cite>) – If True, it will ensure the object defined in GEOGRID/features is a valid GEOGRIDDATA object.
+If False, it will post the object in GEOGRID/features to GEOGRIDDATa without any verification.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -747,6 +761,24 @@ Function should return a list of dicts that represents a valid geogriddata objec
 <dd class="field-odd"><p>list, dict, or float</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Indicator.return_indicator_heatmap">
+<code class="sig-name descname">return_indicator_heatmap</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.return_indicator_heatmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.return_indicator_heatmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder for user to define.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Indicator.return_indicator_numeric">
+<code class="sig-name descname">return_indicator_numeric</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.return_indicator_numeric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.return_indicator_numeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder for user to define.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Indicator.return_indicator_textual">
+<code class="sig-name descname">return_indicator_textual</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.return_indicator_textual"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.return_indicator_textual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder for user to define.</p>
 </dd></dl>
 
 <dl class="method">
@@ -984,7 +1016,7 @@ This function should use if GEOGRIDDATA needs to be updated.</p>
 <dt id="brix.GEOGRIDDATA.remap_colors">
 <code class="sig-name descname">remap_colors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#GEOGRIDDATA.remap_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.GEOGRIDDATA.remap_colors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forces the colors to match the define colors of the cell type.
-Requires that GEOGRIDDATA is set</p>
+Requires that GEOGRIDDATA is set.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1126,6 +1158,24 @@ ascending or descending, according to their function values.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.CompositeIndicator.return_indicator_heatmap">
+<code class="sig-name descname">return_indicator_heatmap</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.return_indicator_heatmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder for user to define.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.CompositeIndicator.return_indicator_numeric">
+<code class="sig-name descname">return_indicator_numeric</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.return_indicator_numeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder for user to define.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.CompositeIndicator.return_indicator_textual">
+<code class="sig-name descname">return_indicator_textual</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.return_indicator_textual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder for user to define.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.CompositeIndicator.set_return_indicator">
 <code class="sig-name descname">set_return_indicator</code><span class="sig-paren">(</span><em class="sig-param">return_indicator</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.set_return_indicator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used to set the return_indicator method by passing a function.</p>
@@ -1240,6 +1290,24 @@ If not provided, it will generate a name by hashing the column names.</p></li>
 <dd class="field-odd"><p>list, dict, or float</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.StaticHeatmap.return_indicator_heatmap">
+<code class="sig-name descname">return_indicator_heatmap</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.StaticHeatmap.return_indicator_heatmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder for user to define.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.StaticHeatmap.return_indicator_numeric">
+<code class="sig-name descname">return_indicator_numeric</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.StaticHeatmap.return_indicator_numeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder for user to define.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.StaticHeatmap.return_indicator_textual">
+<code class="sig-name descname">return_indicator_textual</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.StaticHeatmap.return_indicator_textual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder for user to define.</p>
 </dd></dl>
 
 <dl class="method">
