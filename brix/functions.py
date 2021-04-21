@@ -27,6 +27,10 @@ def is_table(table_name):
 	----------
 	table_name : str
 		Name of table to check.
+
+	Returns
+	is_table : boolean
+		True if table exists.
 	'''
 	table_list = list_tables()
 	return (table_name in table_list)
@@ -34,6 +38,11 @@ def is_table(table_name):
 def list_tables():
 	'''
 	Returns a list of table names for all all tables.
+
+	Returns
+	-------
+	table_list: list
+		List of table names (strings).
 	'''
 	table_list_url = Handler.remote_host.strip('/')+'/api/tables/list/'
 	r = requests.get(table_list_url)
