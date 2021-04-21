@@ -351,6 +351,8 @@ class Handler(Thread):
 	reference : dict, optional
 		Dictionary for reference values for each indicator.
 	'''
+	remote_host = 'https://cityio.media.mit.edu'
+
 	def __init__(self, table_name, 
 		GEOGRIDDATA_varname = 'GEOGRIDDATA', 
 		GEOGRID_varname = 'GEOGRID', 
@@ -360,10 +362,12 @@ class Handler(Thread):
 
 		super(Handler, self).__init__()
 
-		if host_mode=='local':
-			self.host = 'http://127.0.0.1:5000/'
+		if host_name is None:
+			self.host = self.remote_host
 		else:
-			self.host = 'http://cityio.media.mit.edu/'
+			self.host = host_name.strip('/')
+		self.host = 'http://127.0.0.1:5000/' if host_mode=='local' else self.host
+		
 		self.table_name = table_name
 		self.quietly = quietly
 
