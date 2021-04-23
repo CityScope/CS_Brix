@@ -37,3 +37,11 @@ Indicator sub-classes
     :members:
     :undoc-members:
     :inherited-members:
+
+User class
+----------
+
+.. autoclass:: brix.User
+    :members:
+    :undoc-members:
+
