@@ -568,8 +568,8 @@ class Handler(Thread):
 		else:
 			indicatorName = ('0000'+str(len(self.indicators)+1))[-4:]
 
-		if I.tableHandler is not None:
-			warn(f'Indicator {indicatorName} has a table linked to it. This functionality will be deprecated soon.')
+		# if I.tableHandler is not None:
+		# 	warn(f'Indicator {indicatorName} has a table linked to it. This functionality will be deprecated soon.')
 
 		if indicatorName in self.indicators.keys():
 			warn(f'Indicator {indicatorName} already exists and will be overwritten')
@@ -1530,65 +1530,65 @@ class Indicator:
 			geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 		return geogrid_data
 
-	def link_table(self,table_name):
-		'''
-		Creates a :class:`brix.Handler` and links the table to the indicator. This function should be used only for developing the indicator. 
+	# def link_table(self,table_name):
+	# 	'''
+	# 	Creates a :class:`brix.Handler` and links the table to the indicator. This function should be used only for developing the indicator. 
 
-		Parameters
-		----------
-		table_name: str or :class:`brix.Handler`
-			Name of the table or Handler object.
-		'''
-		warn('Indicator.link_table will be deprecated soon. Please use Handler class.')
-		if (table_name is None) & (self.table_name is None):
-			raise NameError('Please provide a table_name to link')
-		if table_name is None:
-			table_name = self.table_name
-		if isinstance(table_name,Handler):
-			self.tableHandler = table_name
-		else:
-			self.tableHandler = Handler(table_name)
+	# 	Parameters
+	# 	----------
+	# 	table_name: str or :class:`brix.Handler`
+	# 		Name of the table or Handler object.
+	# 	'''
+	# 	warn('Indicator.link_table will be deprecated soon. Please use Handler class.')
+	# 	if (table_name is None) & (self.table_name is None):
+	# 		raise NameError('Please provide a table_name to link')
+	# 	if table_name is None:
+	# 		table_name = self.table_name
+	# 	if isinstance(table_name,Handler):
+	# 		self.tableHandler = table_name
+	# 	else:
+	# 		self.tableHandler = Handler(table_name)
 
-	def get_table_properties(self):
-		'''Gets table properties from the linked table. See :func:`brix.Indicator.link_table` and :func:`brix.Handler.get_table_properties`.'''
-		warn('Indicator.get_table_properties will be deprecated soon. Please use Handler.get_geogrid_props()[\'header\'].')
-		if (self.tableHandler is None)& (self.table_name is None):
-			raise NameError('No table linked: use Indicator.link_table(table_name)')
-		elif (self.tableHandler is None)& (self.table_name is not None):
-			self.tableHandler = Handler(table_name)
-		return self.tableHandler.get_geogrid_props()['header']
-
-
-	def get_geogrid_data(self,include_geometries=None,with_properties=None):
-		'''
-		Returns the geogrid data from the linked table. Function mainly used for development. See :func:`brix.Indicator.link_table`. It returns the exact object that will be passed to return_indicator
+	# def get_table_properties(self):
+	# 	'''Gets table properties from the linked table. See :func:`brix.Indicator.link_table` and :func:`brix.Handler.get_table_properties`.'''
+	# 	warn('Indicator.get_table_properties will be deprecated soon. Please use Handler.get_geogrid_props()[\'header\'].')
+	# 	if (self.tableHandler is None)& (self.table_name is None):
+	# 		raise NameError('No table linked: use Indicator.link_table(table_name)')
+	# 	elif (self.tableHandler is None)& (self.table_name is not None):
+	# 		self.tableHandler = Handler(table_name)
+	# 	return self.tableHandler.get_geogrid_props()['header']
 
 
-		Parameters
-		----------
-		include_geometries: boolean, defaults to :attr:`brix.Indicator.requires_geometry`
-			If `True`, it will override the default parameter of the Indicator.
-		with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`
-			If `True`, it will override the default parameter of the Indicator.
+	# def get_geogrid_data(self,include_geometries=None,with_properties=None):
+	# 	'''
+	# 	Returns the geogrid data from the linked table. Function mainly used for development. See :func:`brix.Indicator.link_table`. It returns the exact object that will be passed to return_indicator
 
-		Returns
-		-------
-		geogrid_data : str or pandas.DataFrame
-			Data that will be passed to the :func:`brix.Indicator.return_indicator` function by the :class:`brix.Handler` when deployed.
-		'''
-		warn('Indicator.get_geogrid_data will be deprecated soon. Please use Handler.get_geogrid_data.')
-		include_geometries     = self.requires_geometry if include_geometries is None else include_geometries
-		with_properties        = self.requires_geogrid_props if with_properties is None else with_properties
+
+	# 	Parameters
+	# 	----------
+	# 	include_geometries: boolean, defaults to :attr:`brix.Indicator.requires_geometry`
+	# 		If `True`, it will override the default parameter of the Indicator.
+	# 	with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`
+	# 		If `True`, it will override the default parameter of the Indicator.
+
+	# 	Returns
+	# 	-------
+	# 	geogrid_data : str or pandas.DataFrame
+	# 		Data that will be passed to the :func:`brix.Indicator.return_indicator` function by the :class:`brix.Handler` when deployed.
+	# 	'''
+	# 	warn('Indicator.get_geogrid_data will be deprecated soon. Please use Handler.get_geogrid_data.')
+	# 	include_geometries     = self.requires_geometry if include_geometries is None else include_geometries
+	# 	with_properties        = self.requires_geogrid_props if with_properties is None else with_properties
 		
-		if self.tableHandler is None:
-			if self.table_name is not None:
-				self.link_table(table_name=self.table_name)
-			else:
-				warn('To use this function, please link a table first:\n> Indicator.link_table(table_name)')
-				return None
+	# 	if self.tableHandler is None:
+	# 		if self.table_name is not None:
+	# 			self.link_table(table_name=self.table_name)
+	# 		else:
+	# 			warn('To use this function, please link a table first:\n> Indicator.link_table(table_name)')
+	# 			return None
 
-		geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
-		return geogrid_data
+	# 	geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
+	# 	return geogrid_data
 
 
 class CompositeIndicator(Indicator):
