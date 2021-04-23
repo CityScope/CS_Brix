@@ -1171,8 +1171,9 @@ class Handler(Thread):
 
 		Returns
 		-------
-		geogrid_data : dict
+		geogrid_data : :class:`brix.GEOGRIDDATA`
 			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.
+			Object behaves as a list of dicts.
 		'''
 		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
 		return geogrid_data
