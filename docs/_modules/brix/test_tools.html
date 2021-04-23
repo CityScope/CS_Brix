@@ -1,0 +1,535 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>brix.test_tools &mdash; cs-brix 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cs-brix
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../classes.html">Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cs-brix</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>brix.test_tools</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for brix.test_tools</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">weakref</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">shape</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">.classes</span> <span class="kn">import</span> <span class="n">Handler</span>
+
+<span class="k">def</span> <span class="nf">shuffle_geogrid_data</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Update function for geogrid_data that shuffles the ids of the cells. </span>
+<span class="sd">	Useful for testing.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">]</span>
+	<span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">cell</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span><span class="n">geogrid_data</span><span class="p">):</span>
+		<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+	<span class="k">return</span> <span class="n">geogrid_data</span>
+
+<span class="k">def</span> <span class="nf">flip_random</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">types_set</span><span class="o">=</span><span class="p">[],</span><span class="n">fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Update function for geogrid_data that randomly flips the type of one of the cells.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">if</span> <span class="n">fraction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">n_flips</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fraction</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">))</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">n_flips</span> <span class="o">=</span> <span class="mi">1</span>
+
+	<span class="k">if</span> <span class="n">n_flips</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+		<span class="n">flip_cell</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+		<span class="n">flip_cell_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">flip_cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]]</span>
+		<span class="n">new_type</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">types_set</span> <span class="k">if</span> <span class="n">t</span><span class="o">!=</span><span class="n">flip_cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]])</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">flip_cell_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">n_flips</span><span class="p">)]</span>
+		<span class="n">new_type</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">types_set</span><span class="p">])</span>
+	<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">flip_cell_ids</span><span class="p">:</span>
+			<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_type</span>
+	<span class="k">return</span> <span class="n">geogrid_data</span>
+
+<span class="k">def</span> <span class="nf">make_cluster</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">fraction</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Update function for geogrid_data that propagates the type of a random cell to the neighboring cells.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="n">G</span> <span class="o">=</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">as_graph</span><span class="p">()</span>
+	<span class="n">n_flips</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fraction</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">))</span>
+	<span class="n">seed_cell</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+	<span class="n">new_type</span> <span class="o">=</span> <span class="n">seed_cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+
+	<span class="n">cutoff</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="mi">4</span><span class="o">*</span><span class="n">n_flips</span><span class="p">)))</span>
+	<span class="n">neighs</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">single_source_shortest_path_length</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">seed_cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">cutoff</span><span class="o">=</span><span class="n">cutoff</span><span class="p">)</span>
+	<span class="n">neighs_k</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">k</span> <span class="ow">in</span> <span class="n">neighs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+		<span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">neighs_k</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="n">neighs_k</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">neighs_k</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+	<span class="n">flip_cell_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+	<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cutoff</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">flip_cell_ids</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">neighs_k</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">n_flips</span><span class="p">:</span>
+			<span class="n">flip_cell_ids</span> <span class="o">=</span> <span class="n">flip_cell_ids</span><span class="o">|</span><span class="nb">set</span><span class="p">(</span><span class="n">neighs_k</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">flip_cell_ids</span> <span class="o">=</span> <span class="n">flip_cell_ids</span><span class="o">|</span><span class="nb">set</span><span class="p">(</span><span class="n">neighs_k</span><span class="p">[</span><span class="n">k</span><span class="p">][:</span><span class="n">n_flips</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">flip_cell_ids</span><span class="p">)])</span>
+
+	<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">flip_cell_ids</span><span class="p">:</span>
+			<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_type</span>
+	<span class="k">return</span> <span class="n">geogrid_data</span>
+
+
+<div class="viewcode-block" id="User"><a class="viewcode-back" href="../../classes.html#brix.User">[docs]</a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Handler</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Class that simulates a user doing changes to the grid.</span>
+
+<span class="sd">	To use, instantiate the class, and run User.start_user().</span>
+<span class="sd">	This will create a new thread with a user running. </span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="n">_instances</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="n">sleep_time</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span> <span class="o">=</span> <span class="n">sleep_time</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">types_set</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">()[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Simulated user&#39;</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">name</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">run_user</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">update_count</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_instances</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+<div class="viewcode-block" id="User.getinstances"><a class="viewcode-back" href="../../classes.html#brix.User.getinstances">[docs]</a>	<span class="nd">@classmethod</span>
+	<span class="k">def</span> <span class="nf">getinstances</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+		<span class="n">dead</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instances</span><span class="p">:</span>
+			<span class="n">obj</span> <span class="o">=</span> <span class="n">ref</span><span class="p">()</span>
+			<span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+				<span class="k">yield</span> <span class="n">obj</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">dead</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+		<span class="bp">cls</span><span class="o">.</span><span class="n">_instances</span> <span class="o">-=</span> <span class="n">dead</span></div>
+
+<div class="viewcode-block" id="User.run"><a class="viewcode-back" href="../../classes.html#brix.User.run">[docs]</a>	<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Run method to be called by :func:`threading.Thread.start`. </span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">user_sim</span><span class="p">(</span><span class="n">quietly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="User.listen"><a class="viewcode-back" href="../../classes.html#brix.User.listen">[docs]</a>	<span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">new_thread</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">showFront</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s2">&quot;Subclass `User` has no method `listen`.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="User.add_indicator"><a class="viewcode-back" href="../../classes.html#brix.User.add_indicator">[docs]</a>	<span class="k">def</span> <span class="nf">add_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">I</span><span class="p">,</span><span class="n">test</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s2">&quot;Subclass `User` has no method `add_indicator`.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="User.update_package"><a class="viewcode-back" href="../../classes.html#brix.User.update_package">[docs]</a>	<span class="k">def</span> <span class="nf">update_package</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s2">&quot;Subclass `User` has no method `update_package`.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="User.user_sim"><a class="viewcode-back" href="../../classes.html#brix.User.user_sim">[docs]</a>	<span class="k">def</span> <span class="nf">user_sim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">quietly</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Simulates a user that changes the grid every sleep_time seconds.</span>
+<span class="sd">		The user flips a random cell 90% of the time, and shuffles the whole grid the other 10% of the time. </span>
+<span class="sd">		There is a small chance that the user will reset the grid to its original setting. </span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">run_user</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">update_count</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fail_count</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_user</span><span class="p">:</span>
+			<span class="n">sleep</span><span class="p">(</span><span class="nb">max</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span><span class="p">),</span><span class="mf">0.5</span><span class="p">]))</span>
+			<span class="n">r</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">r</span><span class="o">&gt;</span><span class="mf">0.9999</span><span class="p">:</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+						<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;reset_geogrid_data&#39;</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">reset_geogrid_data</span><span class="p">()</span>
+				<span class="k">elif</span> <span class="n">r</span><span class="o">&gt;</span><span class="mf">0.85</span><span class="p">:</span>
+					<span class="n">fraction</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span><span class="o">/</span><span class="mi">4</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+						<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;make_cluster:&#39;</span><span class="p">,</span><span class="n">fraction</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">update_geogrid_data</span><span class="p">(</span><span class="n">make_cluster</span><span class="p">,</span><span class="n">fraction</span><span class="o">=</span><span class="n">fraction</span><span class="p">)</span>
+				<span class="k">elif</span> <span class="n">r</span><span class="o">&gt;</span><span class="mf">0.8</span><span class="p">:</span>
+					<span class="n">fraction</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span><span class="o">/</span><span class="mi">16</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+						<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;flip_random:&#39;</span><span class="p">,</span><span class="n">fraction</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">update_geogrid_data</span><span class="p">(</span><span class="n">flip_random</span><span class="p">,</span><span class="n">types_set</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">types_set</span><span class="p">,</span><span class="n">fraction</span><span class="o">=</span><span class="n">fraction</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+						<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;flip_random (one)&#39;</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">update_geogrid_data</span><span class="p">(</span><span class="n">flip_random</span><span class="p">,</span><span class="n">types_set</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">types_set</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">update_count</span><span class="o">+=</span><span class="mi">1</span>
+			<span class="k">except</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">fail_count</span><span class="o">+=</span><span class="mi">1</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fail_count</span><span class="o">&gt;</span><span class="mi">10</span><span class="p">:</span>
+				<span class="k">break</span></div>
+
+<div class="viewcode-block" id="User.start_user"><a class="viewcode-back" href="../../classes.html#brix.User.start_user">[docs]</a>	<span class="k">def</span> <span class="nf">start_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="User.stop_user"><a class="viewcode-back" href="../../classes.html#brix.User.stop_user">[docs]</a>	<span class="k">def</span> <span class="nf">stop_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">run_user</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="User.user_status"><a class="viewcode-back" href="../../classes.html#brix.User.user_status">[docs]</a>	<span class="k">def</span> <span class="nf">user_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Running user&#39;</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Total updates:&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">update_count</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Total failed updates:&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">fail_count</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;To stop, run: U.stop_user()&#39;</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No running users&#39;</span><span class="p">)</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;To start, run: U.start_user()&#39;</span><span class="p">)</span></div></div>
+
+<span class="k">class</span> <span class="nc">Conway</span><span class="p">(</span><span class="n">User</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Class that simulates a user doing changes to the grid.</span>
+
+<span class="sd">	To use, instantiate the class, and run User.start_user().</span>
+<span class="sd">	This will create a new thread with a user running. </span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="n">sleep_time</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Conway&#39;</span><span class="p">,</span><span class="n">alive_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">Conway</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span> <span class="o">=</span> <span class="n">sleep_time</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">geos</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([(</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">],</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">()[</span><span class="s1">&#39;features&#39;</span><span class="p">]],</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+		<span class="k">except</span><span class="p">:</span>
+			<span class="n">geos</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([(</span><span class="n">i</span><span class="p">,</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">cell</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">()[</span><span class="s1">&#39;features&#39;</span><span class="p">])],</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+		<span class="n">geos</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geos</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;geometry&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">geometry</span><span class="o">=</span><span class="n">geos</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span> <span class="c1"># no crs to avoid warning</span>
+		<span class="n">geos</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">geos</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">centroid</span><span class="o">.</span><span class="n">x</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+		<span class="n">geos</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">geos</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">centroid</span><span class="o">.</span><span class="n">y</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+		<span class="n">M</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">geos</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">],</span><span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">M</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">values</span> <span class="c1"># matrix with ids</span>
+		<span class="n">index_lookup</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+			<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+				<span class="n">index_lookup</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">index_lookup</span> <span class="o">=</span> <span class="n">index_lookup</span> <span class="c1"># dict to obtain the i,j index of each cell</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">alive</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">()[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">alive_type</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">alive_type</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">dead</span>  <span class="o">=</span> <span class="nb">list</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_GEOGRID</span><span class="p">()[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">alive</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span> 
+
+	<span class="k">def</span> <span class="nf">survival</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">universe</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		:param x: x coordinate of the cell</span>
+<span class="sd">		:param y: y coordinate of the cell</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">num_neighbours</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">universe</span><span class="p">[</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span><span class="n">y</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="n">universe</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span>
+
+		<span class="k">if</span> <span class="n">universe</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">num_neighbours</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">num_neighbours</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+				<span class="k">return</span> <span class="mi">0</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">return</span> <span class="mi">1</span>
+		<span class="k">elif</span> <span class="n">universe</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">num_neighbours</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+				<span class="k">return</span> <span class="mi">1</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">return</span> <span class="mi">0</span>
+
+	<span class="k">def</span> <span class="nf">next_gen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
+		<span class="n">new_X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+			<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+				<span class="n">new_X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">survival</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
+		<span class="n">X</span> <span class="o">=</span> <span class="n">new_X</span>
+		<span class="k">return</span> <span class="n">X</span>
+
+	<span class="k">def</span> <span class="nf">game_of_life</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_data</span><span class="p">):</span>
+		<span class="n">living_cells</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span> <span class="k">if</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">alive</span><span class="p">])</span>
+		<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">living_cells</span><span class="p">:</span>
+			<span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">index_lookup</span><span class="p">[</span><span class="n">c</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="n">X_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_gen</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+		<span class="n">living_cells_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">X_next</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span>
+		<span class="n">living_cells_next</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">living_cells_index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">living_cells_index</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+
+		<span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">geogrid_data</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">living_cells_next</span><span class="p">:</span>
+				<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alive</span>
+			<span class="k">elif</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">alive</span><span class="p">:</span>
+				<span class="n">cell</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dead</span>
+		<span class="k">return</span> <span class="n">geogrid_data</span>
+
+	<span class="k">def</span> <span class="nf">user_sim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">quietly</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Simulates a user that changes the grid every sleep_time seconds.</span>
+<span class="sd">		The user flips a random cell 90% of the time, and shuffles the whole grid the other 10% of the time. </span>
+<span class="sd">		There is a small chance that the user will reset the grid to its original setting. </span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">run_user</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">update_count</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fail_count</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+			<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Playing game of life with:&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">alive</span><span class="p">)</span>
+		<span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_user</span><span class="p">:</span>
+			<span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_time</span><span class="p">)</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">update_geogrid_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">game_of_life</span><span class="p">)</span>
+				<span class="n">tf</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+					<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Update successful. Runtime:&#39;</span><span class="p">,</span><span class="n">tf</span><span class="o">-</span><span class="n">t0</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">update_count</span><span class="o">+=</span><span class="mi">1</span>
+			<span class="k">except</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">fail_count</span><span class="o">+=</span><span class="mi">1</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+					<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Update fail&#39;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fail_count</span><span class="o">&gt;</span><span class="mi">10</span><span class="p">:</span>
+				<span class="k">break</span>
+
+
+
+<span class="k">def</span> <span class="nf">spin_users</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span><span class="n">n_users</span><span class="p">,</span><span class="n">sleep_time</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Creates and starts multiple users for testing.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	table_name: str</span>
+<span class="sd">		Table to link users to.</span>
+<span class="sd">	n_users: int</span>
+<span class="sd">		Number of users to generate.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="n">user_objects</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_users</span><span class="p">):</span>
+		<span class="n">U</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Simulated user </span><span class="si">{i}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">sleep_time</span><span class="o">=</span><span class="n">sleep_time</span><span class="p">)</span>
+		<span class="n">U</span><span class="o">.</span><span class="n">start_user</span><span class="p">()</span>
+		<span class="n">user_objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">U</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">user_objects</span>
+
+<span class="k">def</span> <span class="nf">stop_users</span><span class="p">():</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Stops all running users.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">getinstances</span><span class="p">():</span>
+		<span class="n">u</span><span class="o">.</span><span class="n">stop_user</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">start_users</span><span class="p">():</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Starts all stopped users.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">getinstances</span><span class="p">():</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">u</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+			<span class="n">u</span><span class="o">.</span><span class="n">start_user</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">list_users</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Lists all users and their status.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="n">n_running_users</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">n_users</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">update_count</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">fail_count</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">getinstances</span><span class="p">():</span>
+		<span class="n">n_users</span><span class="o">+=</span><span class="mi">1</span>
+		<span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+			<span class="n">n_running_users</span><span class="o">+=</span><span class="mi">1</span>
+			<span class="n">update_count</span><span class="o">+=</span><span class="n">u</span><span class="o">.</span><span class="n">update_count</span>
+			<span class="n">fail_count</span><span class="o">+=</span><span class="n">u</span><span class="o">.</span><span class="n">fail_count</span>
+	<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{n_users}</span><span class="s1"> User instances&#39;</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{n_running_users}</span><span class="s1"> Running users&#39;</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Total updates:&#39;</span><span class="p">,</span><span class="n">update_count</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Total failed updates:&#39;</span><span class="p">,</span><span class="n">fail_count</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">getinstances</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+				<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">{u.name}</span><span class="s1"> Running&#39;</span><span class="p">)</span>
+				<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Total updates:&#39;</span><span class="p">,</span><span class="n">u</span><span class="o">.</span><span class="n">update_count</span><span class="p">)</span>
+				<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">Total failed updates:&#39;</span><span class="p">,</span><span class="n">u</span><span class="o">.</span><span class="n">update_count</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">{u.name}</span><span class="s1"> stopped&#39;</span><span class="p">)</span>
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, CityScience group at the MIT Media Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

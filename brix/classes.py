@@ -7,10 +7,11 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import hashlib
+import weakref
 from warnings import warn
 from time import sleep
 from collections import defaultdict
-from .helpers import is_number, get_buffer_size
+from .helpers import is_number, get_buffer_size, urljoin
 from threading import Thread
 from shapely.ops import unary_union
 from shapely.geometry import shape
@@ -50,7 +51,7 @@ class GEOGRIDDATA(list):
 	def link_table(self,table_name):
 		'''
 		Sets geogrid using set_geogrid.
-		This function should use if GEOGRIDDATA needs to be updated.
+		This function should use if GEOGRID needs to be updated.
 
 		Parameters
 		----------
@@ -339,26 +340,31 @@ class Handler(Thread):
 	table_name : str
 		Table name to lisen to.
 		https://cityio.media.mit.edu/api/table/table_name
-	GEOGRIDDATA_varname : str, defaults to `GEOGRIDDATA`
-		Name of geogrid-data variable in the table API.
-		The object located at:
-		https://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA_varname
-		will be used as input for the return_indicator function in each indicator class.
-	GEOGRID_varname : str, defaults to `GEOGRID`
-		Name of variable with geometries.
 	quietly : boolean, defaults to `True`
 		If True, it will show the status of every API call.
+	host_mode : str, defaults to 'remote'
+		If 'local' it will use http://127.0.0.1:5000/ as host.
+	host_name : str, defaults to class remote_host
+		If passed, it will override the class host. 
+	
 	reference : dict, optional
 		Dictionary for reference values for each indicator.
+	shell_mode : Boolean, optional defaults to False
+		If True, it will not get the current hash when instantiating the class. Useful for testing. 
 	'''
 	remote_host = 'https://cityio.media.mit.edu'
+	cityio_post_headers  = {'Content-Type': 'application/json'}
+	GEOGRIDDATA_endpoint = 'GEOGRIDDATA'
+	GEOGRID_endpoint     = 'GEOGRID'
+	_indicator_instances = set()
 
 	def __init__(self, table_name, 
-		GEOGRIDDATA_varname = 'GEOGRIDDATA', 
-		GEOGRID_varname = 'GEOGRID', 
-		quietly=True, 
-		host_mode ='remote' , 
-		reference = None):
+			quietly=True, 
+			host_mode ='remote', 
+			host_name = None,
+			reference = None,
+			shell_mode = False
+		):
 
 		super(Handler, self).__init__()
 
@@ -367,27 +373,37 @@ class Handler(Thread):
 		else:
 			self.host = host_name.strip('/')
 		self.host = 'http://127.0.0.1:5000/' if host_mode=='local' else self.host
-		
-		self.table_name = table_name
-		self.quietly = quietly
+		self.post_headers = self.cityio_post_headers
 
 		self.sleep_time = 0.5
 		self.nAttempts = 5
 		self.append_on_post = False
 
-		self.front_end_url   = 'https://cityscope.media.mit.edu/CS_cityscopeJS/?cityscope='+self.table_name
-		self.cityIO_get_url  = self.host+'api/table/'+self.table_name
-		self.cityIO_post_url = self.host+'api/table/update/'+self.table_name
-		
-		self.GEOGRID_varname = GEOGRID_varname
-		self.GEOGRIDDATA_varname = GEOGRIDDATA_varname
+		self.table_name = table_name
+	
+		self.front_end_url   = f'https://cityscope.media.mit.edu/CS_cityscopeJS/?cityscope={self.table_name}'
+		self.cityIO_get_url  = urljoin(self.host,'api/table',self.table_name)
+		self.cityIO_post_url = urljoin(self.host,'api/table',self.table_name)
+
+		self.GEOGRID_varname = self.GEOGRID_endpoint
+		self.GEOGRIDDATA_varname = self.GEOGRIDDATA_endpoint
+
+		self.cityIO_GEOGRID_get_url  = urljoin(self.cityIO_get_url,  self.GEOGRID_varname)
+		self.cityIO_GEOGRID_post_url = urljoin(self.cityIO_post_url, self.GEOGRID_varname)
+
+		self.cityIO_GEOGRIDDATA_get_url  = urljoin(self.cityIO_get_url,  self.GEOGRIDDATA_varname)
+		self.cityIO_GEOGRIDDATA_post_url = urljoin(self.cityIO_post_url, self.GEOGRIDDATA_varname)
+
 		self.GEOGRID = None
 		self.GEOGRID_EDGES = None
+
+		self.quietly = quietly
 
 		self.indicators = {}
 		self.update_geogrid_data_functions = []
 		self.grid_hash_id = None
-		self.grid_hash_id = self.get_grid_hash()
+		if not shell_mode:
+			self.grid_hash_id = self.get_grid_hash()
 
 		self.previous_indicators = None
 		self.previous_access = None
@@ -457,11 +473,11 @@ class Handler(Thread):
 		if indicator_type in ['numeric']:
 			if not self.quietly:
 				print(self.cityIO_get_url+'/indicators')
-			r = self._get_url(self.cityIO_get_url+'/indicators')
+			r = self._get_url(urljoin(self.cityIO_get_url,'indicators'))
 		elif indicator_type in ['heatmap','access']:
 			if not self.quietly:
 				print(self.cityIO_get_url+'/access')
-			r = self._get_url(self.cityIO_get_url+'/access')
+			r = self._get_url(urljoin(self.cityIO_get_url,'access'))
 		else:
 			raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(indicator_type))
 		if r.status_code==200:
@@ -479,6 +495,35 @@ class Handler(Thread):
 			List of indicator names.
 		'''
 		return [name for name in self.indicators]
+
+	@classmethod
+	def list_all_indicator_instances(cls):
+		'''
+		Returns the instance of every indicator instance.
+		'''
+		dead = set()
+		for ref in cls._indicator_instances:
+			obj = ref()
+			if obj is not None:
+				yield obj
+			else:
+				dead.add(ref)
+		cls._indicator_instances -= dead
+
+	def list_unlinked_indicators(self):
+		'''
+		Returns the names of all the unlinked indicators.
+
+		Returns
+		-------
+		indicators_names : list
+			List of indicator names.
+		'''
+		unlinked_indicators = []
+		for obj in self.list_all_indicator_instances():
+			if obj.name not in self.list_indicators():
+				unlinked_indicators.append(obj.name)
+		return unlinked_indicators
 
 	def indicator(self,name):
 		'''Returns the :class:`brix.Indicator` with the given name.
@@ -523,8 +568,8 @@ class Handler(Thread):
 		else:
 			indicatorName = ('0000'+str(len(self.indicators)+1))[-4:]
 
-		if I.tableHandler is not None:
-			warn(f'Indicator {indicatorName} has a table linked to it. This functionality will be deprecated soon.')
+		# if I.tableHandler is not None:
+		# 	warn(f'Indicator {indicatorName} has a table linked to it. This functionality will be deprecated soon.')
 
 		if indicatorName in self.indicators.keys():
 			warn(f'Indicator {indicatorName} already exists and will be overwritten')
@@ -798,8 +843,8 @@ class Handler(Thread):
 			except:
 				geos = pd.DataFrame([(i,cell['geometry']) for i,cell in enumerate(self.get_GEOGRID()['features'])],columns=['id','geometry'])
 			geos = gpd.GeoDataFrame(geos.drop('geometry',1),geometry=geos['geometry'].apply(lambda x: shape(x))) # no crs to avoid warning
-			geos['lon'] = round(geos.geometry.centroid.x,5)
-			geos['lat'] = round(geos.geometry.centroid.y,5)
+			geos['lon'] = round(geos.geometry.centroid.x,4)
+			geos['lat'] = round(geos.geometry.centroid.y,4)
 
 			edge_list = []
 			for xlabel,ylabel in [('lon','lat'),('lat','lon')]:
@@ -987,7 +1032,7 @@ class Handler(Thread):
 		Retreives the GEOGRID hash from:
 		http://cityio.media.mit.edu/api/table/table_name/meta/hashes
 		'''
-		r = self._get_url(self.cityIO_get_url+'/meta/hashes')
+		r = self._get_url(urljoin(self.cityIO_get_url,'meta/hashes'))
 		if r.status_code==200:
 			hashes = r.json()
 			try:
@@ -1003,7 +1048,7 @@ class Handler(Thread):
 
 	def get_GEOGRID(self):
 		if self.GEOGRID is None:
-			r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRID_varname)
+			r = self._get_url(urljoin(self.cityIO_get_url,self.GEOGRID_varname))
 			if r.status_code==200:
 				geogrid = r.json()
 				try:
@@ -1057,7 +1102,7 @@ class Handler(Thread):
 		Returns the raw GEOGRIDDATA object.
 		This function should be treated as a low-level function, please use :func:`brix.Handler.get_geogrid_data` instead.
 		'''
-		r = self._get_url(self.cityIO_get_url+'/'+self.GEOGRIDDATA_varname)
+		r = self._get_url(urljoin(self.cityIO_get_url,self.GEOGRIDDATA_varname))
 		if r.status_code==200:
 			geogrid_data = r.json()
 		else:
@@ -1151,13 +1196,13 @@ class Handler(Thread):
 		new_values = self.update_package(append=append)
 
 		if ('numeric' in new_values.keys()) and (len(new_values['numeric'])!=0):
-			r = requests.post(self.cityIO_post_url+'/indicators', data=json.dumps(new_values['numeric']))
+			r = requests.post(urljoin(self.cityIO_post_url,'indicators'), data=json.dumps(new_values['numeric']), headers=self.post_headers)
 
 		if ('heatmap' in new_values.keys()) and (len(new_values['heatmap']['features'])!=0):
-			r = requests.post(self.cityIO_post_url+'/access',     data=json.dumps(new_values['heatmap']))
+			r = requests.post(urljoin(self.cityIO_post_url,'access'),     data=json.dumps(new_values['heatmap']), headers=self.post_headers)
 
 		if ('textual' in new_values.keys()) and (len(new_values['textual'])!=0):
-			r = requests.post(self.cityIO_post_url+'/textual',    data=json.dumps(new_values['textual']))
+			r = requests.post(urljoin(self.cityIO_post_url,'textual'),    data=json.dumps(new_values['textual']), headers=self.post_headers)
 
 		if not self.quietly:
 			print('Done with update')
@@ -1185,15 +1230,16 @@ class Handler(Thread):
 		''':class:`brix.Handler` keeps track of the previous value of the indicators and access values.This function rollsback the current values to whatever the locally stored values are.
 		See also :func:`brix.Handler.previous_indicators` and :func:`brix.Handler.previous_access`.
 		'''
-		r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(self.previous_indicators))
-		r = requests.post(self.cityIO_post_url+'/access', data = json.dumps(self.previous_access))
+		r = requests.post(urljoin(self.cityIO_post_url,'indicators'), data=json.dumps(self.previous_indicators), headers=self.post_headers)
+		r = requests.post(urljoin(self.cityIO_post_url,'access'),     data=json.dumps(self.previous_access),     headers=self.post_headers)
+
 
 	def clear_table(self):
 		'''Clears all indicators from the table.'''
 		grid_hash_id = self.get_grid_hash()
 		empty_update = {'numeric': [],'heatmap': {'type': 'FeatureCollection', 'properties': [], 'features': []}}
-		r = requests.post(self.cityIO_post_url+'/indicators', data = json.dumps(empty_update['numeric']))
-		r = requests.post(self.cityIO_post_url+'/access', data = json.dumps(empty_update['heatmap']))
+		r = requests.post(urljoin(self.cityIO_post_url,'indicators'), data=json.dumps(empty_update['numeric']), headers=self.post_headers)
+		r = requests.post(urljoin(self.cityIO_post_url,'access')    , data=json.dumps(empty_update['heatmap']), headers=self.post_headers)
 		if not self.quietly:
 			print('Cleared table')
 		self.grid_hash_id = grid_hash_id
@@ -1261,6 +1307,11 @@ class Handler(Thread):
 			If `True` it will append the new indicators to whatever is already there.
 			This option will be deprecated soon. We recommend not using it unless strictly necessary.
 		'''
+
+		unlinked_indicators = self.list_unlinked_indicators()
+		if len(unlinked_indicators)>0:
+			unlinked_indicators = ', '.join(unlinked_indicators)
+			warn(f'You have unlinked indicators: {unlinked_indicators}')
 		self.append_on_post = append
 		if new_thread:
 			self.start()
@@ -1316,7 +1367,7 @@ class Handler(Thread):
 		ids = np.argsort(ids)
 		geogrid_data = [geogrid_data[i] for i in ids]
 
-		r = requests.post(self.cityIO_post_url+'/'+self.GEOGRIDDATA_varname, data=json.dumps(geogrid_data))
+		r = requests.post(urljoin(self.cityIO_post_url,self.GEOGRIDDATA_varname), data=json.dumps(geogrid_data), headers=self.post_headers)
 		self.grid_hash_id = self.get_grid_hash()
 		if not self.quietly:
 			print('GEOGRIDDATA successfully updated:',self.grid_hash_id)
@@ -1384,7 +1435,7 @@ class Indicator:
 				self.requires_geometry = False
 
 		self.return_indicator_user = None
-
+		Handler._indicator_instances.add(weakref.ref(self))
 
 	def setup(self):
 		'''User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an `__init__` method.'''
@@ -1479,65 +1530,65 @@ class Indicator:
 			geogrid_data = gpd.GeoDataFrame(geogrid_data.drop('geometry',1),geometry=geogrid_data['geometry'].apply(lambda x: shape(x)))
 		return geogrid_data
 
-	def link_table(self,table_name):
-		'''
-		Creates a :class:`brix.Handler` and links the table to the indicator. This function should be used only for developing the indicator. 
+	# def link_table(self,table_name):
+	# 	'''
+	# 	Creates a :class:`brix.Handler` and links the table to the indicator. This function should be used only for developing the indicator. 
 
-		Parameters
-		----------
-		table_name: str or :class:`brix.Handler`
-			Name of the table or Handler object.
-		'''
-		warn('Indicator.link_table will be deprecated soon. Please use Handler class.')
-		if (table_name is None) & (self.table_name is None):
-			raise NameError('Please provide a table_name to link')
-		if table_name is None:
-			table_name = self.table_name
-		if isinstance(table_name,Handler):
-			self.tableHandler = table_name
-		else:
-			self.tableHandler = Handler(table_name)
+	# 	Parameters
+	# 	----------
+	# 	table_name: str or :class:`brix.Handler`
+	# 		Name of the table or Handler object.
+	# 	'''
+	# 	warn('Indicator.link_table will be deprecated soon. Please use Handler class.')
+	# 	if (table_name is None) & (self.table_name is None):
+	# 		raise NameError('Please provide a table_name to link')
+	# 	if table_name is None:
+	# 		table_name = self.table_name
+	# 	if isinstance(table_name,Handler):
+	# 		self.tableHandler = table_name
+	# 	else:
+	# 		self.tableHandler = Handler(table_name)
 
-	def get_table_properties(self):
-		'''Gets table properties from the linked table. See :func:`brix.Indicator.link_table` and :func:`brix.Handler.get_table_properties`.'''
-		warn('Indicator.get_table_properties will be deprecated soon. Please use Handler.get_geogrid_props()[\'header\'].')
-		if (self.tableHandler is None)& (self.table_name is None):
-			raise NameError('No table linked: use Indicator.link_table(table_name)')
-		elif (self.tableHandler is None)& (self.table_name is not None):
-			self.tableHandler = Handler(table_name)
-		return self.tableHandler.get_geogrid_props()['header']
-
-
-	def get_geogrid_data(self,include_geometries=None,with_properties=None):
-		'''
-		Returns the geogrid data from the linked table. Function mainly used for development. See :func:`brix.Indicator.link_table`. It returns the exact object that will be passed to return_indicator
+	# def get_table_properties(self):
+	# 	'''Gets table properties from the linked table. See :func:`brix.Indicator.link_table` and :func:`brix.Handler.get_table_properties`.'''
+	# 	warn('Indicator.get_table_properties will be deprecated soon. Please use Handler.get_geogrid_props()[\'header\'].')
+	# 	if (self.tableHandler is None)& (self.table_name is None):
+	# 		raise NameError('No table linked: use Indicator.link_table(table_name)')
+	# 	elif (self.tableHandler is None)& (self.table_name is not None):
+	# 		self.tableHandler = Handler(table_name)
+	# 	return self.tableHandler.get_geogrid_props()['header']
 
 
-		Parameters
-		----------
-		include_geometries: boolean, defaults to :attr:`brix.Indicator.requires_geometry`
-			If `True`, it will override the default parameter of the Indicator.
-		with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`
-			If `True`, it will override the default parameter of the Indicator.
+	# def get_geogrid_data(self,include_geometries=None,with_properties=None):
+	# 	'''
+	# 	Returns the geogrid data from the linked table. Function mainly used for development. See :func:`brix.Indicator.link_table`. It returns the exact object that will be passed to return_indicator
 
-		Returns
-		-------
-		geogrid_data : str or pandas.DataFrame
-			Data that will be passed to the :func:`brix.Indicator.return_indicator` function by the :class:`brix.Handler` when deployed.
-		'''
-		warn('Indicator.get_geogrid_data will be deprecated soon. Please use Handler.get_geogrid_data.')
-		include_geometries     = self.requires_geometry if include_geometries is None else include_geometries
-		with_properties        = self.requires_geogrid_props if with_properties is None else with_properties
+
+	# 	Parameters
+	# 	----------
+	# 	include_geometries: boolean, defaults to :attr:`brix.Indicator.requires_geometry`
+	# 		If `True`, it will override the default parameter of the Indicator.
+	# 	with_properties: boolean, defaults to :attr:`brix.Indicator.requires_geogrid_props`
+	# 		If `True`, it will override the default parameter of the Indicator.
+
+	# 	Returns
+	# 	-------
+	# 	geogrid_data : str or pandas.DataFrame
+	# 		Data that will be passed to the :func:`brix.Indicator.return_indicator` function by the :class:`brix.Handler` when deployed.
+	# 	'''
+	# 	warn('Indicator.get_geogrid_data will be deprecated soon. Please use Handler.get_geogrid_data.')
+	# 	include_geometries     = self.requires_geometry if include_geometries is None else include_geometries
+	# 	with_properties        = self.requires_geogrid_props if with_properties is None else with_properties
 		
-		if self.tableHandler is None:
-			if self.table_name is not None:
-				self.link_table(table_name=self.table_name)
-			else:
-				warn('To use this function, please link a table first:\n> Indicator.link_table(table_name)')
-				return None
+	# 	if self.tableHandler is None:
+	# 		if self.table_name is not None:
+	# 			self.link_table(table_name=self.table_name)
+	# 		else:
+	# 			warn('To use this function, please link a table first:\n> Indicator.link_table(table_name)')
+	# 			return None
 
-		geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
-		return geogrid_data
+	# 	geogrid_data = self.tableHandler._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
+	# 	return geogrid_data
 
 
 class CompositeIndicator(Indicator):

@@ -40,7 +40,7 @@ For this tutorial, we crated one called `dungeonmaster`.
 
 After creating a table, open the frond end given by the tool and edit the table at least once. Change some blocks, and push those changes to CityIO.
 
-An indicator will basically take in data, and produce a result. Each new indicator is built as an subclass of the `brix.Indicator` class provided in this library. Make sure you define three functions: `brix.Indicator.setup()`, `brix.Indicator.load_module()`, and `brix.Indicator.return_indicator()`. Here’s a barebones example of an indicator:
+An indicator will take in data and produce a result. Depending on the type of indicator you are building, the result can be a number, a heatmap, an annotation, or a complex simulation of agents moving around the screen. If you are building a very complex module, your indicator might return all of the above. Each new indicator is built as an subclass of the `brix.Indicator` class provided in this library. Make sure you define three functions: `brix.Indicator.setup()`, `brix.Indicator.load_module()`, and `brix.Indicator.return_indicator()`. Here’s a barebones example of an indicator:
 
 ```
 from brix import Indicator
@@ -59,6 +59,7 @@ class MyIndicator(Indicator):
         def load_module(self):
                 '''
                 This function is not strictly necessary, but we recommend that you define it if you want to load something from memory. It will make your code more readable.
+                All data loading actions should go here.
                 '''
                 pass
 
@@ -76,41 +77,63 @@ class MyIndicator(Indicator):
 What is `geogrid_data`?
 Every time we create a CityScope table, we define a regularly spaced grid which is overlaid on the city district we’re modelling. These grid cells are the basic unit of analysis for the CityScope modules. Every grid cell has properties such as the `Type` which represents the land use and `Height` which represents the number of floors. These data are dynamic and are updated each time a user interacts with the CityScope table, experimenting with the spatial organisation of land uses and infrastructure. These dynamic data are stored the variable geogrid_data. This is a list of ojects: one for each grid cell in the CityScope table. The contents of each object really depends on the specific table you are building for and on the properties assigned to your indicator. There are two options that will control what geogrid_data contains which are: `brix.Indicator.requires_geometry` and `brix.Indicator.requires_geogrid_props`. These two properties are set to `False` by default, but you can change them inside the `brix.Indicator.setup()` function depending on the needs of your indicator.
 
-Go ahead, take a look at how this object looks like by instantiating your class and linking it to a table:
+To access `geogrid_data` you will need to instantiate a `brix.Handler` object that will handle all communication with the table. Go ahead, take a look at how this object looks like by creating a `brix.Handler` and linking it to a table:
 
 ```
-I = MyIndicator()
-I.link_table('dungeonmaster')
-I.get_geogrid_data()
+from brix import Handler
+H = Handler('dungeonmaster',quietly=False)
+H.get_geogrid_data()
 ```
+
+By default, each `brix.Handler` is set to work quietly in the background. If you wish to get feedback on what your Handler is doing, you can set `quietly=False` when you create your Handler. This is useful for debugging.
 
 Bear in mind that the endpoint `GEOGRIDDATA` is created only after your first edit to the table. If you just created your table, you need to go to the front end and edit the table at least once for `GEOGRIDDATA` to show up.
 
-Please note that the `brix.Indicator.link_table()` should only be used when developing the indicator. For deployment, we’ll use the `brix.Handler` class that is more efficient. You can also skip the `brix.Indicator.link_table()` step by defining the `Indicator.table_name='dungeonmaster'` property in your `setup` function. You will also notice that as you change the `brix.Indicator.requires_geometry` and `brix.Indicator.requires_geogrid_props` parameters in `setup`, the output of `brix.Indicator.get_geogrid_data()` will change.
+The function `brix.Handler.get_geogrid_data()` accepts to optional keyword arguments `include_geometries` and `with_properties`. These arguments correspond to `brix.Indicator.requires_geometry` and `brix.Indicator.requires_geogrid_props` parameters defined in the Indicator `setup` function. For example, if `requires_geogrid_props=True` in the setup, and the Indicator is linked to the table, the Handler will know to return `geogrid_data` with `with_properties=True`.
 
-If you are testing and are curious how `geogrid_data` would look like if you set `requires_geometry=True`, you can pass the argument to `get_geogrid_data`:
-
-```
-I.get_geogrid_data(include_geometries=True)
-```
-
-Please note that `geogrid_data` behaves very much like a list, but it is not a list. It belongs to the class `brix.GEOGRIDDATA`, which is an extension of a list to include additional functions and properties related to the table. For example, you can get the meta-properties of the table (such as type definitions, location, etc.) by using `brix.GEOGRIDDATA.get_geogrid_props()`. This is useful if, for example, you are interested in counting the total number of block types, including those that are not currently on the table. Run the following example to see how geogrid_props looks like:
+Go ahead and see how `geogrid_data` would look like if you set `requires_geometry=True`:
 
 ```
-geogrid_data = I.get_geogrid_data()
+H.get_geogrid_data(include_geometries=True)
+```
+
+Please note that `geogrid_data` behaves very much like a list of dictionaries, but it is not a list. It belongs to the class `brix.GEOGRIDDATA`, which is an extension of a list to include additional functions and properties related to the table. For example, you can get the meta-properties of the table (such as type definitions, location, etc.) by using `brix.GEOGRIDDATA.get_geogrid_props()`. This is useful if, for example, you are interested in counting the total number of block types, including those that are not currently on the table. Run the following example to see how geogrid_props looks like:
+
+```
+geogrid_data = H.get_geogrid_data()
 geogrid_data.get_geogrid_props()
 ```
 
 Depending on the needs of your indicator, you can generate different views of this object. For example, you can use `brix.GEOGRIDDATA.as_df()` to return the pandas.DataFrame version of your object. Similarly, you can use `brix.GEOGRIDDATA.as_graph()` to return the networkx.Graph representation of GEOGRIDDATA. The graph representation is the network connecting every cell to its 4 closest neighbors.
 
+Try seeing your `geogrid_data` as a pandas.DataFrame:
+
+```
+geogrid_data = H.get_geogrid_data()
+geogrid_data.as_df()
+```
+
+Additionally, you can remove non-interactive cells from `geogrid_data` by using `brix.GEOGRIDDATA.remove_noninteractive()` and get the table bounds by using `brix.GEOGRIDDATA.bounds()`.
+
+The following example gets a grid, remove all non interactive cells and transforms it to a dataframe:
+
+```
+from brix import Handler
+H = Handler('dungeonmaster')
+geogrid_data = H.get_geogrid_data()
+geogrid_data = geogrid_data.remove_noninteractive()
+geogrid_data.as_df()
+```
+
 ## Build and test your indicator (output)
 
 This library ensures that you can focus on what you do best: writing a kick ass `brix.Indicator.return_indicator()` function that will make everyone’s urban planning life better.
 
-To test your function while debugging it, you can use the object returned by `brix.Indicator.get_geogrid_data()`:
+To test your function while debugging it, you can use the object returned by `brix.Handler.get_geogrid_data()`:
 
 ```
-geogrid_data = I.get_geogrid_data()
+H = Handler('dungeonmaster')
+geogrid_data = H.get_geogrid_data()
 I.return_indicator(geogrid_data)
 ```
 
@@ -208,13 +231,32 @@ The updates triggered by `brix.Handler.listen()` follow the following order:
 
 4. update all indicators using the GEOGRIDDATA object resulting from 3
 
+### Testing your module
+
+To automatically test your module, this library provides the `brix.User` class that simulates the behavior of a user interacting with your grid. This user runs in its own new thread to free up your main thread so that you can keep wokring on your indicator.
+
+The following example consists of a `brix.Handler` that contains a diversity `brix.Indicator` that reponds to the updates of the `brix.User`:
+
+```
+from brix import Handler
+from brix.examples import Diversity
+from brix.test_tools import User
+table_name = 'dungeonmaster'
+U = User(table_name)
+H = Handler(table_name,quietly=False)
+div = Diversity()
+H.add_indicator(div)
+U.start_user()
+H.listen()
+```
+
 
 # Classes
 
 ## Handler class
 
 
-### class brix.Handler(table_name, GEOGRIDDATA_varname='GEOGRIDDATA', GEOGRID_varname='GEOGRID', quietly=True, host_mode='remote', reference=None)
+### class brix.Handler(table_name, quietly=True, host_mode='remote', host_name=None, reference=None, shell_mode=False)
 Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the `add_indicator()` method to pass it a set of `Indicator` objects.
 
 
@@ -225,21 +267,25 @@ Class to handle the connection for indicators built based on data from the GEOGR
     [https://cityio.media.mit.edu/api/table/table_name](https://cityio.media.mit.edu/api/table/table_name)
 
 
-    * **GEOGRIDDATA_varname** (str, defaults to GEOGRIDDATA) – Name of geogrid-data variable in the table API.
-    The object located at:
-    [https://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA_varname](https://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA_varname)
-    will be used as input for the return_indicator function in each indicator class.
-
-
-    * **GEOGRID_varname** (str, defaults to GEOGRID) – Name of variable with geometries.
-
-
     * **quietly** (boolean, defaults to True) – If True, it will show the status of every API call.
+
+
+    * **host_mode** (*str**, **defaults to 'remote'*) – If ‘local’ it will use [http://127.0.0.1:5000/](http://127.0.0.1:5000/) as host.
+
+
+    * **host_name** (*str**, **defaults to class remote_host*) – If passed, it will override the class host.
 
 
     * **reference** (*dict**, **optional*) – Dictionary for reference values for each indicator.
 
 
+    * **shell_mode** (*Boolean**, **optional defaults to False*) – If True, it will not get the current hash when instantiating the class. Useful for testing.
+
+
+
+#### GEOGRIDDATA_endpoint( = 'GEOGRIDDATA')
+
+#### GEOGRID_endpoint( = 'GEOGRID')
 
 #### add_geogrid_data_update_function(update_func)
 Adds a function to update GEOGRIDDATA.
@@ -301,6 +347,8 @@ Prints the front end url for the table.
     str
 
 
+
+#### cityio_post_headers( = {'Content-Type': 'application/json'})
 
 #### clear_table()
 Clears all indicators from the table.
@@ -515,8 +563,28 @@ thread before it has been started and attempts to do so raises the same
 exception.
 
 
+#### classmethod list_all_indicator_instances()
+Returns the instance of every indicator instance.
+
+
 #### list_indicators()
 Returns list of all indicator names.
+
+
+* **Returns**
+
+    **indicators_names** – List of indicator names.
+
+
+
+* **Return type**
+
+    list
+
+
+
+#### list_unlinked_indicators()
+Returns the names of all the unlinked indicators.
 
 
 * **Returns**
@@ -760,46 +828,6 @@ Returns the package that will be posted in CityIO.
 Parent class to build indicators from. To use, you need to define a subclass than inherets properties from this class. Doing so, ensures your indicator inherets the necessary methods and properties to connect with a CityScipe table.
 
 
-#### get_geogrid_data(include_geometries=None, with_properties=None)
-Returns the geogrid data from the linked table. Function mainly used for development. See `brix.Indicator.link_table()`. It returns the exact object that will be passed to return_indicator
-
-
-* **Parameters**
-
-    
-    * **include_geometries** (boolean, defaults to `brix.Indicator.requires_geometry`) – If True, it will override the default parameter of the Indicator.
-
-
-    * **with_properties** (boolean, defaults to `brix.Indicator.requires_geogrid_props`) – If True, it will override the default parameter of the Indicator.
-
-
-
-* **Returns**
-
-    **geogrid_data** – Data that will be passed to the `brix.Indicator.return_indicator()` function by the `brix.Handler` when deployed.
-
-
-
-* **Return type**
-
-    str or pandas.DataFrame
-
-
-
-#### get_table_properties()
-Gets table properties from the linked table. See `brix.Indicator.link_table()` and `brix.Handler.get_table_properties()`.
-
-
-#### link_table(table_name)
-Creates a `brix.Handler` and links the table to the indicator. This function should be used only for developing the indicator.
-
-
-* **Parameters**
-
-    **table_name** (str or `brix.Handler`) – Name of the table or Handler object.
-
-
-
 #### load_module()
 User defined function. Used to load any data necessary for the indicator to run. In principle, you could do everything using `brix.Indicator.setup()` but we encourage to separte data loading and module definition into two functions.
 
@@ -1041,7 +1069,7 @@ Insert object before index.
 
 #### link_table(table_name)
 Sets geogrid using set_geogrid.
-This function should use if GEOGRIDDATA needs to be updated.
+This function should use if GEOGRID needs to be updated.
 
 
 * **Parameters**
@@ -1118,46 +1146,6 @@ The reverse flag can be set to sort in descending order.
 
 ### class brix.CompositeIndicator(\*args, \*\*kwargs)
 Subclass used to define composite indicators. Composite indicators are functions of already defined indicators. By defining `brix.Indicator.setup()` and `brix.Indicator.return_indicator()`, this class allows you to define a composite indicator by just passing an aggregation function.
-
-
-#### get_geogrid_data(include_geometries=None, with_properties=None)
-Returns the geogrid data from the linked table. Function mainly used for development. See `brix.Indicator.link_table()`. It returns the exact object that will be passed to return_indicator
-
-
-* **Parameters**
-
-    
-    * **include_geometries** (boolean, defaults to `brix.Indicator.requires_geometry`) – If True, it will override the default parameter of the Indicator.
-
-
-    * **with_properties** (boolean, defaults to `brix.Indicator.requires_geogrid_props`) – If True, it will override the default parameter of the Indicator.
-
-
-
-* **Returns**
-
-    **geogrid_data** – Data that will be passed to the `brix.Indicator.return_indicator()` function by the `brix.Handler` when deployed.
-
-
-
-* **Return type**
-
-    str or pandas.DataFrame
-
-
-
-#### get_table_properties()
-Gets table properties from the linked table. See `brix.Indicator.link_table()` and `brix.Handler.get_table_properties()`.
-
-
-#### link_table(table_name)
-Creates a `brix.Handler` and links the table to the indicator. This function should be used only for developing the indicator.
-
-
-* **Parameters**
-
-    **table_name** (str or `brix.Handler`) – Name of the table or Handler object.
-
 
 
 #### load_module()
@@ -1262,46 +1250,6 @@ The indicator will post the given shapefile to the table.
 
 
 
-#### get_geogrid_data(include_geometries=None, with_properties=None)
-Returns the geogrid data from the linked table. Function mainly used for development. See `brix.Indicator.link_table()`. It returns the exact object that will be passed to return_indicator
-
-
-* **Parameters**
-
-    
-    * **include_geometries** (boolean, defaults to `brix.Indicator.requires_geometry`) – If True, it will override the default parameter of the Indicator.
-
-
-    * **with_properties** (boolean, defaults to `brix.Indicator.requires_geogrid_props`) – If True, it will override the default parameter of the Indicator.
-
-
-
-* **Returns**
-
-    **geogrid_data** – Data that will be passed to the `brix.Indicator.return_indicator()` function by the `brix.Handler` when deployed.
-
-
-
-* **Return type**
-
-    str or pandas.DataFrame
-
-
-
-#### get_table_properties()
-Gets table properties from the linked table. See `brix.Indicator.link_table()` and `brix.Handler.get_table_properties()`.
-
-
-#### link_table(table_name)
-Creates a `brix.Handler` and links the table to the indicator. This function should be used only for developing the indicator.
-
-
-* **Parameters**
-
-    **table_name** (str or `brix.Handler`) – Name of the table or Handler object.
-
-
-
 #### load_module()
 User defined function. Used to load any data necessary for the indicator to run. In principle, you could do everything using `brix.Indicator.setup()` but we encourage to separte data loading and module definition into two functions.
 
@@ -1357,3 +1305,95 @@ Used to set the return_indicator method by passing a function.
 
 #### setup(shapefile, columns=None, name=None, normalize_values=True)
 User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an __init__ method.
+
+## User class
+
+
+### class brix.User(\*args, sleep_time=7, name=None, \*\*kwargs)
+Class that simulates a user doing changes to the grid.
+
+To use, instantiate the class, and run User.start_user().
+This will create a new thread with a user running.
+
+
+#### add_indicator(I, test=True)
+Adds indicator to handler object.
+
+
+* **Parameters**
+
+    
+    * **I** (`brix.Indicator`) – Indicator object to handle. If indicator has name, this will use as identifier. If indicator has no name, it will generate an identifier.
+
+
+    * **test** (boolean, defaults to True) – If True it will ensure the indicator runs before adding it to the `brix.Handler`.
+
+
+
+#### classmethod getinstances()
+
+#### listen(new_thread=False, showFront=True, append=False)
+Listens for changes in the table’s geogrid and update all indicators accordingly.
+You can use the update_package method to see the object that will be posted to the table.
+This method starts with an update before listening.
+Can run in a separate thread.
+Does not support updating GEOGRIDDATA.
+
+
+* **Parameters**
+
+    
+    * **new_thread** (boolean, defaults to False.) – If True it will run in a separate thread, freeing up the main thread for other tables.
+    We recommend setting this to False when debugging, to avoid needing to recreate the object.
+
+
+    * **showFront** (boolean, defaults to True) – If True it will open the front-end URL in a webbrowser at start.
+    Only works if new_tread=False.
+
+
+    * **append** (boolean, defaults to False) – If True it will append the new indicators to whatever is already there.
+    This option will be deprecated soon. We recommend not using it unless strictly necessary.
+
+
+
+#### run()
+Run method to be called by `threading.Thread.start()`.
+
+
+#### start_user()
+
+#### stop_user()
+
+#### update_package(geogrid_data=None, append=False)
+Returns the package that will be posted in CityIO.
+
+
+* **Parameters**
+
+    
+    * **geogrid_data** (*dict**, **optional*) – Result of `brix.Handler.get_geogrid_data()`. If not provided, it will be retrieved.
+
+
+    * **append** (boolean, defaults to False) – If True, it will append the new indicators to whatever is already there.
+
+
+
+* **Returns**
+
+    **new_values** – Note that all heatmat indicators have been grouped into just one value.
+
+
+
+* **Return type**
+
+    list
+
+
+
+#### user_sim(quietly=True)
+Simulates a user that changes the grid every sleep_time seconds.
+The user flips a random cell 90% of the time, and shuffles the whole grid the other 10% of the time.
+There is a small chance that the user will reset the grid to its original setting.
+
+
+#### user_status()

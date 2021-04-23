@@ -93,6 +93,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#indicator-class">Indicator class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#geogriddata-class">GEOGRIDDATA class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#indicator-sub-classes">Indicator sub-classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-class">User class</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
@@ -170,23 +171,31 @@
 <h2>Handler class<a class="headerlink" href="#handler-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="brix.Handler">
-<em class="property">class </em><code class="sig-prename descclassname">brix.</code><code class="sig-name descname">Handler</code><span class="sig-paren">(</span><em class="sig-param">table_name</em>, <em class="sig-param">GEOGRIDDATA_varname='GEOGRIDDATA'</em>, <em class="sig-param">GEOGRID_varname='GEOGRID'</em>, <em class="sig-param">quietly=True</em>, <em class="sig-param">host_mode='remote'</em>, <em class="sig-param">reference=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">brix.</code><code class="sig-name descname">Handler</code><span class="sig-paren">(</span><em class="sig-param">table_name</em>, <em class="sig-param">quietly=True</em>, <em class="sig-param">host_mode='remote'</em>, <em class="sig-param">host_name=None</em>, <em class="sig-param">reference=None</em>, <em class="sig-param">shell_mode=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the <a class="reference internal" href="#brix.Handler.add_indicator" title="brix.Handler.add_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_indicator()</span></code></a> method to pass it a set of <a class="reference internal" href="#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Indicator</span></code></a> objects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>table_name</strong> (<em>str</em>) – Table name to lisen to.
 <a class="reference external" href="https://cityio.media.mit.edu/api/table/table_name">https://cityio.media.mit.edu/api/table/table_name</a></p></li>
-<li><p><strong>GEOGRIDDATA_varname</strong> (str, defaults to <cite>GEOGRIDDATA</cite>) – Name of geogrid-data variable in the table API.
-The object located at:
-<a class="reference external" href="https://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA_varname">https://cityio.media.mit.edu/api/table/table_name/GEOGRIDDATA_varname</a>
-will be used as input for the return_indicator function in each indicator class.</p></li>
-<li><p><strong>GEOGRID_varname</strong> (str, defaults to <cite>GEOGRID</cite>) – Name of variable with geometries.</p></li>
 <li><p><strong>quietly</strong> (boolean, defaults to <cite>True</cite>) – If True, it will show the status of every API call.</p></li>
+<li><p><strong>host_mode</strong> (<em>str</em><em>, </em><em>defaults to 'remote'</em>) – If ‘local’ it will use <a class="reference external" href="http://127.0.0.1:5000/">http://127.0.0.1:5000/</a> as host.</p></li>
+<li><p><strong>host_name</strong> (<em>str</em><em>, </em><em>defaults to class remote_host</em>) – If passed, it will override the class host.</p></li>
 <li><p><strong>reference</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary for reference values for each indicator.</p></li>
+<li><p><strong>shell_mode</strong> (<em>Boolean</em><em>, </em><em>optional defaults to False</em>) – If True, it will not get the current hash when instantiating the class. Useful for testing.</p></li>
 </ul>
 </dd>
 </dl>
+<dl class="attribute">
+<dt id="brix.Handler.GEOGRIDDATA_endpoint">
+<code class="sig-name descname">GEOGRIDDATA_endpoint</code><em class="property"> = 'GEOGRIDDATA'</em><a class="headerlink" href="#brix.Handler.GEOGRIDDATA_endpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="brix.Handler.GEOGRID_endpoint">
+<code class="sig-name descname">GEOGRID_endpoint</code><em class="property"> = 'GEOGRID'</em><a class="headerlink" href="#brix.Handler.GEOGRID_endpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="brix.Handler.add_geogrid_data_update_function">
 <code class="sig-name descname">add_geogrid_data_update_function</code><span class="sig-paren">(</span><em class="sig-param">update_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.add_geogrid_data_update_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.add_geogrid_data_update_function" title="Permalink to this definition">¶</a></dt>
@@ -243,6 +252,11 @@ Function should return a list of dicts that represents a valid geogriddata objec
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="brix.Handler.cityio_post_headers">
+<code class="sig-name descname">cityio_post_headers</code><em class="property"> = {'Content-Type': 'application/json'}</em><a class="headerlink" href="#brix.Handler.cityio_post_headers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="brix.Handler.clear_table">
@@ -449,9 +463,29 @@ exception.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.list_all_indicator_instances">
+<em class="property">classmethod </em><code class="sig-name descname">list_all_indicator_instances</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.list_all_indicator_instances"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.list_all_indicator_instances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the instance of every indicator instance.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.list_indicators">
 <code class="sig-name descname">list_indicators</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.list_indicators"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.list_indicators" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns list of all indicator names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>indicators_names</strong> – List of indicator names.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.list_unlinked_indicators">
+<code class="sig-name descname">list_unlinked_indicators</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.list_unlinked_indicators"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.list_unlinked_indicators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the names of all the unlinked indicators.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><strong>indicators_names</strong> – List of indicator names.</p>
@@ -697,43 +731,6 @@ Function should return a list of dicts that represents a valid geogriddata objec
 <em class="property">class </em><code class="sig-prename descclassname">brix.</code><code class="sig-name descname">Indicator</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parent class to build indicators from. To use, you need to define a subclass than inherets properties from this class. Doing so, ensures your indicator inherets the necessary methods and properties to connect with a CityScipe table.</p>
 <dl class="method">
-<dt id="brix.Indicator.get_geogrid_data">
-<code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">include_geometries=None</em>, <em class="sig-param">with_properties=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.get_geogrid_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the geogrid data from the linked table. Function mainly used for development. See <a class="reference internal" href="#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a>. It returns the exact object that will be passed to return_indicator</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>include_geometries</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
-<li><p><strong>with_properties</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>geogrid_data</strong> – Data that will be passed to the <a class="reference internal" href="#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function by the <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> when deployed.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str or pandas.DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="brix.Indicator.get_table_properties">
-<code class="sig-name descname">get_table_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.get_table_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.get_table_properties" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets table properties from the linked table. See <a class="reference internal" href="#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a> and <a class="reference internal" href="#brix.Handler.get_table_properties" title="brix.Handler.get_table_properties"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_table_properties()</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="brix.Indicator.link_table">
-<code class="sig-name descname">link_table</code><span class="sig-paren">(</span><em class="sig-param">table_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.link_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.link_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> and links the table to the indicator. This function should be used only for developing the indicator.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>table_name</strong> (str or <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a>) – Name of the table or Handler object.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
 <dt id="brix.Indicator.load_module">
 <code class="sig-name descname">load_module</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Indicator.load_module"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Indicator.load_module" title="Permalink to this definition">¶</a></dt>
 <dd><p>User defined function. Used to load any data necessary for the indicator to run. In principle, you could do everything using <a class="reference internal" href="#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a> but we encourage to separte data loading and module definition into two functions.</p>
@@ -752,7 +749,7 @@ Function should return a list of dicts that represents a valid geogriddata objec
 <dd><p>User defined function. This function defines the value of the indicator as a function of the table state passed as <cite>geogrid_data</cite>. Function must return either a dictionary, a list, or a number. When returning a dict follow the format: <code class="docutils literal notranslate"><span class="pre">{'name':</span> <span class="pre">'Indicator_NAME',</span> <span class="pre">'value':</span> <span class="pre">1.00}</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>geogrid_data</strong> (<em>dict</em>) – Current state of the table. See <a class="reference internal" href="#brix.Indicator.get_geogrid_data" title="brix.Indicator.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.get_geogrid_data()</span></code></a> and <a class="reference internal" href="#brix.Handler.get_geogrid_data" title="brix.Handler.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_geogrid_data()</span></code></a>. The content of this object will depend on the needs of the indicator. In particular, the values of <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>.</p>
+<dd class="field-odd"><p><strong>geogrid_data</strong> (<em>dict</em>) – Current state of the table. See <code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.get_geogrid_data()</span></code> and <a class="reference internal" href="#brix.Handler.get_geogrid_data" title="brix.Handler.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_geogrid_data()</span></code></a>. The content of this object will depend on the needs of the indicator. In particular, the values of <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>indicator_value</strong> – Value of indicator or list of values. When returning a dict, please use the format <code class="docutils literal notranslate"><span class="pre">{'name':</span> <span class="pre">'Indicator</span> <span class="pre">Name',</span> <span class="pre">'value':</span> <span class="pre">indicator_value}</span></code>. When returning a list, please return a list of dictionaries in the same format.</p>
@@ -992,7 +989,7 @@ This function raises an error by default.</p>
 <dt id="brix.GEOGRIDDATA.link_table">
 <code class="sig-name descname">link_table</code><span class="sig-paren">(</span><em class="sig-param">table_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#GEOGRIDDATA.link_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.GEOGRIDDATA.link_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets geogrid using set_geogrid.
-This function should use if GEOGRIDDATA needs to be updated.</p>
+This function should use if GEOGRID needs to be updated.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>table_name</strong> (str or <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a>) – Name of the table or Handler object.</p>
@@ -1090,43 +1087,6 @@ ascending or descending, according to their function values.</p>
 <dt id="brix.CompositeIndicator">
 <em class="property">class </em><code class="sig-prename descclassname">brix.</code><code class="sig-name descname">CompositeIndicator</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#CompositeIndicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.CompositeIndicator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass used to define composite indicators. Composite indicators are functions of already defined indicators. By defining <a class="reference internal" href="#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a> and <a class="reference internal" href="#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a>, this class allows you to define a composite indicator by just passing an aggregation function.</p>
-<dl class="method">
-<dt id="brix.CompositeIndicator.get_geogrid_data">
-<code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">include_geometries=None</em>, <em class="sig-param">with_properties=None</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the geogrid data from the linked table. Function mainly used for development. See <a class="reference internal" href="#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a>. It returns the exact object that will be passed to return_indicator</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>include_geometries</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
-<li><p><strong>with_properties</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>geogrid_data</strong> – Data that will be passed to the <a class="reference internal" href="#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function by the <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> when deployed.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str or pandas.DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="brix.CompositeIndicator.get_table_properties">
-<code class="sig-name descname">get_table_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.get_table_properties" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets table properties from the linked table. See <a class="reference internal" href="#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a> and <a class="reference internal" href="#brix.Handler.get_table_properties" title="brix.Handler.get_table_properties"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_table_properties()</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="brix.CompositeIndicator.link_table">
-<code class="sig-name descname">link_table</code><span class="sig-paren">(</span><em class="sig-param">table_name</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.link_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> and links the table to the indicator. This function should be used only for developing the indicator.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>table_name</strong> (str or <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a>) – Name of the table or Handler object.</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="method">
 <dt id="brix.CompositeIndicator.load_module">
 <code class="sig-name descname">load_module</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#brix.CompositeIndicator.load_module" title="Permalink to this definition">¶</a></dt>
@@ -1226,43 +1186,6 @@ If not provided, it will generate a name by hashing the column names.</p></li>
 </dd>
 </dl>
 <dl class="method">
-<dt id="brix.StaticHeatmap.get_geogrid_data">
-<code class="sig-name descname">get_geogrid_data</code><span class="sig-paren">(</span><em class="sig-param">include_geometries=None</em>, <em class="sig-param">with_properties=None</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.StaticHeatmap.get_geogrid_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the geogrid data from the linked table. Function mainly used for development. See <a class="reference internal" href="#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a>. It returns the exact object that will be passed to return_indicator</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>include_geometries</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
-<li><p><strong>with_properties</strong> (boolean, defaults to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>) – If <cite>True</cite>, it will override the default parameter of the Indicator.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>geogrid_data</strong> – Data that will be passed to the <a class="reference internal" href="#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function by the <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> when deployed.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str or pandas.DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="brix.StaticHeatmap.get_table_properties">
-<code class="sig-name descname">get_table_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#brix.StaticHeatmap.get_table_properties" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets table properties from the linked table. See <a class="reference internal" href="#brix.Indicator.link_table" title="brix.Indicator.link_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.link_table()</span></code></a> and <a class="reference internal" href="#brix.Handler.get_table_properties" title="brix.Handler.get_table_properties"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_table_properties()</span></code></a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="brix.StaticHeatmap.link_table">
-<code class="sig-name descname">link_table</code><span class="sig-paren">(</span><em class="sig-param">table_name</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.StaticHeatmap.link_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> and links the table to the indicator. This function should be used only for developing the indicator.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>table_name</strong> (str or <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a>) – Name of the table or Handler object.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
 <dt id="brix.StaticHeatmap.load_module">
 <code class="sig-name descname">load_module</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#brix.StaticHeatmap.load_module" title="Permalink to this definition">¶</a></dt>
 <dd><p>User defined function. Used to load any data necessary for the indicator to run. In principle, you could do everything using <a class="reference internal" href="#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a> but we encourage to separte data loading and module definition into two functions.</p>
@@ -1281,7 +1204,7 @@ If not provided, it will generate a name by hashing the column names.</p></li>
 <dd><p>User defined function. This function defines the value of the indicator as a function of the table state passed as <cite>geogrid_data</cite>. Function must return either a dictionary, a list, or a number. When returning a dict follow the format: <code class="docutils literal notranslate"><span class="pre">{'name':</span> <span class="pre">'Indicator_NAME',</span> <span class="pre">'value':</span> <span class="pre">1.00}</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>geogrid_data</strong> (<em>dict</em>) – Current state of the table. See <a class="reference internal" href="#brix.Indicator.get_geogrid_data" title="brix.Indicator.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.get_geogrid_data()</span></code></a> and <a class="reference internal" href="#brix.Handler.get_geogrid_data" title="brix.Handler.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_geogrid_data()</span></code></a>. The content of this object will depend on the needs of the indicator. In particular, the values of <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>.</p>
+<dd class="field-odd"><p><strong>geogrid_data</strong> (<em>dict</em>) – Current state of the table. See <code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.get_geogrid_data()</span></code> and <a class="reference internal" href="#brix.Handler.get_geogrid_data" title="brix.Handler.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_geogrid_data()</span></code></a>. The content of this object will depend on the needs of the indicator. In particular, the values of <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>indicator_value</strong> – Value of indicator or list of values. When returning a dict, please use the format <code class="docutils literal notranslate"><span class="pre">{'name':</span> <span class="pre">'Indicator</span> <span class="pre">Name',</span> <span class="pre">'value':</span> <span class="pre">indicator_value}</span></code>. When returning a list, please return a list of dictionaries in the same format.</p>
@@ -1326,6 +1249,107 @@ If not provided, it will generate a name by hashing the column names.</p></li>
 <code class="sig-name descname">setup</code><span class="sig-paren">(</span><em class="sig-param">shapefile</em>, <em class="sig-param">columns=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">normalize_values=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#StaticHeatmap.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.StaticHeatmap.setup" title="Permalink to this definition">¶</a></dt>
 <dd><p>User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an <cite>__init__</cite> method.</p>
 </dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="user-class">
+<h2>User class<a class="headerlink" href="#user-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="brix.User">
+<em class="property">class </em><code class="sig-prename descclassname">brix.</code><code class="sig-name descname">User</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">sleep_time=7</em>, <em class="sig-param">name=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that simulates a user doing changes to the grid.</p>
+<p>To use, instantiate the class, and run User.start_user().
+This will create a new thread with a user running.</p>
+<dl class="method">
+<dt id="brix.User.add_indicator">
+<code class="sig-name descname">add_indicator</code><span class="sig-paren">(</span><em class="sig-param">I</em>, <em class="sig-param">test=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User.add_indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User.add_indicator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds indicator to handler object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>I</strong> (<a class="reference internal" href="#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a>) – Indicator object to handle. If indicator has name, this will use as identifier. If indicator has no name, it will generate an identifier.</p></li>
+<li><p><strong>test</strong> (boolean, defaults to <cite>True</cite>) – If <cite>True</cite> it will ensure the indicator runs before adding it to the <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.User.getinstances">
+<em class="property">classmethod </em><code class="sig-name descname">getinstances</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User.getinstances"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User.getinstances" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brix.User.listen">
+<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param">new_thread=False</em>, <em class="sig-param">showFront=True</em>, <em class="sig-param">append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User.listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User.listen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Listens for changes in the table’s geogrid and update all indicators accordingly.
+You can use the update_package method to see the object that will be posted to the table.
+This method starts with an update before listening.
+Can run in a separate thread.
+Does not support updating GEOGRIDDATA.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_thread</strong> (boolean, defaults to <cite>False</cite>.) – If <cite>True</cite> it will run in a separate thread, freeing up the main thread for other tables.
+We recommend setting this to <cite>False</cite> when debugging, to avoid needing to recreate the object.</p></li>
+<li><p><strong>showFront</strong> (boolean, defaults to <cite>True</cite>) – If <cite>True</cite> it will open the front-end URL in a webbrowser at start.
+Only works if <cite>new_tread=False</cite>.</p></li>
+<li><p><strong>append</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will append the new indicators to whatever is already there.
+This option will be deprecated soon. We recommend not using it unless strictly necessary.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.User.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run method to be called by <code class="xref py py-func docutils literal notranslate"><span class="pre">threading.Thread.start()</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.User.start_user">
+<code class="sig-name descname">start_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User.start_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User.start_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brix.User.stop_user">
+<code class="sig-name descname">stop_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User.stop_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User.stop_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brix.User.update_package">
+<code class="sig-name descname">update_package</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data=None</em>, <em class="sig-param">append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User.update_package"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User.update_package" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the package that will be posted in CityIO.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>geogrid_data</strong> (<em>dict</em><em>, </em><em>optional</em>) – Result of <a class="reference internal" href="#brix.Handler.get_geogrid_data" title="brix.Handler.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_geogrid_data()</span></code></a>. If not provided, it will be retrieved.</p></li>
+<li><p><strong>append</strong> (boolean, defaults to <cite>False</cite>) – If True, it will append the new indicators to whatever is already there.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>new_values</strong> – Note that all heatmat indicators have been grouped into just one value.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.User.user_sim">
+<code class="sig-name descname">user_sim</code><span class="sig-paren">(</span><em class="sig-param">quietly=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User.user_sim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User.user_sim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulates a user that changes the grid every sleep_time seconds.
+The user flips a random cell 90% of the time, and shuffles the whole grid the other 10% of the time.
+There is a small chance that the user will reset the grid to its original setting.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.User.user_status">
+<code class="sig-name descname">user_status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User.user_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User.user_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

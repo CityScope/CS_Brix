@@ -9,7 +9,7 @@ For this tutorial, we crated one called ``dungeonmaster``.
 
 After creating a table, open the frond end given by the tool and edit the table at least once. Change some blocks, and push those changes to CityIO. 
 
-An indicator will basically take in data, and produce a result. Each new indicator is built as an subclass of the :class:`brix.Indicator` class provided in this library. Make sure you define three functions: :func:`brix.Indicator.setup`, :func:`brix.Indicator.load_module`, and :func:`brix.Indicator.return_indicator`. Here's a barebones example of an indicator:
+An indicator will take in data and produce a result. Depending on the type of indicator you are building, the result can be a number, a heatmap, an annotation, or a complex simulation of agents moving around the screen. If you are building a very complex module, your indicator might return all of the above. Each new indicator is built as an subclass of the :class:`brix.Indicator` class provided in this library. Make sure you define three functions: :func:`brix.Indicator.setup`, :func:`brix.Indicator.load_module`, and :func:`brix.Indicator.return_indicator`. Here's a barebones example of an indicator:
 
 ::
 
@@ -29,6 +29,7 @@ An indicator will basically take in data, and produce a result. Each new indicat
 		def load_module(self):
 			'''
 			This function is not strictly necessary, but we recommend that you define it if you want to load something from memory. It will make your code more readable.
+			All data loading actions should go here. 
 			'''
 			pass
 
@@ -47,32 +48,53 @@ Let's talk data (input)
 What is ``geogrid_data``?
 Every time we create a CityScope table, we define a regularly spaced grid which is overlaid on the city district we're modelling. These grid cells are the basic unit of analysis for the CityScope modules. Every grid cell has properties such as the ``Type`` which represents the land use and ``Height`` which represents the number of floors. These data are dynamic and are updated each time a user interacts with the CityScope table, experimenting with the spatial organisation of land uses and infrastructure. These dynamic data are stored the variable `geogrid_data`. This is a list of ojects: one for each grid cell in the CityScope table. The contents of each object really depends on the specific table you are building for and on the properties assigned to your indicator. There are two options that will control what `geogrid_data` contains which are: :attr:`brix.Indicator.requires_geometry` and :attr:`brix.Indicator.requires_geogrid_props`. These two properties are set to ``False`` by default, but you can change them inside the :func:`brix.Indicator.setup` function depending on the needs of your indicator.
 
-Go ahead, take a look at how this object looks like by instantiating your class and linking it to a table:
+To access ``geogrid_data`` you will need to instantiate a :class:`brix.Handler` object that will handle all communication with the table. Go ahead, take a look at how this object looks like by creating a :class:`brix.Handler` and linking it to a table:
 
 ::
 
-	I = MyIndicator()
-	I.link_table('dungeonmaster')
-	I.get_geogrid_data()
+	from brix import Handler
+	H = Handler('dungeonmaster',quietly=False)
+	H.get_geogrid_data()
+
+By default, each :class:`brix.Handler` is set to work quietly in the background. If you wish to get feedback on what your Handler is doing, you can set ``quietly=False`` when you create your Handler. This is useful for debugging. 
 
 Bear in mind that the endpoint ``GEOGRIDDATA`` is created only after your first edit to the table. If you just created your table, you need to go to the front end and edit the table at least once for ``GEOGRIDDATA`` to show up.
 
-Please note that the :func:`brix.Indicator.link_table` should only be used when developing the indicator. For deployment, we'll use the :class:`brix.Handler` class that is more efficient. You can also skip the :func:`brix.Indicator.link_table` step by defining the ``Indicator.table_name='dungeonmaster'`` property in your ``setup`` function. You will also notice that as you change the :attr:`brix.Indicator.requires_geometry` and :attr:`brix.Indicator.requires_geogrid_props` parameters in ``setup``, the output of :func:`brix.Indicator.get_geogrid_data` will change.
+The function :func:`brix.Handler.get_geogrid_data` accepts to optional keyword arguments ``include_geometries`` and ``with_properties``. These arguments correspond to :attr:`brix.Indicator.requires_geometry` and :attr:`brix.Indicator.requires_geogrid_props` parameters defined in the Indicator ``setup`` function. For example, if ``requires_geogrid_props=True`` in the setup, and the Indicator is linked to the table, the Handler will know to return ``geogrid_data`` with ``with_properties=True``.
 
-If you are testing and are curious how ``geogrid_data`` would look like if you set ``requires_geometry=True``, you can pass the argument to ``get_geogrid_data``:
-
-::
-
-	I.get_geogrid_data(include_geometries=True)
-
-Please note that ``geogrid_data`` behaves very much like a list, but it is not a list. It belongs to the class :class:`brix.GEOGRIDDATA`, which is an extension of a list to include additional functions and properties related to the table. For example, you can get the meta-properties of the table (such as type definitions, location, etc.) by using :func:`brix.GEOGRIDDATA.get_geogrid_props()`. This is useful if, for example, you are interested in counting the total number of block types, including those that are not currently on the table. Run the following example to see how `geogrid_props` looks like:
+Go ahead and see how ``geogrid_data`` would look like if you set ``requires_geometry=True``:
 
 ::
 
-	geogrid_data = I.get_geogrid_data()
+	H.get_geogrid_data(include_geometries=True)
+
+Please note that ``geogrid_data`` behaves very much like a list of dictionaries, but it is not a list. It belongs to the class :class:`brix.GEOGRIDDATA`, which is an extension of a list to include additional functions and properties related to the table. For example, you can get the meta-properties of the table (such as type definitions, location, etc.) by using :func:`brix.GEOGRIDDATA.get_geogrid_props()`. This is useful if, for example, you are interested in counting the total number of block types, including those that are not currently on the table. Run the following example to see how `geogrid_props` looks like:
+
+::
+
+	geogrid_data = H.get_geogrid_data()
 	geogrid_data.get_geogrid_props()
 
 Depending on the needs of your indicator, you can generate different views of this object. For example, you can use :func:`brix.GEOGRIDDATA.as_df` to return the pandas.DataFrame version of your object. Similarly, you can use :func:`brix.GEOGRIDDATA.as_graph` to return the networkx.Graph representation of GEOGRIDDATA. The graph representation is the network connecting every cell to its 4 closest neighbors. 
+
+Try seeing your ``geogrid_data`` as a pandas.DataFrame:
+
+::
+
+	geogrid_data = H.get_geogrid_data()
+	geogrid_data.as_df()
+
+Additionally, you can remove non-interactive cells from ``geogrid_data`` by using :func:`brix.GEOGRIDDATA.remove_noninteractive` and get the table bounds by using :func:`brix.GEOGRIDDATA.bounds`. 
+
+The following example gets a grid, remove all non interactive cells and transforms it to a dataframe:
+
+::
+
+	from brix import Handler
+	H = Handler('dungeonmaster')
+	geogrid_data = H.get_geogrid_data()
+	geogrid_data = geogrid_data.remove_noninteractive()
+	geogrid_data.as_df()
 
 
 Build and test your indicator (output)
@@ -80,11 +102,12 @@ Build and test your indicator (output)
 
 This library ensures that you can focus on what you do best: writing a kick ass :func:`brix.Indicator.return_indicator` function that will make everyone's urban planning life better.
 
-To test your function while debugging it, you can use the object returned by :func:`brix.Indicator.get_geogrid_data`:
+To test your function while debugging it, you can use the object returned by :func:`brix.Handler.get_geogrid_data`:
 
 ::
 
-	geogrid_data = I.get_geogrid_data()
+	H = Handler('dungeonmaster')
+	geogrid_data = H.get_geogrid_data()
 	I.return_indicator(geogrid_data)
 
 The property :attr:`brix.Indicator.indicator_type` will toggle between a Heatmap indicator or a numeric indicator (``numeric`` for numeric and ``heatmap`` for heatmap).
@@ -181,4 +204,24 @@ The updates triggered by :func:`brix.Handler.listen` follow the following order:
 3) get the new GEOGRIDDATA
 4) update all indicators using the GEOGRIDDATA object resulting from 3
 
+
+Testing your module
+^^^^^^^^^^^^^^^^^^^
+
+To automatically test your module, this library provides the :class:`brix.User` class that simulates the behavior of a user interacting with your grid. This user runs in its own new thread to free up your main thread so that you can keep wokring on your indicator.
+
+The following example consists of a :class:`brix.Handler` that contains a diversity :class:`brix.Indicator` that reponds to the updates of the :class:`brix.User`:
+
+::
+
+	from brix import Handler
+	from brix.examples import Diversity
+	from brix.test_tools import User
+	table_name = 'dungeonmaster'
+	U = User(table_name)
+	H = Handler(table_name,quietly=False)
+	div = Diversity()
+	H.add_indicator(div)
+	U.start_user()
+	H.listen()
 

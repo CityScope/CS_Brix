@@ -5,7 +5,7 @@ from .classes import Indicator
 from .classes import CompositeIndicator
 from .classes import GEOGRIDDATA
 from .classes import StaticHeatmap
-from .helpers import get_buffer_size, has_tags
+from .helpers import get_buffer_size, has_tags, urljoin
 
 try:
 	from osmnx import geometries_from_polygon
@@ -44,7 +44,7 @@ def list_tables():
 	table_list: list
 		List of table names (strings).
 	'''
-	table_list_url = Handler.remote_host.strip('/')+'/api/tables/list/'
+	table_list_url = urljoin(Handler.remote_host,'api/tables/list')
 	r = requests.get(table_list_url)
 	if r.status_code!=200:
 		raise NameError(f'Unable to retrieve list of tables: status code ={r.status_code}')
