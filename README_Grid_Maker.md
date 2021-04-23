@@ -64,4 +64,3 @@ grid_geo=grid.get_grid_geojson(add_properties={})
 json.dump(grid_geo, open('geogrid.geojson', 'w'))
 ```
 
-An example is provided as a Jupyter notebook.
