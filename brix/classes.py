@@ -51,7 +51,7 @@ class GEOGRIDDATA(list):
 	def link_table(self,table_name):
 		'''
 		Sets geogrid using set_geogrid.
-		This function should use if GEOGRIDDATA needs to be updated.
+		This function should use if GEOGRID needs to be updated.
 
 		Parameters
 		----------
@@ -352,10 +352,10 @@ class Handler(Thread):
 	shell_mode : Boolean, optional defaults to False
 		If True, it will not get the current hash when instantiating the class. Useful for testing. 
 	'''
-	remote_host = 'https://cityiotest.mirage.city' # 'https://cityio.media.mit.edu'
+	remote_host = 'https://cityio.media.mit.edu'
+	cityio_post_headers  = {'Content-Type': 'application/json'}
 	GEOGRIDDATA_endpoint = 'GEOGRIDDATA'
 	GEOGRID_endpoint     = 'GEOGRID'
-	cityio_post_headers  = {'Content-Type': 'application/json'}
 	_indicator_instances = set()
 
 	def __init__(self, table_name, 
