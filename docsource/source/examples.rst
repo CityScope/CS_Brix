@@ -119,6 +119,35 @@ The example below shows an indicator that returns noise for every point in the c
 			return out
 
 
+Textual indicator
+^^^^^^^^^^^^^^^^^
+
+The example below annotates two randomly chosen cells. 
+
+
+
+::
+
+	from brix import Indicator
+
+	import random
+	class RandomFlag(Indicator):
+		'''
+		Example of textual indicator that annotates two random cells.
+		'''
+		def setup(self):
+			self.indicator_type = 'textual'
+			self.requires_geometry = True
+
+		def return_indicator(self, geogrid_data):
+			cells = random.sample(geogrid_data,2)
+			out = [
+				{'id':cells[0]['id'],'info':'yes!'},
+				{'id':cells[1]['id'],'info':'yes!'},
+			]
+			return out
+
+
 Multiple tables simultaneously
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
