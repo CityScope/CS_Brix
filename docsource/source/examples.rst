@@ -122,9 +122,7 @@ The example below shows an indicator that returns noise for every point in the c
 Textual indicator
 ^^^^^^^^^^^^^^^^^
 
-The example below annotates two randomly chosen cells. 
-
-
+The example below annotates two randomly chosen cells with ``yes!`` and ``no!``. 
 
 ::
 
@@ -137,12 +135,13 @@ The example below annotates two randomly chosen cells.
 		def setup(self):
 			self.indicator_type = 'textual'
 			self.requires_geometry = True
+			self.name = 'Yes/No'
 
 		def return_indicator(self, geogrid_data):
 			cells = random.sample(geogrid_data,2)
 			out = [
 				{'id':cells[0]['id'],'info':'yes!'},
-				{'id':cells[1]['id'],'info':'yes!'},
+				{'id':cells[1]['id'],'info':'no!'},
 			]
 			return out
 
