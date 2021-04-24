@@ -91,3 +91,22 @@ class Noise(Indicator):
 			features.append(feature)
 		out = {'type':'FeatureCollection','features':features}
 		return out
+
+
+import random
+class RandomFlag(Indicator):
+	'''
+	Example of textual indicator that annotates two random cells with `yes!` and `no!`.
+	'''
+	def setup(self):
+		self.indicator_type = 'textual'
+		self.requires_geometry = True
+		self.name = 'Yes/No'
+
+	def return_indicator(self, geogrid_data):
+		cells = random.sample(geogrid_data,2)
+		out = [
+			{'id':cells[0]['id'],'info':'yes!'},
+			{'id':cells[1]['id'],'info':'no!'},
+		]
+		return out

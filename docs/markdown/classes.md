@@ -73,6 +73,10 @@ Same as `brix.Handler.add_indicator()` but it takes in a list of `brix.Indicator
 
 
 
+#### classmethod all_indicator_instances()
+Returns a generator with every indicator instance.
+
+
 #### check_table(return_value=False)
 Prints the front end url for the table.
 
@@ -155,12 +159,13 @@ Returns the geogrid data from:
 * **Returns**
 
     **geogrid_data** – Data taken directly from the table to be used as input for `brix.Indicator.return_indicator`.
+    Object behaves as a list of dicts.
 
 
 
 * **Return type**
 
-    dict
+    `brix.GEOGRIDDATA`
 
 
 
@@ -311,11 +316,11 @@ exception.
 
 
 #### classmethod list_all_indicator_instances()
-Returns the instance of every indicator instance.
+Returns a list with all indicator instances.
 
 
-#### list_indicators()
-Returns list of all indicator names.
+#### list_all_unlinked_indicators()
+Returns the names of all the unlinked indicators.
 
 
 * **Returns**
@@ -330,8 +335,8 @@ Returns list of all indicator names.
 
 
 
-#### list_unlinked_indicators()
-Returns the names of all the unlinked indicators.
+#### list_indicators()
+Returns list of all indicator names.
 
 
 * **Returns**

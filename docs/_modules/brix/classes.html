@@ -653,10 +653,10 @@
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">return</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Handler.list_all_indicator_instances"><a class="viewcode-back" href="../../classes.html#brix.Handler.list_all_indicator_instances">[docs]</a>	<span class="nd">@classmethod</span>
-	<span class="k">def</span> <span class="nf">list_all_indicator_instances</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<div class="viewcode-block" id="Handler.all_indicator_instances"><a class="viewcode-back" href="../../classes.html#brix.Handler.all_indicator_instances">[docs]</a>	<span class="nd">@classmethod</span>
+	<span class="k">def</span> <span class="nf">all_indicator_instances</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Returns the instance of every indicator instance.</span>
+<span class="sd">		Returns a generator with every indicator instance.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">dead</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 		<span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_indicator_instances</span><span class="p">:</span>
@@ -667,7 +667,14 @@
 				<span class="n">dead</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
 		<span class="bp">cls</span><span class="o">.</span><span class="n">_indicator_instances</span> <span class="o">-=</span> <span class="n">dead</span></div>
 
-<div class="viewcode-block" id="Handler.list_unlinked_indicators"><a class="viewcode-back" href="../../classes.html#brix.Handler.list_unlinked_indicators">[docs]</a>	<span class="k">def</span> <span class="nf">list_unlinked_indicators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Handler.list_all_indicator_instances"><a class="viewcode-back" href="../../classes.html#brix.Handler.list_all_indicator_instances">[docs]</a>	<span class="nd">@classmethod</span>
+	<span class="k">def</span> <span class="nf">list_all_indicator_instances</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Returns a list with all indicator instances.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">all_indicator_instances</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Handler.list_all_unlinked_indicators"><a class="viewcode-back" href="../../classes.html#brix.Handler.list_all_unlinked_indicators">[docs]</a>	<span class="k">def</span> <span class="nf">list_all_unlinked_indicators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Returns the names of all the unlinked indicators.</span>
 
@@ -677,7 +684,7 @@
 <span class="sd">			List of indicator names.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">unlinked_indicators</span> <span class="o">=</span> <span class="p">[]</span>
-		<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_all_indicator_instances</span><span class="p">():</span>
+		<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_indicator_instances</span><span class="p">():</span>
 			<span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_indicators</span><span class="p">():</span>
 				<span class="n">unlinked_indicators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 		<span class="k">return</span> <span class="n">unlinked_indicators</span></div>
@@ -724,6 +731,7 @@
 			<span class="n">indicatorName</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">name</span>
 		<span class="k">else</span><span class="p">:</span>
 			<span class="n">indicatorName</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;0000&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">))[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
+			<span class="n">I</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">indicatorName</span>
 
 		<span class="c1"># if I.tableHandler is not None:</span>
 		<span class="c1"># 	warn(f&#39;Indicator {indicatorName} has a table linked to it. This functionality will be deprecated soon.&#39;)</span>
@@ -735,8 +743,8 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">indicators</span><span class="p">[</span><span class="n">indicatorName</span><span class="p">]</span> <span class="o">=</span> <span class="n">I</span>
 		<span class="k">if</span> <span class="n">test</span><span class="p">:</span>
 			<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">()</span>
-			<span class="k">if</span> <span class="n">I</span><span class="o">.</span><span class="n">indicator_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;numeric&#39;</span><span class="p">,</span><span class="s1">&#39;heatmap&#39;</span><span class="p">,</span><span class="s1">&#39;access&#39;</span><span class="p">,</span><span class="s1">&#39;hybrid&#39;</span><span class="p">]):</span>
-				<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Indicator type should either be numeric, heatmap, or access. Current type: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">I</span><span class="o">.</span><span class="n">indicator_type</span><span class="p">))</span>
+			<span class="k">if</span> <span class="n">I</span><span class="o">.</span><span class="n">indicator_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;numeric&#39;</span><span class="p">,</span><span class="s1">&#39;heatmap&#39;</span><span class="p">,</span><span class="s1">&#39;access&#39;</span><span class="p">,</span><span class="s1">&#39;textual&#39;</span><span class="p">,</span><span class="s1">&#39;hybrid&#39;</span><span class="p">]):</span>
+				<span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s1">&#39;Indicator type should either be numeric, heatmap, textual, or hybrid. Current type: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">I</span><span class="o">.</span><span class="n">indicator_type</span><span class="p">))</span>
 			<span class="k">try</span><span class="p">:</span>
 				<span class="k">if</span> <span class="n">I</span><span class="o">.</span><span class="n">is_composite</span><span class="p">:</span>
 					<span class="n">indicator_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_indicator_values</span><span class="p">(</span><span class="n">geogrid_data</span><span class="o">=</span><span class="n">geogrid_data</span><span class="p">,</span><span class="n">include_composite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -1328,8 +1336,9 @@
 
 <span class="sd">		Returns</span>
 <span class="sd">		-------</span>
-<span class="sd">		geogrid_data : dict</span>
+<span class="sd">		geogrid_data : :class:`brix.GEOGRIDDATA`</span>
 <span class="sd">			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.</span>
+<span class="sd">			Object behaves as a list of dicts.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">geogrid_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_grid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="n">include_geometries</span><span class="p">,</span><span class="n">with_properties</span><span class="o">=</span><span class="n">with_properties</span><span class="p">)</span>
 		<span class="k">return</span> <span class="n">geogrid_data</span></div>
@@ -1465,7 +1474,7 @@
 <span class="sd">			This option will be deprecated soon. We recommend not using it unless strictly necessary.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 
-		<span class="n">unlinked_indicators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_unlinked_indicators</span><span class="p">()</span>
+		<span class="n">unlinked_indicators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_all_unlinked_indicators</span><span class="p">()</span>
 		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unlinked_indicators</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
 			<span class="n">unlinked_indicators</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unlinked_indicators</span><span class="p">)</span>
 			<span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;You have unlinked indicators: </span><span class="si">{unlinked_indicators}</span><span class="s1">&#39;</span><span class="p">)</span>

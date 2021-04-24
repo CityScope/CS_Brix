@@ -94,6 +94,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#numeric-indicator-diversity">Numeric indicator: diversity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#composite-indicator-average">Composite indicator: average</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#heatmap-indicator">Heatmap indicator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#textual-indicator">Textual indicator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#multiple-tables-simultaneously">Multiple tables simultaneously</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#hybrid-indicator">Hybrid indicator</a></li>
 </ul>
@@ -274,6 +275,30 @@ The example below shows an indicator that returns noise for every point in the c
                         <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="n">random</span><span class="p">()}</span>
                         <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
                 <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span><span class="s1">&#39;FeatureCollection&#39;</span><span class="p">,</span><span class="s1">&#39;features&#39;</span><span class="p">:</span><span class="n">features</span><span class="p">}</span>
+                <span class="k">return</span> <span class="n">out</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="textual-indicator">
+<h3>Textual indicator<a class="headerlink" href="#textual-indicator" title="Permalink to this headline">¶</a></h3>
+<p>The example below annotates two randomly chosen cells with <code class="docutils literal notranslate"><span class="pre">yes!</span></code> and <code class="docutils literal notranslate"><span class="pre">no!</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Indicator</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="k">class</span> <span class="nc">RandomFlag</span><span class="p">(</span><span class="n">Indicator</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Example of textual indicator that annotates two random cells.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">indicator_type</span> <span class="o">=</span> <span class="s1">&#39;textual&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">requires_geometry</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Yes/No&#39;</span>
+
+        <span class="k">def</span> <span class="nf">return_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="p">):</span>
+                <span class="n">cells</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span><span class="n">cells</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">],</span><span class="s1">&#39;info&#39;</span><span class="p">:</span><span class="s1">&#39;yes!&#39;</span><span class="p">},</span>
+                        <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span><span class="n">cells</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">],</span><span class="s1">&#39;info&#39;</span><span class="p">:</span><span class="s1">&#39;no!&#39;</span><span class="p">},</span>
+                <span class="p">]</span>
                 <span class="k">return</span> <span class="n">out</span>
 </pre></div>
 </div>

@@ -497,9 +497,9 @@ class Handler(Thread):
 		return [name for name in self.indicators]
 
 	@classmethod
-	def list_all_indicator_instances(cls):
+	def all_indicator_instances(cls):
 		'''
-		Returns the instance of every indicator instance.
+		Returns a generator with every indicator instance.
 		'''
 		dead = set()
 		for ref in cls._indicator_instances:
@@ -510,7 +510,14 @@ class Handler(Thread):
 				dead.add(ref)
 		cls._indicator_instances -= dead
 
-	def list_unlinked_indicators(self):
+	@classmethod
+	def list_all_indicator_instances(cls):
+		'''
+		Returns a list with all indicator instances.
+		'''
+		return list(cls.all_indicator_instances())
+
+	def list_all_unlinked_indicators(self):
 		'''
 		Returns the names of all the unlinked indicators.
 
@@ -520,7 +527,7 @@ class Handler(Thread):
 			List of indicator names.
 		'''
 		unlinked_indicators = []
-		for obj in self.list_all_indicator_instances():
+		for obj in self.all_indicator_instances():
 			if obj.name not in self.list_indicators():
 				unlinked_indicators.append(obj.name)
 		return unlinked_indicators
@@ -567,6 +574,7 @@ class Handler(Thread):
 			indicatorName = I.name
 		else:
 			indicatorName = ('0000'+str(len(self.indicators)+1))[-4:]
+			I.name = indicatorName
 
 		# if I.tableHandler is not None:
 		# 	warn(f'Indicator {indicatorName} has a table linked to it. This functionality will be deprecated soon.')
@@ -578,8 +586,8 @@ class Handler(Thread):
 		self.indicators[indicatorName] = I
 		if test:
 			geogrid_data = self._get_grid_data()
-			if I.indicator_type not in set(['numeric','heatmap','access','hybrid']):
-				raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(I.indicator_type))
+			if I.indicator_type not in set(['numeric','heatmap','access','textual','hybrid']):
+				raise NameError('Indicator type should either be numeric, heatmap, textual, or hybrid. Current type: '+str(I.indicator_type))
 			try:
 				if I.is_composite:
 					indicator_values = self.get_indicator_values(geogrid_data=geogrid_data,include_composite=False)
@@ -1171,8 +1179,9 @@ class Handler(Thread):
 
 		Returns
 		-------
-		geogrid_data : dict
+		geogrid_data : :class:`brix.GEOGRIDDATA`
 			Data taken directly from the table to be used as input for :class:`brix.Indicator.return_indicator`.
+			Object behaves as a list of dicts.
 		'''
 		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
 		return geogrid_data
@@ -1308,7 +1317,7 @@ class Handler(Thread):
 			This option will be deprecated soon. We recommend not using it unless strictly necessary.
 		'''
 
-		unlinked_indicators = self.list_unlinked_indicators()
+		unlinked_indicators = self.list_all_unlinked_indicators()
 		if len(unlinked_indicators)>0:
 			unlinked_indicators = ', '.join(unlinked_indicators)
 			warn(f'You have unlinked indicators: {unlinked_indicators}')
