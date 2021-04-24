@@ -129,7 +129,6 @@ The example below annotates two randomly chosen cells.
 ::
 
 	from brix import Indicator
-
 	import random
 	class RandomFlag(Indicator):
 		'''
