@@ -1204,18 +1204,44 @@ class Handler(Thread):
 
 		new_values = self.update_package(append=append)
 
-		if ('numeric' in new_values.keys()) and (len(new_values['numeric'])!=0):
-			r = requests.post(urljoin(self.cityIO_post_url,'indicators'), data=json.dumps(new_values['numeric']), headers=self.post_headers)
-
-		if ('heatmap' in new_values.keys()) and (len(new_values['heatmap']['features'])!=0):
-			r = requests.post(urljoin(self.cityIO_post_url,'access'),     data=json.dumps(new_values['heatmap']), headers=self.post_headers)
-
-		if ('textual' in new_values.keys()) and (len(new_values['textual'])!=0):
-			r = requests.post(urljoin(self.cityIO_post_url,'textual'),    data=json.dumps(new_values['textual']), headers=self.post_headers)
+		self._post_indicators(new_values)
 
 		if not self.quietly:
 			print('Done with update')
 		self.grid_hash_id = grid_hash_id
+
+	def _post_indicators(self,new_values,post_empty=False):
+		'''
+		Post indicators to numeric, heatmap, and textual endpoints.
+
+		Parameters
+		----------
+		new_values: dict
+			Dict formated as: {'heatmap':heatmap_values,'numeric':numeric_values,'textual':textual_values}
+		post_empty: boolean, defaults to `False`
+			If False, it will prevent the function from posting empty indicators.
+		'''
+
+		if ('numeric' in new_values.keys()) and (post_empty or len(new_values['numeric'])!=0):
+			r = requests.post(urljoin(self.cityIO_post_url,'indicators'), data=json.dumps(new_values['numeric']), headers=self.post_headers)
+
+		if ('heatmap' in new_values.keys()) and (post_empty or len(new_values['heatmap']['features'])!=0):
+			r = requests.post(urljoin(self.cityIO_post_url,'access'),     data=json.dumps(new_values['heatmap']), headers=self.post_headers)
+
+		if ('textual' in new_values.keys()) and (post_empty or len(new_values['textual'])!=0):
+			r = requests.post(urljoin(self.cityIO_post_url,'textual'),    data=json.dumps(new_values['textual']), headers=self.post_headers)
+
+	def clear_endpoints(self):
+		'''
+		Clears the table of all pre-existing numeric, heatmap, and textual indicators.
+		'''
+		null_update = {
+			'numeric': None,
+			'heatmap': None,
+			'textual': None
+		}
+		self._post_indicators(null_update,post_empty=True)
+
 
 	def perform_geogrid_data_update(self,geogrid_data=None):
 		'''
