@@ -11,8 +11,6 @@ from time import sleep
 from .classes import Handler
 from .classes import Indicator
 
-from brix import Indicator
-
 class SlowIndicator(Indicator):
 	'''
 	Simulates the behavior of a slow and heavy indicator. 
