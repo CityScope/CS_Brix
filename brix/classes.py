@@ -1322,7 +1322,7 @@ class Handler(Thread):
 		'''
 		self._listen(showFront=False)
 
-	def listen(self,new_thread=False,showFront=True,append=False):
+	def listen(self,new_thread=False,showFront=True,append=False,clear_endpoints=False):
 		'''
 		Listens for changes in the table's geogrid and update all indicators accordingly. 
 		You can use the update_package method to see the object that will be posted to the table.
@@ -1341,6 +1341,9 @@ class Handler(Thread):
 		append : boolean, defaults to `False`
 			If `True` it will append the new indicators to whatever is already there.
 			This option will be deprecated soon. We recommend not using it unless strictly necessary.
+		clear_endpoints : boolean, defaults to `False`
+			If `True`, it will clear all existing heatmap, numeric, and textual indicators.
+			This is not recommended for deployment, only for testing. 
 		'''
 
 		unlinked_indicators = self.list_all_unlinked_indicators()
@@ -1348,6 +1351,8 @@ class Handler(Thread):
 			unlinked_indicators = ', '.join(unlinked_indicators)
 			warn(f'You have unlinked indicators: {unlinked_indicators}')
 		self.append_on_post = append
+		if clear_endpoints:
+			self.clear_endpoints()
 		if new_thread:
 			self.start()
 		else:
