@@ -1484,6 +1484,9 @@ class Handler(Thread):
 			geogrid_data.remap_colors()
 			geogrid_data.remap_interactive()
 			geogrid_data.pop_geometries()
+		else:
+			if not self.quietly:
+				print('Proceeding without reviewing GEOGRIDDATA')
 
 		geogrid_data = list(geogrid_data)
 
@@ -1542,6 +1545,7 @@ class Indicator:
 		# self.int_types_def=None
 		# self.types_def=None
 		# self.geogrid_header=None
+		self.override_verification = False
 		self.is_composite = False
 		self.tableHandler = None
 		self.table_name = None
@@ -1557,8 +1561,6 @@ class Indicator:
 				self.requires_geometry = True
 			else:
 				self.requires_geometry = False
-
-		self.override_verification = False
 
 		self.return_indicator_user = None
 		Handler._indicator_instances.add(weakref.ref(self))
