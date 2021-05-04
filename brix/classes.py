@@ -586,7 +586,7 @@ class Handler(Thread):
 		self.indicators[indicatorName] = I
 		if test:
 			geogrid_data = self._get_grid_data()
-			if I.indicator_type not in set(['numeric','heatmap','access','textual','hybrid']):
+			if I.indicator_type not in set(['numeric','heatmap','access','textual','hybrid','grid']):
 				raise NameError('Indicator type should either be numeric, heatmap, textual, or hybrid. Current type: '+str(I.indicator_type))
 			try:
 				if I.is_composite:
@@ -967,6 +967,8 @@ class Handler(Thread):
 					new_values_textual += self._new_value(geogrid_data,indicator_name)
 				elif (I.indicator_type in ['numeric'])&(not I.is_composite):
 					new_values_numeric += self._new_value(geogrid_data,indicator_name)
+				elif (I.indicator_type in ['grid']):
+					pass
 				else:
 					raise NameError(f'Unrecognized indicator type {I.indicator_type} for {indicator_name}')
 			except:
@@ -1054,7 +1056,15 @@ class Handler(Thread):
 			grid_hash_id=self.grid_hash_id
 		return grid_hash_id
 
-	def get_GEOGRID(self):
+	def get_GEOGRID(self,force_get=False):
+		'''
+		Returns geogrid object stored locally. If force_get=True, it will return remote object and overwrite local object.
+
+		Parameters
+		----------
+		force_get : boolean, defaults to `False`
+			If `True` it will GET request the geogrid object and overwrite the locally stored one.
+		'''
 		if self.GEOGRID is None:
 			r = self._get_url(urljoin(self.cityIO_get_url,self.GEOGRID_varname))
 			if r.status_code==200:
@@ -1203,12 +1213,16 @@ class Handler(Thread):
 			print('Updating table with hash:',grid_hash_id)
 
 		new_values = self.update_package(append=append)
-
-		self._post_indicators(new_values)
-
-		if not self.quietly:
-			print('Done with update')
+		if len(new_values)==0:
+			if not self.quietly:
+				print('No values to update')
+		else:
+			self._post_indicators(new_values)
+			if not self.quietly:
+				print('Done with update')
 		self.grid_hash_id = grid_hash_id
+		if not self.quietly:
+			print('Local grid hash:',grid_hash_id)
 
 	def _post_indicators(self,new_values,post_empty=False):
 		'''
@@ -1248,16 +1262,31 @@ class Handler(Thread):
 		Performs GEOGRIDDATA update using the functions added to the :class:`brix.Handler` using :func:`brix.Hanlder.add_geogrid_data_update_function`.
 
 		Returns True if an update happened, and Flase otherwise.
+
+		Any grid indicator will overrule any grid function.
 		'''
 		update_flag = False
 		if geogrid_data is None:
 			geogrid_data = self._get_grid_data()
-		for update_func in self.update_geogrid_data_functions:
-			new_geogrid_data = update_func(geogrid_data)
+
+		grid_indicators = [indicator_name for indicator_name in self.indicators if self.indicators[indicator_name].indicator_type == 'grid']
+		if len(grid_indicators)>1:
+			raise NameError('More than one grid indicator found')
+		if len(grid_indicators)==1:
+			I_grid = self.indicators[grid_indicators[0]]
+			new_geogrid_data = I_grid.return_indicator(geogrid_data)
 			self.post_geogrid_data(new_geogrid_data)
 			update_flag = True
 			if not self.quietly:
 				print('GEOGRIDDATA successfully updated')
+		else:
+			for update_func in self.update_geogrid_data_functions:
+				new_geogrid_data = update_func(geogrid_data)
+				self.post_geogrid_data(new_geogrid_data)
+				update_flag = True
+				if not self.quietly:
+					print('GEOGRIDDATA successfully updated')
+		# Also, make sure these indicators are ignored when performing the other updates !!!!!!!!
 		return update_flag
 
 
