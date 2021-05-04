@@ -1065,7 +1065,7 @@ class Handler(Thread):
 		force_get : boolean, defaults to `False`
 			If `True` it will GET request the geogrid object and overwrite the locally stored one.
 		'''
-		if self.GEOGRID is None:
+		if (self.GEOGRID is None)|force_get:
 			r = self._get_url(urljoin(self.cityIO_get_url,self.GEOGRID_varname))
 			if r.status_code==200:
 				geogrid = r.json()
@@ -1075,7 +1075,7 @@ class Handler(Thread):
 					warn('NAICS and LBCS classifications were not properly parsed.')
 				self.GEOGRID = geogrid
 			else:
-				warn('WARNING: Cant access GEOGRIDDATA')
+				warn('WARNING: Cant access GEOGRID')
 		return self.GEOGRID
 
 	def normalize_codes(self,code_proportion):
@@ -1114,6 +1114,34 @@ class Handler(Thread):
 					code_proportion = None
 				geogrid['properties']['types'][t][code] = code_proportion
 		return geogrid
+
+	def set_opacity(self,alpha,default_alpha=1):
+		'''
+		Sets opacity values in GEOGRID.
+		To see updates in GEOGRIDDATA, reset GEOGRIDDATA using :func:`brix.Handler.reset_geogrid_data`.
+
+		Parameters
+		----------
+		alpha: float or dict
+		    Values of opacity between 0 and 1.
+		    If dict, use the types as keys and opacity as values.
+		    Non-specificed types will be set to default_alpha.
+		    If float, this will change the opacity for all types equally.
+		default_alpha: float, defaults to 1
+		    Opacity value to use when type not specified in alpha.
+		'''
+		geogrid = self.get_GEOGRID()
+		features = geogrid['features']
+		for cell in features:
+			if isinstance(alpha,dict):
+				if cell['properties']['name'] in alpha.keys():
+					cell['properties']['color'] = cell['properties']['color'][:3]+[int(alpha[cell['properties']['name']]*255)]
+				else:
+					cell['properties']['color'] = cell['properties']['color'][:3]+[int(default_alpha*255)]
+			else:
+				cell['properties']['color'] = cell['properties']['color'][:3]+[int(alpha*255)]
+		r = requests.post(urljoin(self.cityIO_GEOGRID_post_url,'features'),data=json.dumps(features),headers=self.post_headers)
+		geogrid = self.get_GEOGRID(force_get=True)
 
 	def get_GEOGRIDDATA(self):
 		'''
