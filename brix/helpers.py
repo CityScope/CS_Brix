@@ -2,6 +2,13 @@
 import json
 import geopandas as gpd
 
+try: # libraries needed to set the timezone of the table
+	from datetime import datetime
+	from timezonefinder import TimezoneFinder
+	from pytz import timezone, utc
+except:
+	pass
+
 def urljoin(*args,trailing_slash=True):
 	trailing_slash_char = '/' if trailing_slash else ''
 	return "/".join(map(lambda x: str(x).strip('/'), args)) + trailing_slash_char
@@ -15,6 +22,17 @@ def is_number(s):
 		return True
 	except:
 		return False
+
+def get_timezone_offset(lat, lng):
+    """
+    returns a location's time zone offset from UTC in hours.
+    """
+    today = datetime.now()
+    tf = TimezoneFinder()
+    tz_target = timezone(tf.certain_timezone_at(lng=lng, lat=lat))
+    today_target = tz_target.localize(today)
+    today_utc = utc.localize(today)
+    return (today_utc - today_target).total_seconds() / 3600
 
 def get_buffer_size(poly,buffer_percent=0.25):
 	'''
