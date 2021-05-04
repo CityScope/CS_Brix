@@ -81,6 +81,11 @@ class GEOGRIDDATA(list):
 		'''
 		return self.GEOGRID
 
+	def pop_geometries(self):
+		for cell in self:
+			if 'geometry' in cell.keys():
+				del cell['geometry']
+
 	def get_geogrid_props(self):
 		'''
 		Get the value of :attr:`brix.Handler.geogrid_props` from the corresponding :class:`brix.Handler`.
@@ -1478,6 +1483,7 @@ class Handler(Thread):
 
 			geogrid_data.remap_colors()
 			geogrid_data.remap_interactive()
+			geogrid_data.pop_geometries()
 
 		geogrid_data = list(geogrid_data)
 
