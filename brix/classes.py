@@ -450,7 +450,7 @@ class Handler(Thread):
 		url = urljoin(self.cityIO_post_url,'GEOGRID','properties','header','tz')
 		r = requests.post(url,data=str(int(hour_offset)),headers=self.post_headers)
 		if r.status_code==200:
-			if not quietly:
+			if not self.quietly:
 				print('Timezone set to:',hour_offset)
 
 	def check_table(self,return_value=False):
@@ -1254,7 +1254,7 @@ class Handler(Thread):
 			print('Updating table with hash:',grid_hash_id)
 
 		new_values = self.update_package(append=append)
-		
+
 		i_count = 0
 		if 'numeric' in new_values.keys():
 			i_count += len(new_values['numeric'])
