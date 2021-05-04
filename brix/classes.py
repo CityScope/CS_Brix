@@ -11,7 +11,7 @@ import weakref
 from warnings import warn
 from time import sleep
 from collections import defaultdict
-from .helpers import is_number, get_buffer_size, urljoin
+from .helpers import is_number, get_buffer_size, urljoin, get_timezone_offset
 from threading import Thread
 from shapely.ops import unary_union
 from shapely.geometry import shape
@@ -439,7 +439,20 @@ class Handler(Thread):
 		bounds = geogrid_data.bounds(bbox=bbox,buffer_percent=buffer_percent)
 		return bounds
 
-        
+	def set_timezone(self):
+		'''
+		Sets the time zone of the table based on its coordinates.
+		Useful for front end shadow simulation. 
+		'''
+		props = self.get_table_properties()
+		lat,lon = props['latitude'],props['longitude']
+		hour_offset = get_timezone_offset(lat,lon)
+		url = urljoin(self.cityIO_post_url,'GEOGRID','properties','header','tz')
+		r = requests.post(url,data=str(int(hour_offset)),headers=self.post_headers)
+		if r.status_code==200:
+			if not quietly:
+				print('Timezone set to:',hour_offset)
+
 	def check_table(self,return_value=False):
 		'''Prints the front end url for the table. 
 
@@ -1241,7 +1254,16 @@ class Handler(Thread):
 			print('Updating table with hash:',grid_hash_id)
 
 		new_values = self.update_package(append=append)
-		if len(new_values)==0:
+		
+		i_count = 0
+		if 'numeric' in new_values.keys():
+			i_count += len(new_values['numeric'])
+		if 'textual' in new_values.keys():
+			i_count += len(new_values['textual'])
+		if 'heatmap' in new_values.keys():
+			i_count += len(new_values['heatmap']['properties'])
+
+		if i_count==0:
 			if not self.quietly:
 				print('No values to update')
 		else:
