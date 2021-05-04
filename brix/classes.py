@@ -1293,6 +1293,9 @@ class Handler(Thread):
 
 		Any grid indicator will overrule any grid function.
 		'''
+		if not self.quietly:
+			print('Updating geogrid_data')
+
 		update_flag = False
 		if geogrid_data is None:
 			geogrid_data = self._get_grid_data()
@@ -1305,15 +1308,11 @@ class Handler(Thread):
 			new_geogrid_data = I_grid.return_indicator(geogrid_data)
 			self.post_geogrid_data(new_geogrid_data)
 			update_flag = True
-			if not self.quietly:
-				print('GEOGRIDDATA successfully updated')
 		else:
 			for update_func in self.update_geogrid_data_functions:
 				new_geogrid_data = update_func(geogrid_data)
 				self.post_geogrid_data(new_geogrid_data)
 				update_flag = True
-				if not self.quietly:
-					print('GEOGRIDDATA successfully updated')
 		# Also, make sure these indicators are ignored when performing the other updates !!!!!!!!
 		return update_flag
 
