@@ -1333,7 +1333,7 @@ class Handler(Thread):
 		if len(grid_indicators)==1:
 			I_grid = self.indicators[grid_indicators[0]]
 			new_geogrid_data = I_grid.return_indicator(geogrid_data)
-			self.post_geogrid_data(new_geogrid_data)
+			self.post_geogrid_data(new_geogrid_data,override_verification=I_grid.override_verification)
 			update_flag = True
 		else:
 			for update_func in self.update_geogrid_data_functions:
@@ -1557,6 +1557,8 @@ class Indicator:
 				self.requires_geometry = True
 			else:
 				self.requires_geometry = False
+
+		self.override_verification = False
 
 		self.return_indicator_user = None
 		Handler._indicator_instances.add(weakref.ref(self))
