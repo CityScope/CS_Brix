@@ -364,7 +364,7 @@ class Handler(Thread):
 	_indicator_instances = set()
 
 	def __init__(self, table_name, 
-			quietly=True, 
+			quietly=False, 
 			host_mode ='remote', 
 			host_name = None,
 			reference = None,
@@ -1362,7 +1362,7 @@ class Handler(Thread):
 			print('Cleared table')
 		self.grid_hash_id = grid_hash_id
 
-	def _listen(self,showFront=True):
+	def _listen(self,showFront=True,robust=False):
 		'''
 		Lower level listen. Should only be called directly for debugging purposes. 
 		Use :func:`brix.Handler.listen` instead.
@@ -1375,6 +1375,8 @@ class Handler(Thread):
 		----------
 		showFront : boolean, defaults to `True`
 			If `True` it will open the front-end URL in a webbrowser at start.
+		robust : boolean, defaults to `False`
+			If `True`, whenever a grid configuration breaks an indicator, the module will not stop, but rather wait until the grid changes and try to update again.
 		'''
 		if not self.quietly:
 			print('Table URL:',self.front_end_url)
@@ -1394,9 +1396,21 @@ class Handler(Thread):
 			sleep(self.sleep_time)
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
-				if self.perform_geogrid_data_update():
-					grid_hash_id = self.get_grid_hash()
-				self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
+				if not robust:
+					if self.perform_geogrid_data_update():
+						grid_hash_id = self.get_grid_hash()
+					self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
+				else:
+					try:
+						if self.perform_geogrid_data_update():
+							grid_hash_id = self.get_grid_hash()
+						self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
+					except Exception as e:
+						if not self.quietly:
+							print('I was not able to update grid with hash:',grid_hash_id)
+							print(e)
+							print('Waiting until a new grid appears')
+						self.grid_hash_id = grid_hash_id
 
 	def run(self):
 		'''
@@ -1405,7 +1419,7 @@ class Handler(Thread):
 		'''
 		self._listen(showFront=False)
 
-	def listen(self,new_thread=False,showFront=True,append=False,clear_endpoints=False):
+	def listen(self,new_thread=False,showFront=True,append=False,clear_endpoints=False,robust=False):
 		'''
 		Listens for changes in the table's geogrid and update all indicators accordingly. 
 		You can use the update_package method to see the object that will be posted to the table.
@@ -1427,6 +1441,9 @@ class Handler(Thread):
 		clear_endpoints : boolean, defaults to `False`
 			If `True`, it will clear all existing heatmap, numeric, and textual indicators.
 			This is not recommended for deployment, only for testing. 
+		robust : boolean, defaults to `False`
+			If `True`, whenever a grid configuration breaks an indicator, the module will not stop, but rather wait until the grid changes and try to update again.
+			Incompatible with `new_thread=True`
 		'''
 
 		unlinked_indicators = self.list_all_unlinked_indicators()
@@ -1439,7 +1456,7 @@ class Handler(Thread):
 		if new_thread:
 			self.start()
 		else:
-			self._listen(showFront=showFront)
+			self._listen(showFront=showFront,robust=robust)
 
 	def reset_geogrid_data(self,override_verification=True):
 		'''
