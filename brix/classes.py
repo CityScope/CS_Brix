@@ -476,12 +476,8 @@ class Handler(Thread):
 			Current value of selected indicators.
 		'''
 		if indicator_type in ['numeric']:
-			if not self.quietly:
-				print(self.cityIO_get_url+'/indicators')
 			r = self._get_url(urljoin(self.cityIO_get_url,'indicators'))
 		elif indicator_type in ['heatmap','access']:
-			if not self.quietly:
-				print(self.cityIO_get_url+'/access')
 			r = self._get_url(urljoin(self.cityIO_get_url,'access'))
 		else:
 			raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(indicator_type))
@@ -1256,7 +1252,7 @@ class Handler(Thread):
 		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
 		return geogrid_data
 
-	def perform_update(self,grid_hash_id=None,append=False):
+	def perform_update(self,grid_hash_id=None,append=False,return_update_package=False):
 		'''
 		Performs single table update.
 
@@ -1266,6 +1262,8 @@ class Handler(Thread):
 			Current grid hash id. If not provided, it will retrieve it.
 		append : boolean, defaults to `True`
 			If `True`, it will append the new indicators to whatever is already there.
+		return_update_package : boolean, defaults to `False`
+			If `True` this funciton will return the posted object.
 		'''
 		if grid_hash_id is None: 
 			grid_hash_id = self.get_grid_hash()	
@@ -1292,6 +1290,8 @@ class Handler(Thread):
 		self.grid_hash_id = grid_hash_id
 		if not self.quietly:
 			print('Local grid hash:',grid_hash_id)
+		if return_update_package:
+			return new_values
 
 	def _post_indicators(self,new_values,post_empty=False):
 		'''
