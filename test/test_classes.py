@@ -17,8 +17,17 @@ class TestHandler(unittest.TestCase):
 		for table_name in self.table_list:
 			H = Handler(table_name)
 			cityIO_get_url = H.cityIO_get_url.strip('/')
-			hashes = requests.get(f'{cityIO_get_url}/meta/hashes').json()
+			hashes = requests.get(f'{cityIO_get_url}/meta/hashes/').json()
 			self.assertEqual(H.get_grid_hash(),hashes['GEOGRIDDATA'])
+
+	def compare_numeric(self,i_list,j_list):
+		'''
+		Compares two lists of numeric indicators
+		'''
+		for i in i_list:
+			for j in j_list:
+				if i['name']==j['name']:
+					self.assertEqual(i,j)
 
 	def test_update_package_numeric(self):
 		'''
@@ -60,6 +69,9 @@ class TestHandler(unittest.TestCase):
 				self.assertIn(name,package_names)
 
 	def test_user(self):
+		'''
+		Tests that Handler is updating its hash.
+		'''
 		for table_name in self.table_list:
 			U = User(table_name)
 			U.start_user()
@@ -84,6 +96,21 @@ class TestHandler(unittest.TestCase):
 				self.assertIn('features',   heatmap_keys)
 				self.assertIn('properties', heatmap_keys)
 				self.assertIn('type',       heatmap_keys)
+
+	def test_table_update(self):
+		for table_name in self.table_list:
+			H = Handler(table_name)
+			indicator_list = []
+			rand = RandomIndicator()
+			indicator_list.append(rand)
+			shell = ShellIndicator()
+			indicator_list.append(shell)
+			div = Diversity()
+			indicator_list.append(div)
+			H.add_indicators(indicator_list)
+			update_package  = H.perform_update(return_update_package=True)
+			current_numeric = H.see_current(indicator_type='numeric')
+			self.compare_numeric(update_package['numeric'],current_numeric)
 
 if __name__ == '__main__':
 	unittest.main()
