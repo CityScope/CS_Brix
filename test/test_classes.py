@@ -35,6 +35,7 @@ class TestHandler(unittest.TestCase):
 		'''
 		for table_name in self.table_list:
 			H = Handler(table_name)
+			H.clear_endpoints()
 			geogrid_data = H.get_geogrid_data()
 
 			indicator_list = []
@@ -100,6 +101,7 @@ class TestHandler(unittest.TestCase):
 	def test_table_update(self):
 		for table_name in self.table_list:
 			H = Handler(table_name)
+			H.clear_endpoints()
 			indicator_list = []
 			rand = RandomIndicator()
 			indicator_list.append(rand)
