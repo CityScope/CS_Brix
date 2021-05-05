@@ -11,7 +11,7 @@ import weakref
 from warnings import warn
 from time import sleep
 from collections import defaultdict
-from .helpers import is_number, get_buffer_size, urljoin
+from .helpers import is_number, get_buffer_size, urljoin, get_timezone_offset
 from threading import Thread
 from shapely.ops import unary_union
 from shapely.geometry import shape
@@ -80,6 +80,11 @@ class GEOGRIDDATA(list):
 			Value of GEOGRID
 		'''
 		return self.GEOGRID
+
+	def pop_geometries(self):
+		for cell in self:
+			if 'geometry' in cell.keys():
+				del cell['geometry']
 
 	def get_geogrid_props(self):
 		'''
@@ -439,7 +444,20 @@ class Handler(Thread):
 		bounds = geogrid_data.bounds(bbox=bbox,buffer_percent=buffer_percent)
 		return bounds
 
-        
+	def set_timezone(self):
+		'''
+		Sets the time zone of the table based on its coordinates.
+		Useful for front end shadow simulation. 
+		'''
+		props = self.get_table_properties()
+		lat,lon = props['latitude'],props['longitude']
+		hour_offset = get_timezone_offset(lat,lon)
+		url = urljoin(self.cityIO_post_url,'GEOGRID','properties','header','tz')
+		r = requests.post(url,data=str(int(hour_offset)),headers=self.post_headers)
+		if r.status_code==200:
+			if not self.quietly:
+				print('Timezone set to:',hour_offset)
+
 	def check_table(self,return_value=False):
 		'''Prints the front end url for the table. 
 
@@ -586,7 +604,7 @@ class Handler(Thread):
 		self.indicators[indicatorName] = I
 		if test:
 			geogrid_data = self._get_grid_data()
-			if I.indicator_type not in set(['numeric','heatmap','access','textual','hybrid']):
+			if I.indicator_type not in set(['numeric','heatmap','access','textual','hybrid','grid']):
 				raise NameError('Indicator type should either be numeric, heatmap, textual, or hybrid. Current type: '+str(I.indicator_type))
 			try:
 				if I.is_composite:
@@ -967,6 +985,8 @@ class Handler(Thread):
 					new_values_textual += self._new_value(geogrid_data,indicator_name)
 				elif (I.indicator_type in ['numeric'])&(not I.is_composite):
 					new_values_numeric += self._new_value(geogrid_data,indicator_name)
+				elif (I.indicator_type in ['grid']):
+					pass
 				else:
 					raise NameError(f'Unrecognized indicator type {I.indicator_type} for {indicator_name}')
 			except:
@@ -1054,8 +1074,16 @@ class Handler(Thread):
 			grid_hash_id=self.grid_hash_id
 		return grid_hash_id
 
-	def get_GEOGRID(self):
-		if self.GEOGRID is None:
+	def get_GEOGRID(self,force_get=False):
+		'''
+		Returns geogrid object stored locally. If force_get=True, it will return remote object and overwrite local object.
+
+		Parameters
+		----------
+		force_get : boolean, defaults to `False`
+			If `True` it will GET request the geogrid object and overwrite the locally stored one.
+		'''
+		if (self.GEOGRID is None)|force_get:
 			r = self._get_url(urljoin(self.cityIO_get_url,self.GEOGRID_varname))
 			if r.status_code==200:
 				geogrid = r.json()
@@ -1065,7 +1093,7 @@ class Handler(Thread):
 					warn('NAICS and LBCS classifications were not properly parsed.')
 				self.GEOGRID = geogrid
 			else:
-				warn('WARNING: Cant access GEOGRIDDATA')
+				warn('WARNING: Cant access GEOGRID')
 		return self.GEOGRID
 
 	def normalize_codes(self,code_proportion):
@@ -1104,6 +1132,34 @@ class Handler(Thread):
 					code_proportion = None
 				geogrid['properties']['types'][t][code] = code_proportion
 		return geogrid
+
+	def set_opacity(self,alpha,default_alpha=1):
+		'''
+		Sets opacity values in GEOGRID.
+		To see updates in GEOGRIDDATA, reset GEOGRIDDATA using :func:`brix.Handler.reset_geogrid_data`.
+
+		Parameters
+		----------
+		alpha: float or dict
+		    Values of opacity between 0 and 1.
+		    If dict, use the types as keys and opacity as values.
+		    Non-specificed types will be set to default_alpha.
+		    If float, this will change the opacity for all types equally.
+		default_alpha: float, defaults to 1
+		    Opacity value to use when type not specified in alpha.
+		'''
+		geogrid = self.get_GEOGRID()
+		features = geogrid['features']
+		for cell in features:
+			if isinstance(alpha,dict):
+				if cell['properties']['name'] in alpha.keys():
+					cell['properties']['color'] = cell['properties']['color'][:3]+[int(alpha[cell['properties']['name']]*255)]
+				else:
+					cell['properties']['color'] = cell['properties']['color'][:3]+[int(default_alpha*255)]
+			else:
+				cell['properties']['color'] = cell['properties']['color'][:3]+[int(alpha*255)]
+		r = requests.post(urljoin(self.cityIO_GEOGRID_post_url,'features'),data=json.dumps(features),headers=self.post_headers)
+		geogrid = self.get_GEOGRID(force_get=True)
 
 	def get_GEOGRIDDATA(self):
 		'''
@@ -1204,11 +1260,24 @@ class Handler(Thread):
 
 		new_values = self.update_package(append=append)
 
-		self._post_indicators(new_values)
+		i_count = 0
+		if 'numeric' in new_values.keys():
+			i_count += len(new_values['numeric'])
+		if 'textual' in new_values.keys():
+			i_count += len(new_values['textual'])
+		if 'heatmap' in new_values.keys():
+			i_count += len(new_values['heatmap']['properties'])
 
-		if not self.quietly:
-			print('Done with update')
+		if i_count==0:
+			if not self.quietly:
+				print('No values to update')
+		else:
+			self._post_indicators(new_values)
+			if not self.quietly:
+				print('Done with update')
 		self.grid_hash_id = grid_hash_id
+		if not self.quietly:
+			print('Local grid hash:',grid_hash_id)
 
 	def _post_indicators(self,new_values,post_empty=False):
 		'''
@@ -1248,16 +1317,30 @@ class Handler(Thread):
 		Performs GEOGRIDDATA update using the functions added to the :class:`brix.Handler` using :func:`brix.Hanlder.add_geogrid_data_update_function`.
 
 		Returns True if an update happened, and Flase otherwise.
+
+		Any grid indicator will overrule any grid function.
 		'''
+		if not self.quietly:
+			print('Updating geogrid_data')
+
 		update_flag = False
 		if geogrid_data is None:
 			geogrid_data = self._get_grid_data()
-		for update_func in self.update_geogrid_data_functions:
-			new_geogrid_data = update_func(geogrid_data)
-			self.post_geogrid_data(new_geogrid_data)
+
+		grid_indicators = [indicator_name for indicator_name in self.indicators if self.indicators[indicator_name].indicator_type == 'grid']
+		if len(grid_indicators)>1:
+			raise NameError('More than one grid indicator found')
+		if len(grid_indicators)==1:
+			I_grid = self.indicators[grid_indicators[0]]
+			new_geogrid_data = I_grid.return_indicator(geogrid_data)
+			self.post_geogrid_data(new_geogrid_data,override_verification=I_grid.override_verification)
 			update_flag = True
-			if not self.quietly:
-				print('GEOGRIDDATA successfully updated')
+		else:
+			for update_func in self.update_geogrid_data_functions:
+				new_geogrid_data = update_func(geogrid_data)
+				self.post_geogrid_data(new_geogrid_data)
+				update_flag = True
+		# Also, make sure these indicators are ignored when performing the other updates !!!!!!!!
 		return update_flag
 
 
@@ -1400,6 +1483,10 @@ class Handler(Thread):
 
 			geogrid_data.remap_colors()
 			geogrid_data.remap_interactive()
+			geogrid_data.pop_geometries()
+		else:
+			if not self.quietly:
+				print('Proceeding without reviewing GEOGRIDDATA')
 
 		geogrid_data = list(geogrid_data)
 
@@ -1458,6 +1545,7 @@ class Indicator:
 		# self.int_types_def=None
 		# self.types_def=None
 		# self.geogrid_header=None
+		self.override_verification = False
 		self.is_composite = False
 		self.tableHandler = None
 		self.table_name = None
