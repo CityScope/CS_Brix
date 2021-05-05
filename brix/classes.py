@@ -19,7 +19,7 @@ from copy import deepcopy
 try:
 	import networkx as nx
 except:
-	warn('Networkx no found.')
+	warn('Networkx not found.')
 import traceback
 
 class GEOGRIDDATA(list):
