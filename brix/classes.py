@@ -459,6 +459,18 @@ class Handler(Thread):
 			if not self.quietly:
 				print('Timezone set to:',hour_offset)
 
+	def center_grid_view(self):
+		'''
+		Sets the initial grid view to the center of the grid. 
+		'''
+		grid_center = self.grid_bounds().centroid
+		lon = grid_center.x
+		lat = grid_center.y
+		lat_url = urljoin(self.cityIO_GEOGRID_post_url,'properties','header','latitude')
+		lon_url = urljoin(self.cityIO_GEOGRID_post_url,'properties','header','longitude')
+		r = requests.post(lat_url,data=str(lat),headers=self.post_headers)
+		r = requests.post(lon_url,data=str(lon),headers=self.post_headers)
+
 	def check_table(self,return_value=False):
 		'''Prints the front end url for the table. 
 
@@ -1408,10 +1420,9 @@ class Handler(Thread):
 							grid_hash_id = self.get_grid_hash()
 						self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
 					except Exception:
-						if not self.quietly:
-							print('I was not able to update grid with hash:',grid_hash_id)
-							print(traceback.format_exc())
-							print('Waiting until a new grid appears')
+						warn('I was not able to update grid with hash:',grid_hash_id)
+						warn(traceback.format_exc())
+						warn('Waiting until a new grid appears')
 						self.grid_hash_id = grid_hash_id
 
 	def run(self):
