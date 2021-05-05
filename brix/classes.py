@@ -445,32 +445,6 @@ class Handler(Thread):
 		bounds = geogrid_data.bounds(bbox=bbox,buffer_percent=buffer_percent)
 		return bounds
 
-	def set_timezone(self):
-		'''
-		Sets the time zone of the table based on its coordinates.
-		Useful for front end shadow simulation. 
-		'''
-		props = self.get_table_properties()
-		lat,lon = props['latitude'],props['longitude']
-		hour_offset = get_timezone_offset(lat,lon)
-		url = urljoin(self.cityIO_post_url,'GEOGRID','properties','header','tz')
-		r = requests.post(url,data=str(int(hour_offset)),headers=self.post_headers)
-		if r.status_code==200:
-			if not self.quietly:
-				print('Timezone set to:',hour_offset)
-
-	def center_grid_view(self):
-		'''
-		Sets the initial grid view to the center of the grid. 
-		'''
-		grid_center = self.grid_bounds().centroid
-		lon = grid_center.x
-		lat = grid_center.y
-		lat_url = urljoin(self.cityIO_GEOGRID_post_url,'properties','header','latitude')
-		lon_url = urljoin(self.cityIO_GEOGRID_post_url,'properties','header','longitude')
-		r = requests.post(lat_url,data=str(lat),headers=self.post_headers)
-		r = requests.post(lon_url,data=str(lon),headers=self.post_headers)
-
 	def check_table(self,return_value=False):
 		'''Prints the front end url for the table. 
 
@@ -562,6 +536,32 @@ class Handler(Thread):
 			if obj.name not in self.list_indicators():
 				unlinked_indicators.append(obj.name)
 		return unlinked_indicators
+
+	def set_timezone(self):
+		'''
+		Sets the time zone of the table based on its coordinates.
+		Useful for front end shadow simulation. 
+		'''
+		props = self.get_table_properties()
+		lat,lon = props['latitude'],props['longitude']
+		hour_offset = get_timezone_offset(lat,lon)
+		url = urljoin(self.cityIO_post_url,'GEOGRID','properties','header','tz')
+		r = requests.post(url,data=str(int(hour_offset)),headers=self.post_headers)
+		if r.status_code==200:
+			if not self.quietly:
+				print('Timezone set to:',hour_offset)
+
+	def center_grid_view(self):
+		'''
+		Sets the initial grid view to the center of the grid. 
+		'''
+		grid_center = self.grid_bounds().centroid
+		lon = grid_center.x
+		lat = grid_center.y
+		lat_url = urljoin(self.cityIO_GEOGRID_post_url,'properties','header','latitude')
+		lon_url = urljoin(self.cityIO_GEOGRID_post_url,'properties','header','longitude')
+		r = requests.post(lat_url,data=str(lat),headers=self.post_headers)
+		r = requests.post(lon_url,data=str(lon),headers=self.post_headers)
 
 	def indicator(self,name):
 		'''Returns the :class:`brix.Indicator` with the given name.
