@@ -19,7 +19,8 @@ from copy import deepcopy
 try:
 	import networkx as nx
 except:
-	print('Warning: networkx no found.')
+	warn('Networkx no found.')
+import traceback
 
 class GEOGRIDDATA(list):
 	'''
@@ -989,8 +990,9 @@ class Handler(Thread):
 					pass
 				else:
 					raise NameError(f'Unrecognized indicator type {I.indicator_type} for {indicator_name}')
-			except:
+			except Exception:
 				warn('Indicator not working:'+str(indicator_name))
+				warn(traceback.format_exc())
 
 		# Get values for composite indicators
 		for indicator_name in self.indicators:
@@ -1405,10 +1407,10 @@ class Handler(Thread):
 						if self.perform_geogrid_data_update():
 							grid_hash_id = self.get_grid_hash()
 						self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
-					except Exception as e:
+					except Exception:
 						if not self.quietly:
 							print('I was not able to update grid with hash:',grid_hash_id)
-							print(e)
+							print(traceback.format_exc())
 							print('Waiting until a new grid appears')
 						self.grid_hash_id = grid_hash_id
 
