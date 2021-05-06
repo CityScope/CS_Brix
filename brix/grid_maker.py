@@ -80,10 +80,24 @@ class Grid():
             }
 
     def get_grid_geojson(self, add_properties={}, include_global_properties=True):
-        """
+        '''
         Takes the pre-computed locations of the top-left corner of every grid cell
         and creates a corresponding Multi-Polygon geojson object
-        """
+
+        Parameters
+        ----------
+        add_properties: dict (optional)
+            Properties of each type.
+            Currently not supported
+        include_global_properties: Boolean, defaults to `True`
+            If `True` it will add global properties to each cell. 
+
+        Returns
+        -------
+        geogrid: dict
+            Object to be posted to GEOGRID endpoint to create table. 
+            See :func:`brix.commit_grid`
+        '''
         dLLdCol=[self.grid_coords_ll[1][0]-self.grid_coords_ll[0][0], 
                          self.grid_coords_ll[1][1]-self.grid_coords_ll[0][1]]
         dLLdRow=[self.grid_coords_ll[self.ncols][0]-self.grid_coords_ll[0][0], 
@@ -128,10 +142,11 @@ class Grid():
         return geojson_object
     
     def plot(self):
-        """
+        '''
         Plots the whole grid in blue. 
         If some cells are maked as interactive, they will be plotted in red.
-        """
+        Useful to ensure the correct behavior. 
+        '''
         plt.scatter([g[0] for g in self.grid_coords_ll], 
             [g[1] for g in self.grid_coords_ll], c='blue', alpha=0.5)
 
