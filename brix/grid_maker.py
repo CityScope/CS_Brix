@@ -16,9 +16,10 @@ import matplotlib.path as mplPath
 import requests
 import matplotlib.pyplot as plt
 
-wgs=pyproj.Proj("+init=EPSG:4326")
+
 
 class Grid():
+    wgs=pyproj.Proj("+init=EPSG:4326")
     def __init__(self, table_name, top_left_lon, top_left_lat, rotation, crs_epsg, 
                  cell_size, nrows, ncols, flip_y=False):
         """
@@ -43,9 +44,9 @@ class Grid():
         lo2= lo1+ math.atan2(math.sin(bearing_rad) * math.sin(Ad) * math.cos(la1),
                              math.cos(Ad)-math.sin(la1)*math.sin(la2))
         top_right_lon_lat={'lon': rad_to_deg(lo2), 'lat': rad_to_deg(la2)}        
-        top_left_xy=pyproj.transform(wgs, self.projection,top_left_lon_lat['lon'], 
+        top_left_xy=pyproj.transform(self.wgs, self.projection,top_left_lon_lat['lon'], 
                                      top_left_lon_lat['lat'])
-        top_right_xy=pyproj.transform(wgs, self.projection,top_right_lon_lat['lon'], 
+        top_right_xy=pyproj.transform(self.wgs, self.projection,top_right_lon_lat['lon'], 
                                       top_right_lon_lat['lat'])
         # now we have the top two points in a spatial system, 
         # we can calculate the rest of the points
@@ -60,7 +61,7 @@ class Grid():
         y_rot=[x_unRot[i]*sinTheta +y_unRot[i]*cosTheta for i in range(len(x_unRot))]
         x_rot_trans=[top_left_xy[0]+x_rot[i] for i in range(len(x_rot))]
         y_rot_trans=[top_left_xy[1]+y_rot[i] for i in range(len(x_rot))]
-        lon_grid, lat_grid=pyproj.transform(self.projection,wgs,x_rot_trans, y_rot_trans)
+        lon_grid, lat_grid=pyproj.transform(self.projection,self.wgs,x_rot_trans, y_rot_trans)
         self.grid_coords_ll=[[lon_grid[i], lat_grid[i]] for i in range(len(lon_grid))]
         self.grid_coords_xy=[[x_rot_trans[i], y_rot_trans[i]] for i in range(len(y_rot_trans))]
         self.properties={'color':[0,0,0],
