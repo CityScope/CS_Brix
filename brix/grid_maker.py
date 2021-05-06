@@ -137,7 +137,7 @@ class Grid():
 
         plt.show()
 
-def commit_grid(table_name, grid_geo):
+def commit_grid(table_name, geogrid):
     '''
     Commits the geogrid to create the new table.
     This will reset GEOGRIDDATA and clear all indicator endpoints if the table alread existed.
@@ -146,11 +146,11 @@ def commit_grid(table_name, grid_geo):
     ----------
     table_name: str
         Name of table to create.
-    grid_geo: dict
+    geogrid: dict
         GEOGRID object returned by :func:`brix.Grid.get_grid_geojson`
     '''
     H = Handler(table_name, shell_mode=True)
-    r = requests.post(H.cityIO_post_url, data = json.dumps({'GEOGRID':grid_geo}), headers=Handler.cityio_post_headers)
+    r = requests.post(H.cityIO_post_url, data = json.dumps({'GEOGRID':geogrid}), headers=Handler.cityio_post_headers)
     print('Geogrid posted to:')
     print(r.url)
     print(r.status_code)
@@ -159,4 +159,15 @@ def commit_grid(table_name, grid_geo):
 
 
 def edit_types(geogrid, types_json):
+    '''
+    Changes the default types for user defined types.
+
+    Parameters
+    ----------
+    geogrid: dict
+        GEOGRID object returned by :func:`brix.Grid.get_grid_geojson`
+    types_json: dict
+        Object with new type definitions.
+        Each type name is passed as a key and values are dicts with the properties of each type. 
+    '''
     geogrid['properties']['types']=types_json
