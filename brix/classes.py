@@ -9,7 +9,7 @@ import geopandas as gpd
 import hashlib
 import weakref
 from warnings import warn
-from time import sleep, time
+from time import sleep, time as right_now
 from collections import defaultdict
 from .helpers import is_number, get_buffer_size, urljoin, get_timezone_offset
 from threading import Thread
@@ -346,7 +346,7 @@ class Handler(Thread):
 	table_name : str
 		Table name to lisen to.
 		https://cityio.media.mit.edu/api/table/table_name
-	quietly : boolean, defaults to `True`
+	quietly : boolean, defaults to `False`
 		If True, it will show the status of every API call.
 	host_mode : str, defaults to 'remote'
 		If 'local' it will use http://127.0.0.1:5000/ as host.
@@ -384,7 +384,7 @@ class Handler(Thread):
 		self.sleep_time_short = 0.5
 		self.sleep_time_long  = 2
 		self.rest_mode   = False
-		self.active_start = time.time()
+		self.active_start = right_now()
 		self.total_active_time  = 5*60
 
 		self.nAttempts = 5
@@ -440,19 +440,22 @@ class Handler(Thread):
 		'''
 		Turns off rest mode.
 		'''
+		if not self.quietly:
+			print('Waking up!')
 		self.rest_mode = False
-		self.active_start = time.time()
+		self.active_start = right_now()
 
 	def check_rest(self):
 		'''
 		Checks if module should be put in resting mode
 		'''
-		current_time = time.time()
-		if current_time-self.active_start>=self.total_active_time:
-			if not self.quietly:
-				print('Going into rest mode')
-				print('Time active:',current_time-self.active_start)
-			self.rest_mode = True
+		if not self.rest_mode:
+			current_time = right_now()
+			if current_time-self.active_start>=self.total_active_time:
+				if not self.quietly:
+					print('Going into rest mode')
+					print('Time active:',current_time-self.active_start)
+				self.rest_mode = True
 
 	def grid_bounds(self,bbox=False,buffer_percent=None):
 		'''
@@ -1408,7 +1411,7 @@ class Handler(Thread):
 			print('Cleared table')
 		self.grid_hash_id = grid_hash_id
 
-	def _listen(self,showFront=True,robust=False):
+	def _listen(self,showFront=False,robust=False):
 		'''
 		Lower level listen. Should only be called directly for debugging purposes. 
 		Use :func:`brix.Handler.listen` instead.
@@ -1419,7 +1422,7 @@ class Handler(Thread):
 
 		Parameters
 		----------
-		showFront : boolean, defaults to `True`
+		showFront : boolean, defaults to `False`
 			If `True` it will open the front-end URL in a webbrowser at start.
 		robust : boolean, defaults to `False`
 			If `True`, whenever a grid configuration breaks an indicator, the module will not stop, but rather wait until the grid changes and try to update again.
@@ -1467,7 +1470,7 @@ class Handler(Thread):
 		'''
 		self._listen(showFront=False)
 
-	def listen(self,new_thread=False,showFront=True,append=False,clear_endpoints=False,robust=False):
+	def listen(self,new_thread=False,showFront=False,append=False,clear_endpoints=False,robust=False):
 		'''
 		Listens for changes in the table's geogrid and update all indicators accordingly. 
 		You can use the update_package method to see the object that will be posted to the table.
@@ -1480,7 +1483,7 @@ class Handler(Thread):
 		new_thread : boolean, defaults to `False`.
 			If `True` it will run in a separate thread, freeing up the main thread for other tables.
 			We recommend setting this to `False` when debugging, to avoid needing to recreate the object. 
-		showFront : boolean, defaults to `True`
+		showFront : boolean, defaults to `False`
 			If `True` it will open the front-end URL in a webbrowser at start.
 			Only works if `new_tread=False`.
 		append : boolean, defaults to `False`
