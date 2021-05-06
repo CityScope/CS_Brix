@@ -9,7 +9,7 @@ import geopandas as gpd
 import hashlib
 import weakref
 from warnings import warn
-from time import sleep
+from time import sleep, time
 from collections import defaultdict
 from .helpers import is_number, get_buffer_size, urljoin, get_timezone_offset
 from threading import Thread
@@ -381,7 +381,12 @@ class Handler(Thread):
 		self.host = 'http://127.0.0.1:5000/' if host_mode=='local' else self.host
 		self.post_headers = self.cityio_post_headers
 
-		self.sleep_time = 0.5
+		self.sleep_time_short = 0.5
+		self.sleep_time_long  = 2
+		self.rest_mode   = False
+		self.active_start = time.time()
+		self.total_active_time  = 5*60
+
 		self.nAttempts = 5
 		self.append_on_post = False
 
@@ -421,6 +426,33 @@ class Handler(Thread):
 		self.classification_list = ['LBCS','NAICS']
 
 		self.OSM_data = {}
+
+	def sleep_time(self):
+		'''
+		Returns sleep time in seconds, handling whether the table is in rest_mode or not. 
+		'''
+		if self.rest_mode:
+			return self.sleep_time_long
+		else:
+			return self.sleep_time_short
+
+	def wake_up(self):
+		'''
+		Turns off rest mode.
+		'''
+		self.rest_mode = False
+		self.active_start = time.time()
+
+	def check_rest(self):
+		'''
+		Checks if module should be put in resting mode
+		'''
+		current_time = time.time()
+		if current_time-self.active_start>=self.total_active_time:
+			if not self.quietly:
+				print('Going into rest mode')
+				print('Time active:',current_time-self.active_start)
+			self.rest_mode = True
 
 	def grid_bounds(self,bbox=False,buffer_percent=None):
 		'''
@@ -1407,9 +1439,10 @@ class Handler(Thread):
 			webbrowser.open(self.front_end_url, new=2)
 		self.grid_hash_id = self.get_grid_hash()
 		while True:
-			sleep(self.sleep_time)
+			sleep(self.sleep_time())
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
+				self.wake_up()
 				if not robust:
 					if self.perform_geogrid_data_update():
 						grid_hash_id = self.get_grid_hash()
@@ -1424,6 +1457,8 @@ class Handler(Thread):
 						warn(traceback.format_exc())
 						warn('Waiting until a new grid appears')
 						self.grid_hash_id = grid_hash_id
+			else:
+				self.check_rest()
 
 	def run(self):
 		'''
