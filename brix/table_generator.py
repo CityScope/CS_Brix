@@ -1,5 +1,6 @@
 # Table generator functions live here
 from .classes import Handler
+from .helpers import deg_to_rad,rad_to_deg
 
 import pyproj
 import math

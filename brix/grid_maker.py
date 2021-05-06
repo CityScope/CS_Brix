@@ -11,12 +11,7 @@ import numpy as np
 import matplotlib.path as mplPath
 import requests
 import matplotlib.pyplot as plt
-
-def deg_to_rad(deg):
-    return deg*math.pi/180
-
-def rad_to_deg(rad):
-    return rad*180/math.pi
+from .helpers import deg_to_rad,rad_to_deg
 
 def point_in_shape(point, geometry):
     if geometry['type']=='MultiPolygon':

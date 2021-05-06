@@ -1,6 +1,7 @@
 # Helper functions live here
 import json
 import geopandas as gpd
+import math
 
 try: # libraries needed to set the timezone of the table
 	from datetime import datetime
@@ -8,6 +9,12 @@ try: # libraries needed to set the timezone of the table
 	from pytz import timezone, utc
 except:
 	pass
+
+def deg_to_rad(deg):
+	return deg*math.pi/180
+
+def rad_to_deg(rad):
+	return rad*180/math.pi
 
 def urljoin(*args,trailing_slash=True):
 	trailing_slash_char = '/' if trailing_slash else ''
