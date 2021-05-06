@@ -9,7 +9,7 @@ import geopandas as gpd
 import hashlib
 import weakref
 from warnings import warn
-from time import sleep
+from time import sleep, time as right_now
 from collections import defaultdict
 from .helpers import is_number, get_buffer_size, urljoin, get_timezone_offset
 from threading import Thread
@@ -19,7 +19,8 @@ from copy import deepcopy
 try:
 	import networkx as nx
 except:
-	print('Warning: networkx no found.')
+	warn('Networkx not found.')
+import traceback
 
 class GEOGRIDDATA(list):
 	'''
@@ -345,7 +346,7 @@ class Handler(Thread):
 	table_name : str
 		Table name to lisen to.
 		https://cityio.media.mit.edu/api/table/table_name
-	quietly : boolean, defaults to `True`
+	quietly : boolean, defaults to `False`
 		If True, it will show the status of every API call.
 	host_mode : str, defaults to 'remote'
 		If 'local' it will use http://127.0.0.1:5000/ as host.
@@ -364,7 +365,7 @@ class Handler(Thread):
 	_indicator_instances = set()
 
 	def __init__(self, table_name, 
-			quietly=True, 
+			quietly=False, 
 			host_mode ='remote', 
 			host_name = None,
 			reference = None,
@@ -380,7 +381,12 @@ class Handler(Thread):
 		self.host = 'http://127.0.0.1:5000/' if host_mode=='local' else self.host
 		self.post_headers = self.cityio_post_headers
 
-		self.sleep_time = 0.5
+		self.sleep_time_short = 0.5
+		self.sleep_time_long  = 2
+		self.rest_mode   = False
+		self.active_start = right_now()
+		self.total_active_time  = 5*60
+
 		self.nAttempts = 5
 		self.append_on_post = False
 
@@ -421,6 +427,36 @@ class Handler(Thread):
 
 		self.OSM_data = {}
 
+	def sleep_time(self):
+		'''
+		Returns sleep time in seconds, handling whether the table is in rest_mode or not. 
+		'''
+		if self.rest_mode:
+			return self.sleep_time_long
+		else:
+			return self.sleep_time_short
+
+	def wake_up(self):
+		'''
+		Turns off rest mode.
+		'''
+		if not self.quietly:
+			print('Waking up!')
+		self.rest_mode = False
+		self.active_start = right_now()
+
+	def check_rest(self):
+		'''
+		Checks if module should be put in resting mode
+		'''
+		if not self.rest_mode:
+			current_time = right_now()
+			if current_time-self.active_start>=self.total_active_time:
+				if not self.quietly:
+					print('Going into rest mode')
+					print('Time active:',current_time-self.active_start)
+				self.rest_mode = True
+
 	def grid_bounds(self,bbox=False,buffer_percent=None):
 		'''
 		Returns the bounds of the geogrid.
@@ -443,20 +479,6 @@ class Handler(Thread):
 		geogrid_data = self._get_grid_data(include_geometries=True)
 		bounds = geogrid_data.bounds(bbox=bbox,buffer_percent=buffer_percent)
 		return bounds
-
-	def set_timezone(self):
-		'''
-		Sets the time zone of the table based on its coordinates.
-		Useful for front end shadow simulation. 
-		'''
-		props = self.get_table_properties()
-		lat,lon = props['latitude'],props['longitude']
-		hour_offset = get_timezone_offset(lat,lon)
-		url = urljoin(self.cityIO_post_url,'GEOGRID','properties','header','tz')
-		r = requests.post(url,data=str(int(hour_offset)),headers=self.post_headers)
-		if r.status_code==200:
-			if not self.quietly:
-				print('Timezone set to:',hour_offset)
 
 	def check_table(self,return_value=False):
 		'''Prints the front end url for the table. 
@@ -489,12 +511,8 @@ class Handler(Thread):
 			Current value of selected indicators.
 		'''
 		if indicator_type in ['numeric']:
-			if not self.quietly:
-				print(self.cityIO_get_url+'/indicators')
 			r = self._get_url(urljoin(self.cityIO_get_url,'indicators'))
 		elif indicator_type in ['heatmap','access']:
-			if not self.quietly:
-				print(self.cityIO_get_url+'/access')
 			r = self._get_url(urljoin(self.cityIO_get_url,'access'))
 		else:
 			raise NameError('Indicator type should either be numeric, heatmap, or access. Current type: '+str(indicator_type))
@@ -549,6 +567,32 @@ class Handler(Thread):
 			if obj.name not in self.list_indicators():
 				unlinked_indicators.append(obj.name)
 		return unlinked_indicators
+
+	def set_timezone(self):
+		'''
+		Sets the time zone of the table based on its coordinates.
+		Useful for front end shadow simulation. 
+		'''
+		props = self.get_table_properties()
+		lat,lon = props['latitude'],props['longitude']
+		hour_offset = get_timezone_offset(lat,lon)
+		url = urljoin(self.cityIO_post_url,'GEOGRID','properties','header','tz')
+		r = requests.post(url,data=str(int(hour_offset)),headers=self.post_headers)
+		if r.status_code==200:
+			if not self.quietly:
+				print('Timezone set to:',hour_offset)
+
+	def center_grid_view(self):
+		'''
+		Sets the initial grid view to the center of the grid. 
+		'''
+		grid_center = self.grid_bounds().centroid
+		lon = grid_center.x
+		lat = grid_center.y
+		lat_url = urljoin(self.cityIO_GEOGRID_post_url,'properties','header','latitude')
+		lon_url = urljoin(self.cityIO_GEOGRID_post_url,'properties','header','longitude')
+		r = requests.post(lat_url,data=str(lat),headers=self.post_headers)
+		r = requests.post(lon_url,data=str(lon),headers=self.post_headers)
 
 	def indicator(self,name):
 		'''Returns the :class:`brix.Indicator` with the given name.
@@ -989,8 +1033,9 @@ class Handler(Thread):
 					pass
 				else:
 					raise NameError(f'Unrecognized indicator type {I.indicator_type} for {indicator_name}')
-			except:
+			except Exception:
 				warn('Indicator not working:'+str(indicator_name))
+				warn(traceback.format_exc())
 
 		# Get values for composite indicators
 		for indicator_name in self.indicators:
@@ -1242,7 +1287,7 @@ class Handler(Thread):
 		geogrid_data = self._get_grid_data(include_geometries=include_geometries,with_properties=with_properties)
 		return geogrid_data
 
-	def perform_update(self,grid_hash_id=None,append=False):
+	def perform_update(self,grid_hash_id=None,append=False,return_update_package=False):
 		'''
 		Performs single table update.
 
@@ -1252,6 +1297,8 @@ class Handler(Thread):
 			Current grid hash id. If not provided, it will retrieve it.
 		append : boolean, defaults to `True`
 			If `True`, it will append the new indicators to whatever is already there.
+		return_update_package : boolean, defaults to `False`
+			If `True` this funciton will return the posted object.
 		'''
 		if grid_hash_id is None: 
 			grid_hash_id = self.get_grid_hash()	
@@ -1278,6 +1325,8 @@ class Handler(Thread):
 		self.grid_hash_id = grid_hash_id
 		if not self.quietly:
 			print('Local grid hash:',grid_hash_id)
+		if return_update_package:
+			return new_values
 
 	def _post_indicators(self,new_values,post_empty=False):
 		'''
@@ -1362,7 +1411,7 @@ class Handler(Thread):
 			print('Cleared table')
 		self.grid_hash_id = grid_hash_id
 
-	def _listen(self,showFront=True):
+	def _listen(self,showFront=False,robust=False):
 		'''
 		Lower level listen. Should only be called directly for debugging purposes. 
 		Use :func:`brix.Handler.listen` instead.
@@ -1373,8 +1422,10 @@ class Handler(Thread):
 
 		Parameters
 		----------
-		showFront : boolean, defaults to `True`
+		showFront : boolean, defaults to `False`
 			If `True` it will open the front-end URL in a webbrowser at start.
+		robust : boolean, defaults to `False`
+			If `True`, whenever a grid configuration breaks an indicator, the module will not stop, but rather wait until the grid changes and try to update again.
 		'''
 		if not self.quietly:
 			print('Table URL:',self.front_end_url)
@@ -1391,12 +1442,26 @@ class Handler(Thread):
 			webbrowser.open(self.front_end_url, new=2)
 		self.grid_hash_id = self.get_grid_hash()
 		while True:
-			sleep(self.sleep_time)
+			sleep(self.sleep_time())
 			grid_hash_id = self.get_grid_hash()
 			if grid_hash_id!=self.grid_hash_id:
-				if self.perform_geogrid_data_update():
-					grid_hash_id = self.get_grid_hash()
-				self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
+				self.wake_up()
+				if not robust:
+					if self.perform_geogrid_data_update():
+						grid_hash_id = self.get_grid_hash()
+					self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
+				else:
+					try:
+						if self.perform_geogrid_data_update():
+							grid_hash_id = self.get_grid_hash()
+						self.perform_update(grid_hash_id=grid_hash_id,append=self.append_on_post)
+					except Exception:
+						warn('I was not able to update grid with hash:',grid_hash_id)
+						warn(traceback.format_exc())
+						warn('Waiting until a new grid appears')
+						self.grid_hash_id = grid_hash_id
+			else:
+				self.check_rest()
 
 	def run(self):
 		'''
@@ -1405,7 +1470,7 @@ class Handler(Thread):
 		'''
 		self._listen(showFront=False)
 
-	def listen(self,new_thread=False,showFront=True,append=False,clear_endpoints=False):
+	def listen(self,new_thread=False,showFront=False,append=False,clear_endpoints=False,robust=False):
 		'''
 		Listens for changes in the table's geogrid and update all indicators accordingly. 
 		You can use the update_package method to see the object that will be posted to the table.
@@ -1418,7 +1483,7 @@ class Handler(Thread):
 		new_thread : boolean, defaults to `False`.
 			If `True` it will run in a separate thread, freeing up the main thread for other tables.
 			We recommend setting this to `False` when debugging, to avoid needing to recreate the object. 
-		showFront : boolean, defaults to `True`
+		showFront : boolean, defaults to `False`
 			If `True` it will open the front-end URL in a webbrowser at start.
 			Only works if `new_tread=False`.
 		append : boolean, defaults to `False`
@@ -1427,6 +1492,9 @@ class Handler(Thread):
 		clear_endpoints : boolean, defaults to `False`
 			If `True`, it will clear all existing heatmap, numeric, and textual indicators.
 			This is not recommended for deployment, only for testing. 
+		robust : boolean, defaults to `False`
+			If `True`, whenever a grid configuration breaks an indicator, the module will not stop, but rather wait until the grid changes and try to update again.
+			Incompatible with `new_thread=True`
 		'''
 
 		unlinked_indicators = self.list_all_unlinked_indicators()
@@ -1439,7 +1507,7 @@ class Handler(Thread):
 		if new_thread:
 			self.start()
 		else:
-			self._listen(showFront=showFront)
+			self._listen(showFront=showFront,robust=robust)
 
 	def reset_geogrid_data(self,override_verification=True):
 		'''
