@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.path as mplPath
 import requests
 import matplotlib.pyplot as plt
+import copy
 
 def deg_to_rad(deg):
     return deg*math.pi/180
