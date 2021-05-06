@@ -137,30 +137,26 @@ class Grid():
 
         plt.show()
 
+def commit_grid(table_name, grid_geo):
+    '''
+    Commits the geogrid to create the new table.
+    This will reset GEOGRIDDATA and clear all indicator endpoints if the table alread existed.
+    
+    Parameters
+    ----------
+    table_name: str
+        Name of table to create.
+    grid_geo: dict
+        GEOGRID object returned by :func:`brix.Grid.get_grid_geojson`
+    '''
+    H = Handler(table_name, shell_mode=True)
+    r = requests.post(H.cityIO_post_url, data = json.dumps({'GEOGRID':grid_geo}), headers=Handler.cityio_post_headers)
+    print('Geogrid posted to:')
+    print(r.url)
+    print(r.status_code)
+    H.reset_geogrid_data()
+    H.clear_endpoints()
 
-    def commit_grid(table_name,grid_geo, save_json = False):
-        """
-        Commits the geogrid 
-        reset_geogrid_data() generates the GEOGRIDDATA and clear_endpoints() removes any exiting traces or previous indicators
-        Saves as a json the table created
-        """
-        H = Handler(table_name, shell_mode=True)
 
-        r = requests.post(H.cityIO_post_url, data = json.dumps({'GEOGRID':grid_geo}), headers=Handler.cityio_post_headers)
-        print('Geogrid:')
-        print(r.url)
-        print(r)
-
-        H.reset_geogrid_data()
-        H.clear_endpoints()
-
-        # Save the geogrid created
-        if save_json:
-            geogrid_out_fname = 'grid_'+ table_name +'.json'
-            overwrite = input(f'Overwrite {geogrid_out_fname}? (y/n)')
-            if overwrite=='y':
-                with open(geogrid_out_fname, 'w') as f:
-                    json.dump(geogrid, f)
-
-    def edit_types(geogrid, types_json):
-        geogrid['properties']['types']=types_json
+def edit_types(geogrid, types_json):
+    geogrid['properties']['types']=types_json
