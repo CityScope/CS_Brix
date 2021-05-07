@@ -24,12 +24,12 @@ def normalize_table_name(table_name):
 	Removes non-letter characters, replaces spaces with underscore, and transforms to lowercase.
 	'''
 	new_table_name = table_name.lower()
-	new_table_name = re.sub('[^a-zA-Z _]+', '', new_table_name)
+	new_table_name = re.sub('[^a-zA-Z ]+', '', new_table_name)
 	new_table_name = re.sub('[ ]+', ' ', new_table_name)
 	new_table_name = new_table_name.replace(' ','_')
 	return new_table_name
 
-def check_table_name(table_name):
+def chech_table_name(table_name):
 	new_table_name = normalize_table_name(table_name)
 	if new_table_name!=table_name:
 		return False
