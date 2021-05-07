@@ -22,7 +22,7 @@ from warnings import warn
 
 
 class Grid():
-    wgs=pyproj.Proj("+init=EPSG:4326")
+    wgs=pyproj.Proj("EPSG:4326")
     def __init__(self, table_name, top_left_lon, top_left_lat, rotation, crs_epsg, 
                  cell_size, nrows, ncols, flip_y=False):
         """
@@ -30,16 +30,24 @@ class Grid():
         computes the location of the top-right corner. Then projects
         to spatial coordinates in order to find the locations of the rest of 
         the grid cells
+
+        Parameters
+        ----------
+        crs_epsg: str
+            EPSG code for the desired projection.
+            Do not include 'EPSG'
+
+
         """
         if not chech_table_name(table_name):
             new_table_name = normalize_table_name(table_name)
-            print(f'Incorrect table name "{table_name}", using "{new_table_name}"" instead')
-            warn(f'Incorrect table name "{table_name}", using "{new_table_name}"" instead')
+            print(f'Incorrect table name "{table_name}", using "{new_table_name}" instead')
+            warn(f'Incorrect table name "{table_name}", using "{new_table_name}" instead')
             table_name = new_table_name
         EARTH_RADIUS_M=6.371e6
         top_left_lon_lat={'lon': top_left_lon, 'lat': top_left_lat}
         bearing=(90-rotation+360)%360
-        self.projection=pyproj.Proj("+init=EPSG:"+crs_epsg)
+        self.projection=pyproj.Proj(f'EPSG:{crs_epsg}')
         cell_size=cell_size
         self.nrows=nrows
         self.ncols=ncols
@@ -175,8 +183,8 @@ def commit_grid(table_name, geogrid):
     '''
     if not chech_table_name(table_name):
         new_table_name = normalize_table_name(table_name)
-        print(f'Incorrect table name "{table_name}", using "{new_table_name}"" instead')
-        warn(f'Incorrect table name "{table_name}", using "{new_table_name}"" instead')
+        print(f'Incorrect table name "{table_name}", using "{new_table_name}" instead')
+        warn(f'Incorrect table name "{table_name}", using "{new_table_name}" instead')
         table_name = new_table_name
     H = Handler(table_name, shell_mode=True)
     r = requests.post(H.cityIO_post_url, data = json.dumps({'GEOGRID':geogrid}), headers=Handler.cityio_post_headers)
