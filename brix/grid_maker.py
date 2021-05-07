@@ -18,7 +18,6 @@ import matplotlib.pyplot as plt
 import copy
 
 
-
 class Grid():
     wgs=pyproj.Proj("+init=EPSG:4326")
     def __init__(self, table_name, top_left_lon, top_left_lat, rotation, crs_epsg, 
