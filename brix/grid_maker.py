@@ -8,6 +8,7 @@ Created on Mon Jul 29 18:57:59 2019
 """
 from .classes import Handler
 from .helpers import deg_to_rad,rad_to_deg
+from .functions import normalize_table_name, chech_table_name
 
 import pyproj
 import math
@@ -17,6 +18,7 @@ import requests
 import matplotlib.pyplot as plt
 import copy
 import json
+from warnings import warn
 
 
 class Grid():
@@ -29,6 +31,11 @@ class Grid():
         to spatial coordinates in order to find the locations of the rest of 
         the grid cells
         """
+        if not chech_table_name(table_name):
+            new_table_name = normalize_table_name(table_name)
+            print(f'Incorrect table name "{table_name}", using "{new_table_name}"" instead')
+            warn(f'Incorrect table name "{table_name}", using "{new_table_name}"" instead')
+            table_name = new_table_name
         EARTH_RADIUS_M=6.371e6
         top_left_lon_lat={'lon': top_left_lon, 'lat': top_left_lat}
         bearing=(90-rotation+360)%360
@@ -166,6 +173,11 @@ def commit_grid(table_name, geogrid):
     geogrid: dict
         GEOGRID object returned by :func:`brix.Grid.get_grid_geojson`
     '''
+    if not chech_table_name(table_name):
+        new_table_name = normalize_table_name(table_name)
+        print(f'Incorrect table name "{table_name}", using "{new_table_name}"" instead')
+        warn(f'Incorrect table name "{table_name}", using "{new_table_name}"" instead')
+        table_name = new_table_name
     H = Handler(table_name, shell_mode=True)
     r = requests.post(H.cityIO_post_url, data = json.dumps({'GEOGRID':geogrid}), headers=Handler.cityio_post_headers)
     print('Geogrid posted to:')
