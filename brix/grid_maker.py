@@ -16,7 +16,7 @@ import matplotlib.path as mplPath
 import requests
 import matplotlib.pyplot as plt
 import copy
-
+import json
 
 
 class Grid():
