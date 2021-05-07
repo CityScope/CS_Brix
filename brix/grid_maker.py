@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib.path as mplPath
 import requests
 import matplotlib.pyplot as plt
-
+import copy
 
 
 class Grid():
