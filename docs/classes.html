@@ -265,6 +265,12 @@ Function should return a list of dicts that represents a valid geogriddata objec
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.clear_endpoints">
+<code class="sig-name descname">clear_endpoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.clear_endpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.clear_endpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears the table of all pre-existing numeric, heatmap, and textual indicators.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.clear_table">
 <code class="sig-name descname">clear_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.clear_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.clear_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clears all indicators from the table.</p>
@@ -288,8 +294,14 @@ the main thread default to daemon = False.</p>
 
 <dl class="method">
 <dt id="brix.Handler.get_GEOGRID">
-<code class="sig-name descname">get_GEOGRID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_GEOGRID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_GEOGRID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">get_GEOGRID</code><span class="sig-paren">(</span><em class="sig-param">force_get=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.get_GEOGRID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.get_GEOGRID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns geogrid object stored locally. If force_get=True, it will return remote object and overwrite local object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>force_get</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will GET request the geogrid object and overwrite the locally stored one.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="brix.Handler.get_GEOGRIDDATA">
@@ -505,7 +517,7 @@ exception.</p>
 
 <dl class="method">
 <dt id="brix.Handler.listen">
-<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param">new_thread=False</em>, <em class="sig-param">showFront=True</em>, <em class="sig-param">append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.listen" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param">new_thread=False</em>, <em class="sig-param">showFront=True</em>, <em class="sig-param">append=False</em>, <em class="sig-param">clear_endpoints=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.listen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Listens for changes in the table’s geogrid and update all indicators accordingly.
 You can use the update_package method to see the object that will be posted to the table.
 This method starts with an update before listening.
@@ -520,6 +532,8 @@ We recommend setting this to <cite>False</cite> when debugging, to avoid needing
 Only works if <cite>new_tread=False</cite>.</p></li>
 <li><p><strong>append</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will append the new indicators to whatever is already there.
 This option will be deprecated soon. We recommend not using it unless strictly necessary.</p></li>
+<li><p><strong>clear_endpoints</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite>, it will clear all existing heatmap, numeric, and textual indicators.
+This is not recommended for deployment, only for testing.</p></li>
 </ul>
 </dd>
 </dl>
@@ -562,6 +576,7 @@ This represents the Thread ID as reported by the kernel.</p>
 <code class="sig-name descname">perform_geogrid_data_update</code><span class="sig-paren">(</span><em class="sig-param">geogrid_data=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.perform_geogrid_data_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.perform_geogrid_data_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs GEOGRIDDATA update using the functions added to the <a class="reference internal" href="#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> using <code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Hanlder.add_geogrid_data_update_function()</span></code>.</p>
 <p>Returns True if an update happened, and Flase otherwise.</p>
+<p>Any grid indicator will overrule any grid function.</p>
 </dd></dl>
 
 <dl class="method">
@@ -668,6 +683,31 @@ It runs <code class="xref py py-func docutils literal notranslate"><span class="
 <dt id="brix.Handler.setName">
 <code class="sig-name descname">setName</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.setName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.set_opacity">
+<code class="sig-name descname">set_opacity</code><span class="sig-paren">(</span><em class="sig-param">alpha</em>, <em class="sig-param">default_alpha=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.set_opacity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.set_opacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets opacity values in GEOGRID.
+To see updates in GEOGRIDDATA, reset GEOGRIDDATA using <a class="reference internal" href="#brix.Handler.reset_geogrid_data" title="brix.Handler.reset_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.reset_geogrid_data()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alpha</strong> (<em>float</em><em> or </em><em>dict</em>) – Values of opacity between 0 and 1.
+If dict, use the types as keys and opacity as values.
+Non-specificed types will be set to default_alpha.
+If float, this will change the opacity for all types equally.</p></li>
+<li><p><strong>default_alpha</strong> (<em>float</em><em>, </em><em>defaults to 1</em>) – Opacity value to use when type not specified in alpha.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.set_timezone">
+<code class="sig-name descname">set_timezone</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.set_timezone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.set_timezone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the time zone of the table based on its coordinates.
+Useful for front end shadow simulation.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="brix.Handler.start">
@@ -1017,6 +1057,11 @@ This function should use if GEOGRID needs to be updated.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.GEOGRIDDATA.pop_geometries">
+<code class="sig-name descname">pop_geometries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#GEOGRIDDATA.pop_geometries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.GEOGRIDDATA.pop_geometries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="brix.GEOGRIDDATA.remap_colors">
 <code class="sig-name descname">remap_colors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#GEOGRIDDATA.remap_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.GEOGRIDDATA.remap_colors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forces the colors to match the define colors of the cell type.
@@ -1304,6 +1349,8 @@ We recommend setting this to <cite>False</cite> when debugging, to avoid needing
 Only works if <cite>new_tread=False</cite>.</p></li>
 <li><p><strong>append</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will append the new indicators to whatever is already there.
 This option will be deprecated soon. We recommend not using it unless strictly necessary.</p></li>
+<li><p><strong>clear_endpoints</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite>, it will clear all existing heatmap, numeric, and textual indicators.
+This is not recommended for deployment, only for testing.</p></li>
 </ul>
 </dd>
 </dl>

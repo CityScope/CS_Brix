@@ -166,6 +166,28 @@
 <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">shape</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
 <span class="kn">from</span> <span class="nn">.classes</span> <span class="kn">import</span> <span class="n">Handler</span>
+<span class="kn">from</span> <span class="nn">.classes</span> <span class="kn">import</span> <span class="n">Indicator</span>
+
+<span class="k">class</span> <span class="nc">SlowIndicator</span><span class="p">(</span><span class="n">Indicator</span><span class="p">):</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Simulates the behavior of a slow and heavy indicator. </span>
+<span class="sd">	This is a numeric indicator that posts information to be displayed as a bar chart.</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	delay: float, defaults to 10</span>
+<span class="sd">		Time, in seconds, that the indicator will take to return its value.</span>
+<span class="sd">		The indicator will return this value</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">delay</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="n">delay</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Slow indicator&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">indicator_type</span> <span class="o">=</span> <span class="s1">&#39;numeric&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">viz_type</span> <span class="o">=</span> <span class="s1">&#39;bar&#39;</span>
+	<span class="k">def</span> <span class="nf">return_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_data</span><span class="p">):</span>
+		<span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delay</span>
+
 
 <span class="k">def</span> <span class="nf">shuffle_geogrid_data</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>

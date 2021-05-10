@@ -9,6 +9,28 @@ import time
 from shapely.geometry import shape
 from time import sleep
 from .classes import Handler
+from .classes import Indicator
+
+class SlowIndicator(Indicator):
+	'''
+	Simulates the behavior of a slow and heavy indicator. 
+	This is a numeric indicator that posts information to be displayed as a bar chart.
+
+	Parameters
+	----------
+	delay: float, defaults to 10
+		Time, in seconds, that the indicator will take to return its value.
+		The indicator will return this value
+	'''
+	def setup(self,delay=10):
+		self.delay = delay
+		self.name = 'Slow indicator'
+		self.indicator_type = 'numeric'
+		self.viz_type = 'bar'
+	def return_indicator(self,geogrid_data):
+		sleep(self.delay)
+		return self.delay
+
 
 def shuffle_geogrid_data(geogrid_data):
 	'''

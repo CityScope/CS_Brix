@@ -1,1 +1,1 @@
-from .examples import RandomIndicator, ShellIndicator, Diversity, Noise
+from .examples import RandomIndicator, ShellIndicator, Diversity, Noise, RandomFlag
