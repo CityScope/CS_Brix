@@ -8,7 +8,7 @@ Created on Mon Jul 29 18:57:59 2019
 """
 from .classes import Handler
 from .helpers import deg_to_rad,rad_to_deg
-from .functions import normalize_table_name, chech_table_name
+from .functions import normalize_table_name, check_table_name
 
 import pyproj
 import math
@@ -39,7 +39,7 @@ class Grid():
 
 
         """
-        if not chech_table_name(table_name):
+        if not check_table_name(table_name):
             new_table_name = normalize_table_name(table_name)
             print(f'Incorrect table name "{table_name}", using "{new_table_name}" instead')
             warn(f'Incorrect table name "{table_name}", using "{new_table_name}" instead')
@@ -181,7 +181,7 @@ def commit_grid(table_name, geogrid):
     geogrid: dict
         GEOGRID object returned by :func:`brix.Grid.get_grid_geojson`
     '''
-    if not chech_table_name(table_name):
+    if not check_table_name(table_name):
         new_table_name = normalize_table_name(table_name)
         print(f'Incorrect table name "{table_name}", using "{new_table_name}" instead')
         warn(f'Incorrect table name "{table_name}", using "{new_table_name}" instead')
