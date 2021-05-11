@@ -22,8 +22,8 @@ from warnings import warn
 
 class Grid():
     wgs=pyproj.Proj("EPSG:4326")
-    def __init__(self, table_name, top_left_lon, top_left_lat, rotation, crs_epsg, 
-                 cell_size, nrows, ncols, flip_y=False):
+    def __init__(self, table_name, top_left_lon, top_left_lat, rotation, 
+                 cell_size, nrows, ncols, flip_y=False, crs_epsg=None):
         """
         Takes the properties of the grid and using the Haversine formula, 
         computes the location of the top-right corner. Then projects
@@ -35,6 +35,7 @@ class Grid():
         crs_epsg: str
             EPSG code for the desired projection.
             Do not include 'EPSG'
+            if crs_epsg== None, the projection will be estimated based on the longitude
 
 
         """
@@ -43,10 +44,17 @@ class Grid():
             print(f'Incorrect table name "{table_name}", using "{new_table_name}" instead')
             warn(f'Incorrect table name "{table_name}", using "{new_table_name}" instead')
             table_name = new_table_name
+
+        if crs_epsg is None:
+            utm_zone = int(np.floor((avg_lng + 180) / 6) + 1)
+            crs = f"+proj=utm +zone={utm_zone} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+        else:
+            crs = f"EPSG:{crs_epsg}"
+
         EARTH_RADIUS_M=6.371e6
         top_left_lon_lat={'lon': top_left_lon, 'lat': top_left_lat}
         bearing=(90-rotation+360)%360
-        self.projection=pyproj.Proj(f'EPSG:{crs_epsg}')
+        self.projection=pyproj.Proj(crs)
         cell_size=cell_size
         self.nrows=nrows
         self.ncols=ncols
@@ -59,10 +67,10 @@ class Grid():
         lo2= lo1+ math.atan2(math.sin(bearing_rad) * math.sin(Ad) * math.cos(la1),
                              math.cos(Ad)-math.sin(la1)*math.sin(la2))
         top_right_lon_lat={'lon': rad_to_deg(lo2), 'lat': rad_to_deg(la2)}        
-        top_left_xy=pyproj.transform(self.wgs, self.projection,top_left_lon_lat['lon'], 
-                                     top_left_lon_lat['lat'])
-        top_right_xy=pyproj.transform(self.wgs, self.projection,top_right_lon_lat['lon'], 
-                                      top_right_lon_lat['lat'])
+        top_left_xy=pyproj.transform(self.wgs, self.projection, 
+                                     top_left_lon_lat['lat'],top_left_lon_lat['lon'])
+        top_right_xy=pyproj.transform(self.wgs, self.projection, 
+                                      top_right_lon_lat['lat'],top_right_lon_lat['lon'])
         # now we have the top two points in a spatial system, 
         # we can calculate the rest of the points
         dydx=(top_right_xy[1]-top_left_xy[1])/(top_right_xy[0]-top_left_xy[0])
@@ -76,7 +84,7 @@ class Grid():
         y_rot=[x_unRot[i]*sinTheta +y_unRot[i]*cosTheta for i in range(len(x_unRot))]
         x_rot_trans=[top_left_xy[0]+x_rot[i] for i in range(len(x_rot))]
         y_rot_trans=[top_left_xy[1]+y_rot[i] for i in range(len(x_rot))]
-        lon_grid, lat_grid=pyproj.transform(self.projection,self.wgs,x_rot_trans, y_rot_trans)
+        lat_grid, lon_grid=pyproj.transform(self.projection,self.wgs,x_rot_trans, y_rot_trans)
         self.grid_coords_ll=[[lon_grid[i], lat_grid[i]] for i in range(len(lon_grid))]
         self.grid_coords_xy=[[x_rot_trans[i], y_rot_trans[i]] for i in range(len(y_rot_trans))]
         self.properties={'color':[0,0,0],
