@@ -20,7 +20,6 @@ import copy
 import json
 from warnings import warn
 
-
 class Grid():
     wgs=pyproj.Proj("EPSG:4326")
     def __init__(self, table_name, top_left_lon, top_left_lat, rotation, 
