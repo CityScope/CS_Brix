@@ -20,7 +20,6 @@ import copy
 import json
 from warnings import warn
 
-
 class Grid():
     wgs=pyproj.Proj("EPSG:4326")
     def __init__(self, table_name, top_left_lon, top_left_lat, rotation, 
@@ -47,7 +46,7 @@ class Grid():
             table_name = new_table_name
 
         if crs_epsg is None:
-            utm_zone = int(np.floor((avg_lng + 180) / 6) + 1)
+            utm_zone = int(np.floor((top_left_lon + 180) / 6) + 1)
             crs = f"+proj=utm +zone={utm_zone} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
         else:
             crs = f"EPSG:{crs_epsg}"
