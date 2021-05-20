@@ -249,7 +249,7 @@ class Grid(Handler):
             if not self.quietly:
                 print("Table not overwritten")
 
-    def edit_types(types_json):
+    def edit_types(self,types_json):
         '''
         Changes the default types for user defined types.
         If the GEOGRID object returned has not been created, it will created using the default properties.
