@@ -22,38 +22,37 @@ import traceback
 from warnings import warn
 
 class Grid(Handler):
+    """
+    Takes the properties of the grid and using the Haversine formula, 
+    computes the location of the top-right corner. Then projects
+    to spatial coordinates in order to find the locations of the rest of 
+    the grid cells
+
+    Parameters
+    ----------
+    table_name: str
+        Name of table to create.
+        It will overwrite it if it exists.
+    top_left_lat: float
+        Latitude of top left corner of grid
+    top_left_lon: float
+        Longitude of top left corner of grid
+    cell_size: float, defaults to 100
+        Lenght in meters of the side of each cell.
+    nrows: int, defaults to 20
+        Number of rows
+    ncols: int, defaults to 20
+        Number of columns
+    rotation: int, defaults to 0
+        Roation of the grid.
+    crs_epsg: str
+        EPSG code for the desired projection.
+        Do not include 'EPSG'
+        if crs_epsg== None, the projection will be estimated based on the longitude
+    """
     wgs=pyproj.Proj("EPSG:4326")
     def __init__(self, table_name, top_left_lat, top_left_lon, 
                  cell_size=100, nrows=20, ncols=20, rotation=0, crs_epsg=None ,quietly=False):
-        """
-        Takes the properties of the grid and using the Haversine formula, 
-        computes the location of the top-right corner. Then projects
-        to spatial coordinates in order to find the locations of the rest of 
-        the grid cells
-
-        Parameters
-        ----------
-        table_name: str
-            Name of table to create.
-            It will overwrite it if it exists.
-        top_left_lat: float
-            Latitude of top left corner of grid
-        top_left_lon: float
-            Longitude of top left corner of grid
-        cell_size: float, defaults to 100
-            Lenght in meters of the side of each cell.
-        nrows: int, defaults to 20
-            Number of rows
-        ncols: int, defaults to 20
-            Number of columns
-        rotation: int, defaults to 0
-            Roation of the grid.
-        crs_epsg: str
-            EPSG code for the desired projection.
-            Do not include 'EPSG'
-            if crs_epsg== None, the projection will be estimated based on the longitude
-        """
-        
         if not check_table_name(table_name):
             new_table_name = normalize_table_name(table_name)
             if not quietly:
