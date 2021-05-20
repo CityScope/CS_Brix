@@ -420,7 +420,16 @@ class Handler(Thread):
 		self.indicators = {}
 		self.update_geogrid_data_functions = []
 		self.grid_hash_id = None
-		if not shell_mode:
+
+		self.shell_mode = shell_mode
+
+		if not self.shell_mode:
+			if not self.is_table():
+				if not self.quietly:
+					print('Table does not exist, setting Handler to shell_mode')
+				warn('Table does not exist, setting Handler to shell_mode')
+				self.shell_mode = True
+		if not self.shell_mode:
 			self.grid_hash_id = self.get_grid_hash()
 
 		self.previous_indicators = None
@@ -433,6 +442,43 @@ class Handler(Thread):
 		self.classification_list = ['LBCS','NAICS']
 
 		self.OSM_data = {}
+
+	def is_table(self):
+		'''
+		Checks it table exists by getting the base url
+
+		Returns
+		-------
+		self.is_table : boolean
+			True if table exists.
+		'''
+		r = self._get_url(self.cityIO_get_url)
+		if r.status_code==200:
+			return True
+		else:
+			return False
+
+	def delete_table(self):
+		'''
+		Deletes table if it exists.
+		Will prompt user to make sure this function was not run by mistake.
+		'''
+		if self.is_table():
+			delete_table = input(f'Are you sure you want to delete {self.table_name}?')
+			delete_table = (delete_table.lower().strip()[0] == 'y')
+			if delete_table:
+				r = requests.delete(self.cityIO_post_url)
+				if r.status_code==200:
+					if not self.quietly:
+						print(f'{self.table_name} deleted')
+					self.is_table = None
+				else:
+					warn(f'Something went wrong, status_code:{r.status_code}')
+			else:
+				if not self.quietly:
+					print('Table not deleted')
+		else:
+			print('Table does not exist')
 
 	def sleep_time(self):
 		'''
