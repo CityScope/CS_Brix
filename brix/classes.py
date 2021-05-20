@@ -456,7 +456,7 @@ class Handler(Thread):
 		if r.status_code==200:
 			return True
 		else:
-			return = False
+			return False
 
 	def delete_table(self):
 		'''
