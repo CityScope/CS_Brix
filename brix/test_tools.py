@@ -27,9 +27,30 @@ class SlowIndicator(Indicator):
 		self.name = 'Slow indicator'
 		self.indicator_type = 'numeric'
 		self.viz_type = 'bar'
+
 	def return_indicator(self,geogrid_data):
-		sleep(self.delay)
-		return self.delay
+		delay = np.random.normal(loc=self.delay,scale=1)
+		sleep(delay)
+		return delay
+
+class LargeIndicator(Indicator):
+	'''
+	Creates an indicator that uses a lot of memory space by instantiating a large random square array.
+
+	Parameters
+	----------
+	n: int, defaults to 10000
+		Size of the random square matrix.
+	'''
+	def setup(self,n=10000):
+		self.n = n
+		self.name = 'Large Indicator'
+		self.indicator_type = 'numeric'
+		self.viz_type = 'bar'
+		self.M = np.random.rand(n,n)
+
+	def return_indicator(self,geogrid_data):
+		return np.random.rand()
 
 
 def shuffle_geogrid_data(geogrid_data):
