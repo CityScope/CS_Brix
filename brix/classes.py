@@ -21,6 +21,10 @@ try:
 except:
 	warn('Networkx not found.')
 import traceback
+import pickle
+import tempfile
+import os
+
 
 class GEOGRIDDATA(list):
 	'''
@@ -366,11 +370,12 @@ class Handler(Thread):
 		If 'local' it will use http://127.0.0.1:5000/ as host.
 	host_name : str, defaults to class remote_host
 		If passed, it will override the class host. 
-	
 	reference : dict, optional
 		Dictionary for reference values for each indicator.
-	shell_mode : Boolean, optional defaults to False
+	shell_mode: Boolean, optional defaults to False
 		If True, it will not get the current hash when instantiating the class. Useful for testing. 
+	save_resources: Boolean, defaults to `True`
+		If `True`, it will enter idle mode after 5 minutes, pickling all indicators and lowering update frequency from twice a second to once every 2 seconds.
 	'''
 	remote_host = 'https://cityio.media.mit.edu'
 	cityio_post_headers  = {'Content-Type': 'application/json'}
@@ -383,7 +388,8 @@ class Handler(Thread):
 			host_mode ='remote', 
 			host_name = None,
 			reference = None,
-			shell_mode = False
+			shell_mode = False,
+			save_resources = True
 		):
 
 		super(Handler, self).__init__()
@@ -400,6 +406,7 @@ class Handler(Thread):
 		self.rest_mode   = False
 		self.active_start = right_now()
 		self.total_active_time  = 5*60
+		self.save_resources = save_resources
 
 		self.nAttempts = 5
 		self.append_on_post = False
@@ -428,16 +435,11 @@ class Handler(Thread):
 		self.update_geogrid_data_functions = []
 		self.grid_hash_id = None
 
-		self.shell_mode = shell_mode
-
-		if not self.shell_mode:
-			if not self.is_table():
-				if not self.quietly:
-					print('Table does not exist, setting Handler to shell_mode')
-				warn('Table does not exist, setting Handler to shell_mode')
-				self.shell_mode = True
-		if not self.shell_mode:
+		self.tmp_file_dir = None
+		if not shell_mode:
+			self.retrieve_tmp_file_dir()
 			self.grid_hash_id = self.get_grid_hash()
+			self.clean_old_pickles()
 
 		self.previous_indicators = None
 		self.previous_access = None
@@ -450,47 +452,10 @@ class Handler(Thread):
 
 		self.OSM_data = {}
 
-	def is_table(self):
-		'''
-		Checks it table exists by getting the base url.
-
-		Returns
-		-------
-		self.is_table : boolean
-			True if table exists.
-		'''
-		table_list_url = urljoin(self.remote_host,'api/tables/list')
-		r = self._get_url(table_list_url)
-		if r.status_code!=200:
-			raise NameError(f'Unable to retrieve list of tables: status code ={r.status_code}')
-		else:
-			table_list = [t.strip('/').split('/')[-1] for t in r.json()]
-			if self.table_name in table_list:
-				return True
-			else:
-				return False
-
-	def delete_table(self):
-		'''
-		Deletes table if it exists.
-		Will prompt user to make sure this function was not run by mistake.
-		'''
-		if self.is_table():
-			delete_table = input(f'Are you sure you want to delete {self.table_name}?')
-			delete_table = (delete_table.lower().strip()[0] == 'y')
-			if delete_table:
-				r = requests.delete(self.cityIO_post_url)
-				if r.status_code==200:
-					if not self.quietly:
-						print(f'{self.table_name} deleted')
-					self.is_table = None
-				else:
-					warn(f'Something went wrong, status_code:{r.status_code}')
-			else:
-				if not self.quietly:
-					print('Table not deleted')
-		else:
-			print('Table does not exist')
+	def retrieve_tmp_file_dir(self):
+		with tempfile.NamedTemporaryFile(delete=True) as f:
+			self.tmp_file_dir = os.path.dirname(f.name)
+		
 
 	def sleep_time(self):
 		'''
@@ -507,20 +472,61 @@ class Handler(Thread):
 		'''
 		if not self.quietly:
 			print('Waking up!')
+		if self.rest_mode:
+			self.unpickle_indicators()
 		self.rest_mode = False
 		self.active_start = right_now()
+
+	def clean_old_pickles(self):
+		old_files = [f for f in os.listdir(self.tmp_file_dir) if f[-18:] == 'brix_indicator.pkl']
+		for f in old_files:
+			os.remove(os.path.join(self.tmp_file_dir,f))
+
+	def unpickle_indicators(self):
+		'''
+		Loads indicators from temporary file by calling :func:`brix.Indicator.unpickle_me` for every linked indicator.
+		'''
+		if not self.quietly:
+			print('Unpickling indicators to wake up')
+		indicator_names = list(self.indicators.keys())
+		for i in indicator_names:
+			self.indicators[i].unpickle_me()
+
+	def pickle_indicators(self):
+		'''
+		Stores the entire object to a temporary file by calling :func:`brix.Indicator.pickle_me` for every linked indicator.
+		'''
+		if not self.quietly:
+			print('Pickling indicators to enter idle mode')
+		indicator_names = list(self.indicators.keys())
+		for i in indicator_names:
+			self.indicators[i].pickle_me()
+
+	def _clear_indicators(self):
+		'''
+		Calls :func:`brix.Indicator._clear_me` for every linked indicator.
+		'''
+		if not self.quietly:
+			print('Removing saved indicators')
+		indicator_names = list(self.indicators.keys())
+		for i in indicator_names:
+			self.indicators[i]._clear_me()
+
 
 	def check_rest(self):
 		'''
 		Checks if module should be put in resting mode
 		'''
-		if not self.rest_mode:
-			current_time = right_now()
-			if current_time-self.active_start>=self.total_active_time:
-				if not self.quietly:
-					print('Going into rest mode')
-					print('Time active:',current_time-self.active_start)
-				self.rest_mode = True
+		if self.save_resources:
+			if not self.rest_mode:
+				current_time = right_now()
+				if current_time-self.active_start>=self.total_active_time:
+					if not self.quietly:
+						print('Going into rest mode')
+						print('Time active:',current_time-self.active_start)
+					self.pickle_indicators()
+					self._clear_indicators()
+					self.rest_mode = True
 
 	def grid_bounds(self,bbox=False,buffer_percent=None):
 		'''
@@ -703,9 +709,6 @@ class Handler(Thread):
 		else:
 			indicatorName = ('0000'+str(len(self.indicators)+1))[-4:]
 			I.name = indicatorName
-
-		# if I.tableHandler is not None:
-		# 	warn(f'Indicator {indicatorName} has a table linked to it. This functionality will be deprecated soon.')
 
 		if indicatorName in self.indicators.keys():
 			warn(f'Indicator {indicatorName} already exists and will be overwritten')
@@ -1497,6 +1500,7 @@ class Handler(Thread):
 		if not self.quietly:
 			print('Table URL:',self.front_end_url)
 			print('Testing indicators')
+		self.unpickle_indicators()
 		self.test_indicators()
 
 		if not self.quietly:
@@ -1699,6 +1703,40 @@ class Indicator:
 
 		self.return_indicator_user = None
 		Handler._indicator_instances.add(weakref.ref(self))
+		self.tmp_file_name = None
+
+		self.protected_attrs = [
+				'protected_attrs','tmp_file_name','is_composite',
+				'requires_geometry','indicator_type','table_name','viz_type','name',
+				'override_verification','requires_geogrid_props','requires_geometry'
+			]
+
+	def pickle_me(self):
+		'''
+		Stores the entire object to a temporary file.
+		'''
+		with tempfile.NamedTemporaryFile(delete=False,suffix='_brix_indicator.pkl') as f:
+			self.tmp_file_name = f.name
+			pickle.dump(self.__dict__, f, protocol=2)
+
+	def unpickle_me(self):
+		'''
+		Loads the object from temporary file.
+		'''
+		if self.tmp_file_name is not None:
+			with open(self.tmp_file_name, 'rb') as f:
+				tmp_dict = pickle.load(f)
+			os.remove(self.tmp_file_name)
+			self.__dict__.update(tmp_dict)
+			self.tmp_file_name = None
+
+	def _clear_me(self):
+		'''
+		Sets all attributs to None, except the ones in :attrs:`brix.Indicator.protected_attrs`.
+		'''
+		for k in self.__dict__:
+			if k not in self.protected_attrs:
+				self.__dict__[k] = None
 
 	def setup(self):
 		'''User defined function. Used to set up the main attributed of the custom indicator. Acts similar to an `__init__` method.'''
