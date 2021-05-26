@@ -452,7 +452,7 @@ class Handler(Thread):
 		self.is_table : boolean
 			True if table exists.
 		'''
-		r = self._get_url(self.cityIO_get_url)
+		r = self._get_url(self.cityIO_get_url,raise_warning=False)
 		if r.status_code==200:
 			return True
 		else:
@@ -1304,7 +1304,7 @@ class Handler(Thread):
 
 		return geogrid_data
 
-	def _get_url(self,url,params=None):
+	def _get_url(self,url,params=None,raise_warning=True):
 		attempts = 0
 		success = False
 		while (attempts < self.nAttempts)&(not success):
@@ -1316,7 +1316,8 @@ class Handler(Thread):
 			else:
 				attempts+=1
 		if not success:
-			warn('FAILED TO RETRIEVE URL: '+url)
+			if raise_warning:
+				warn('FAILED TO RETRIEVE URL: '+url)
 		return r
 
 	def get_geogrid_data(self,include_geometries=False,with_properties=False):
