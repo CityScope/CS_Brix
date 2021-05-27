@@ -445,18 +445,24 @@ class Handler(Thread):
 
 	def is_table(self):
 		'''
-		Checks it table exists by getting the base url
+		Checks it table exists by getting the base url.
 
 		Returns
 		-------
 		self.is_table : boolean
 			True if table exists.
 		'''
-		r = self._get_url(self.cityIO_get_url,raise_warning=False)
-		if r.status_code==200:
-			return True
+		table_list_url = urljoin(self.remote_host,'api/tables/list')
+		r = requests.get(table_list_url)
+		r = self._get_url(table_list_url)
+		if r.status_code!=200:
+			raise NameError(f'Unable to retrieve list of tables: status code ={r.status_code}')
 		else:
-			return False
+			table_list = [t.strip('/').split('/')[-1] for t in r.json()]
+			if self.table_name in table_list:
+				return True
+			else:
+				return False
 
 	def delete_table(self):
 		'''
@@ -534,7 +540,8 @@ class Handler(Thread):
 		return bounds
 
 	def check_table(self,return_value=False):
-		'''Prints the front end url for the table. 
+		'''
+		Prints the front end url for the table. 
 
 		Parameters
 		----------
