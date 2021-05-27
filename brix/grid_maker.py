@@ -144,7 +144,10 @@ class Grid(Handler):
         }
         self.geojson_object = None
 
-    def generate_geogriddata(self,geogrid_types=None):
+    def generate_geogriddata(self):
+        '''
+        Ensures that all cells point to a valid cell type in the features endpoint.
+        '''
         types_list = list(self.geojson_object['properties']['types'].keys())
         for cell in self.geojson_object['features']:
             cell_type = cell['properties']['name']
@@ -199,6 +202,9 @@ class Grid(Handler):
                 self.geojson_object['properties']['types'][k]['height'] = 0
 
     def generate_interactive(self):
+        '''
+        Adds the interactive=Web property when missing
+        '''
         for k in self.get_grid_geojson()['properties']['types']:
             if 'interactive' not in self.geojson_object['properties']['types'][k].keys():
                 self.geojson_object['properties']['types'][k]['interactive'] = 'Web'
