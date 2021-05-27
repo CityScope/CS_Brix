@@ -453,7 +453,6 @@ class Handler(Thread):
 			True if table exists.
 		'''
 		table_list_url = urljoin(self.remote_host,'api/tables/list')
-		r = requests.get(table_list_url)
 		r = self._get_url(table_list_url)
 		if r.status_code!=200:
 			raise NameError(f'Unable to retrieve list of tables: status code ={r.status_code}')
