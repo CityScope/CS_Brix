@@ -144,6 +144,17 @@ class Grid(Handler):
         }
         self.geojson_object = None
 
+    def generate_geogriddata(self,geogrid_types=None):
+        types_list = list(self.geojson_object['properties']['types'].keys())
+        for cell in self.geojson_object['features']:
+            cell_type = cell['properties']['name']
+            if cell_type not in types_list:
+                cell_type = np.random.choice(types_list)
+                cell['properties']['name'] = cell_type
+            type_props = self.geojson_object['properties']['types'][cell_type]
+            for prop in type_props:
+                cell['properties'][prop] = type_props[prop]
+
     def choose_color(self,i,n):
         '''
         Uses matplotlib tab10 and tab20 color palettes to generate a color.
@@ -166,7 +177,7 @@ class Grid(Handler):
         else:
             cmap = matplotlib.cm.get_cmap('tab20')
             mod = 20
-        return cmap.colors[i % mod]
+        return [int(c*255) for c in cmap.colors[i % mod]]
 
     def generate_color(self):
         '''
@@ -199,6 +210,7 @@ class Grid(Handler):
         self.generate_color()
         self.generate_height()
         self.generate_interactive()
+        self.generate_geogriddata()
 
     def get_grid_geojson(self):
         '''
