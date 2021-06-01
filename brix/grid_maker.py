@@ -20,6 +20,7 @@ import copy
 import json
 import traceback
 import matplotlib
+from vincenty import vincenty
 from warnings import warn
 
 class Grid(Handler):
@@ -349,4 +350,53 @@ class Grid(Handler):
             raise NameError(f"Wrong type definition, pass dict or list, object passed was {type(types)}")
 
 
+def grid_from_poly(table_name,poly):
+    '''
+    Creates a :class:`brix.Grid` object based on the given polygon.
 
+    Parameters
+    ----------
+    table_name: str
+        Name of table to create.
+        It will overwrite it if it exists.
+    poly: shapely.Polygon
+        Polygon of grid bounds. 
+
+    Returns
+    -------
+    G: :class:`brix.Grid`
+        Grid object with properties inferrred from polygon.
+    '''
+
+    rotation = 0
+    corner_bbox = poly.bounds #lower left corner and upper right corner
+
+    ## DEFINE PARAMETS OF THE GRID ##
+    top_left_lat = corner_bbox[3] ## #42.3664655 
+    top_left_lon = corner_bbox[0] ## #-71.0854323
+    top_left = (top_left_lat,top_left_lon)
+
+    top_right_lat = corner_bbox[3]
+    top_right_lon = corner_bbox[2]
+    top_right = (top_right_lat,top_right_lon)
+
+    bottom_left_lat = corner_bbox[1]
+    bottom_left_lon = corner_bbox[0]
+    bottom_left = (bottom_left_lat,bottom_left_lon)
+
+    dist_horizontal = vincenty(top_left, top_right)*1000 #in m
+    dist_vertical = vincenty(top_left, bottom_left)*1000 #in m
+
+    if dist_horizontal > dist_vertical:
+        ncols = 20 ##
+        cell_side = round(dist_horizontal / ncols)
+        cell_size = cell_side #m ##
+        nrows = round(dist_vertical / cell_side) ##
+    else:
+        nrows = 20 ##
+        cell_side = round(dist_vertical / nrows)
+        cell_size = cell_side #m ##
+        ncols = round(dist_horizontal / cell_side) ##
+
+    G = Grid(table_name, top_left_lat, top_left_lon, rotation=rotation, cell_size=cell_size, nrows=nrows, ncols=ncols)
+    return G
