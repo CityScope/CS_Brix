@@ -9,6 +9,7 @@ Documentation for cs-brix library
    :maxdepth: 2
    :caption: Contents:
 
+   getting_started
    tutorial
    classes
    functions
