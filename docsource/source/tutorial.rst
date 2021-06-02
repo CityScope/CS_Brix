@@ -96,6 +96,12 @@ For most applications, you will want to turn off some of the cells and make them
 
 	G.set_noninteractive(poly)
 
+The final step is to commit the grid to CityIO. Use :func:`brix.Grid.commit_grid`:
+
+::
+
+	G.commit_grid()
+
 Putting it all together:
 
 ::
@@ -107,6 +113,7 @@ Putting it all together:
 	G.set_grid_geojson()
 	G.edit_types(['Type 1','Type 2','Type 3'])
 	G.set_noninteractive(poly)
+	G.commit_grid()
 
 Alternatively, you can use `poly` as an argument to :func:`brix.grid_from_poly`. This function will calculate the location and the cell size based on the given polygon, and set the non-interactive parts. The following block of code achieves the same as the block above:
 
@@ -116,6 +123,7 @@ Alternatively, you can use `poly` as an argument to :func:`brix.grid_from_poly`.
 	table_name = 'dungeonmaster'
 	G = grid_from_poly(table_name, poly)
 	G.edit_types(['Type 1','Type 2','Type 3'])
+	G.commit_grid()
 
 
 Testing your module
