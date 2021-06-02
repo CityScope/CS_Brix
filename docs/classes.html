@@ -40,7 +40,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Functions" href="functions.html" />
-    <link rel="prev" title="Tutorial" href="tutorial.html" /> 
+    <link rel="prev" title="Tutorials" href="tutorial.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -87,7 +87,8 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Classes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#handler-class">Handler class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#indicator-class">Indicator class</a></li>
@@ -171,14 +172,14 @@
 <h2>Handler class<a class="headerlink" href="#handler-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="brix.Handler">
-<em class="property">class </em><code class="sig-prename descclassname">brix.</code><code class="sig-name descname">Handler</code><span class="sig-paren">(</span><em class="sig-param">table_name</em>, <em class="sig-param">quietly=True</em>, <em class="sig-param">host_mode='remote'</em>, <em class="sig-param">host_name=None</em>, <em class="sig-param">reference=None</em>, <em class="sig-param">shell_mode=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">brix.</code><code class="sig-name descname">Handler</code><span class="sig-paren">(</span><em class="sig-param">table_name</em>, <em class="sig-param">quietly=False</em>, <em class="sig-param">host_mode='remote'</em>, <em class="sig-param">host_name=None</em>, <em class="sig-param">reference=None</em>, <em class="sig-param">shell_mode=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class to handle the connection for indicators built based on data from the GEOGRID. To use, instantiate the class and use the <a class="reference internal" href="#brix.Handler.add_indicator" title="brix.Handler.add_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_indicator()</span></code></a> method to pass it a set of <a class="reference internal" href="#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Indicator</span></code></a> objects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>table_name</strong> (<em>str</em>) – Table name to lisen to.
 <a class="reference external" href="https://cityio.media.mit.edu/api/table/table_name">https://cityio.media.mit.edu/api/table/table_name</a></p></li>
-<li><p><strong>quietly</strong> (boolean, defaults to <cite>True</cite>) – If True, it will show the status of every API call.</p></li>
+<li><p><strong>quietly</strong> (boolean, defaults to <cite>False</cite>) – If True, it will show the status of every API call.</p></li>
 <li><p><strong>host_mode</strong> (<em>str</em><em>, </em><em>defaults to 'remote'</em>) – If ‘local’ it will use <a class="reference external" href="http://127.0.0.1:5000/">http://127.0.0.1:5000/</a> as host.</p></li>
 <li><p><strong>host_name</strong> (<em>str</em><em>, </em><em>defaults to class remote_host</em>) – If passed, it will override the class host.</p></li>
 <li><p><strong>reference</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary for reference values for each indicator.</p></li>
@@ -243,6 +244,18 @@ Function should return a list of dicts that represents a valid geogriddata objec
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.center_grid_view">
+<code class="sig-name descname">center_grid_view</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.center_grid_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.center_grid_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the initial grid view to the center of the grid.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.check_rest">
+<code class="sig-name descname">check_rest</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.check_rest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.check_rest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if module should be put in resting mode</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.check_table">
 <code class="sig-name descname">check_table</code><span class="sig-paren">(</span><em class="sig-param">return_value=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.check_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.check_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints the front end url for the table.</p>
@@ -285,6 +298,13 @@ raised. Its initial value is inherited from the creating thread; the
 main thread is not a daemon thread and therefore all threads created in
 the main thread default to daemon = False.</p>
 <p>The entire Python program exits when only daemon threads are left.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.delete_table">
+<code class="sig-name descname">delete_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.delete_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.delete_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes table if it exists.
+Will prompt user to make sure this function was not run by mistake.</p>
 </dd></dl>
 
 <dl class="method">
@@ -461,6 +481,20 @@ returns a list of all alive threads.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.is_table">
+<code class="sig-name descname">is_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.is_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.is_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks it table exists by getting the base url.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>self.is_table</strong> – True if table exists.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>boolean</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.join">
 <code class="sig-name descname">join</code><span class="sig-paren">(</span><em class="sig-param">timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.join" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wait until the thread terminates.</p>
@@ -517,7 +551,7 @@ exception.</p>
 
 <dl class="method">
 <dt id="brix.Handler.listen">
-<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param">new_thread=False</em>, <em class="sig-param">showFront=True</em>, <em class="sig-param">append=False</em>, <em class="sig-param">clear_endpoints=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.listen" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param">new_thread=False</em>, <em class="sig-param">showFront=False</em>, <em class="sig-param">append=False</em>, <em class="sig-param">clear_endpoints=False</em>, <em class="sig-param">robust=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.listen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.listen" title="Permalink to this definition">¶</a></dt>
 <dd><p>Listens for changes in the table’s geogrid and update all indicators accordingly.
 You can use the update_package method to see the object that will be posted to the table.
 This method starts with an update before listening.
@@ -528,12 +562,14 @@ Does not support updating GEOGRIDDATA.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>new_thread</strong> (boolean, defaults to <cite>False</cite>.) – If <cite>True</cite> it will run in a separate thread, freeing up the main thread for other tables.
 We recommend setting this to <cite>False</cite> when debugging, to avoid needing to recreate the object.</p></li>
-<li><p><strong>showFront</strong> (boolean, defaults to <cite>True</cite>) – If <cite>True</cite> it will open the front-end URL in a webbrowser at start.
+<li><p><strong>showFront</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will open the front-end URL in a webbrowser at start.
 Only works if <cite>new_tread=False</cite>.</p></li>
 <li><p><strong>append</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will append the new indicators to whatever is already there.
 This option will be deprecated soon. We recommend not using it unless strictly necessary.</p></li>
 <li><p><strong>clear_endpoints</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite>, it will clear all existing heatmap, numeric, and textual indicators.
 This is not recommended for deployment, only for testing.</p></li>
+<li><p><strong>robust</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite>, whenever a grid configuration breaks an indicator, the module will not stop, but rather wait until the grid changes and try to update again.
+Incompatible with <cite>new_thread=True</cite></p></li>
 </ul>
 </dd>
 </dl>
@@ -581,13 +617,14 @@ This represents the Thread ID as reported by the kernel.</p>
 
 <dl class="method">
 <dt id="brix.Handler.perform_update">
-<code class="sig-name descname">perform_update</code><span class="sig-paren">(</span><em class="sig-param">grid_hash_id=None</em>, <em class="sig-param">append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.perform_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.perform_update" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">perform_update</code><span class="sig-paren">(</span><em class="sig-param">grid_hash_id=None</em>, <em class="sig-param">append=False</em>, <em class="sig-param">return_update_package=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.perform_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.perform_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs single table update.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>grid_hash_id</strong> (<em>str</em><em>, </em><em>optional</em>) – Current grid hash id. If not provided, it will retrieve it.</p></li>
 <li><p><strong>append</strong> (boolean, defaults to <cite>True</cite>) – If <cite>True</cite>, it will append the new indicators to whatever is already there.</p></li>
+<li><p><strong>return_update_package</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> this funciton will return the posted object.</p></li>
 </ul>
 </dd>
 </dl>
@@ -710,6 +747,12 @@ Useful for front end shadow simulation.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="brix.Handler.sleep_time">
+<code class="sig-name descname">sleep_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.sleep_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.sleep_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns sleep time in seconds, handling whether the table is in rest_mode or not.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="brix.Handler.start">
 <code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#brix.Handler.start" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start the thread’s activity.</p>
@@ -766,6 +809,12 @@ Function should return a list of dicts that represents a valid geogriddata objec
 <dd class="field-odd"><p>list</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Handler.wake_up">
+<code class="sig-name descname">wake_up</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/classes.html#Handler.wake_up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Handler.wake_up" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turns off rest mode.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1345,12 +1394,14 @@ Does not support updating GEOGRIDDATA.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>new_thread</strong> (boolean, defaults to <cite>False</cite>.) – If <cite>True</cite> it will run in a separate thread, freeing up the main thread for other tables.
 We recommend setting this to <cite>False</cite> when debugging, to avoid needing to recreate the object.</p></li>
-<li><p><strong>showFront</strong> (boolean, defaults to <cite>True</cite>) – If <cite>True</cite> it will open the front-end URL in a webbrowser at start.
+<li><p><strong>showFront</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will open the front-end URL in a webbrowser at start.
 Only works if <cite>new_tread=False</cite>.</p></li>
 <li><p><strong>append</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite> it will append the new indicators to whatever is already there.
 This option will be deprecated soon. We recommend not using it unless strictly necessary.</p></li>
 <li><p><strong>clear_endpoints</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite>, it will clear all existing heatmap, numeric, and textual indicators.
 This is not recommended for deployment, only for testing.</p></li>
+<li><p><strong>robust</strong> (boolean, defaults to <cite>False</cite>) – If <cite>True</cite>, whenever a grid configuration breaks an indicator, the module will not stop, but rather wait until the grid changes and try to update again.
+Incompatible with <cite>new_thread=True</cite></p></li>
 </ul>
 </dd>
 </dl>
@@ -1417,7 +1468,7 @@ There is a small chance that the user will reset the grid to its original settin
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="functions.html" class="btn btn-neutral float-right" title="Functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="tutorial.html" class="btn btn-neutral float-left" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

@@ -1,13 +1,21 @@
 # Helper functions live here
 import json
 import geopandas as gpd
+from warnings import warn
+from datetime import datetime
+import math
 
 try: # libraries needed to set the timezone of the table
-	from datetime import datetime
 	from timezonefinder import TimezoneFinder
 	from pytz import timezone, utc
 except:
-	pass
+	warn('timezonefinder and pytz not found')
+
+def deg_to_rad(deg):
+	return deg*math.pi/180
+
+def rad_to_deg(rad):
+	return rad*180/math.pi
 
 def urljoin(*args,trailing_slash=True):
 	trailing_slash_char = '/' if trailing_slash else ''
@@ -24,15 +32,15 @@ def is_number(s):
 		return False
 
 def get_timezone_offset(lat, lng):
-    """
-    returns a location's time zone offset from UTC in hours.
-    """
-    today = datetime.now()
-    tf = TimezoneFinder()
-    tz_target = timezone(tf.certain_timezone_at(lng=lng, lat=lat))
-    today_target = tz_target.localize(today)
-    today_utc = utc.localize(today)
-    return (today_utc - today_target).total_seconds() / 3600
+	"""
+	returns a location's time zone offset from UTC in hours.
+	"""
+	today = datetime.now()
+	tf = TimezoneFinder()
+	tz_target = timezone(tf.certain_timezone_at(lng=lng, lat=lat))
+	today_target = tz_target.localize(today)
+	today_utc = utc.localize(today)
+	return (today_utc - today_target).total_seconds() / 3600
 
 def get_buffer_size(poly,buffer_percent=0.25):
 	'''

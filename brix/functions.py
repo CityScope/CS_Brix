@@ -15,9 +15,26 @@ import requests
 import pandas as pd
 import geopandas as gpd
 import numpy as np
+import re
 from geopandas.tools import sjoin
 from shapely.geometry import Point
 
+def normalize_table_name(table_name):
+	'''
+	Removes non-letter characters, replaces spaces with underscore, and transforms to lowercase.
+	'''
+	new_table_name = table_name.lower()
+	new_table_name = re.sub('[^a-zA-Z _]+', '', new_table_name)
+	new_table_name = re.sub('[ ]+', ' ', new_table_name)
+	new_table_name = new_table_name.replace(' ','_')
+	return new_table_name
+
+def check_table_name(table_name):
+	new_table_name = normalize_table_name(table_name)
+	if new_table_name!=table_name:
+		return False
+	else:
+		return True
 
 def is_table(table_name):
 	'''

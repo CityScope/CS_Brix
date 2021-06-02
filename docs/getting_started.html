@@ -1,0 +1,368 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Getting started &mdash; cs-brix 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorials" href="tutorial.html" />
+    <link rel="prev" title="Documentation for cs-brix library" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> cs-brix
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basics-of-building-a-cityscope-indicator">Basics of building a CityScope indicator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#let-s-talk-data-input">Let’s talk data (input)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-and-test-your-indicator-output">Build and test your indicator (output)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploy-your-indicator">Deploy your indicator</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">cs-brix</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Getting started</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/getting_started.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="basics-of-building-a-cityscope-indicator">
+<h2>Basics of building a CityScope indicator<a class="headerlink" href="#basics-of-building-a-cityscope-indicator" title="Permalink to this headline">¶</a></h2>
+<p>Let’s get to it. First, what table are you building for? If you don’t have a specific table, that is totally okay and you can create one <a class="reference external" href="https://cityscope.media.mit.edu/CS_cityscopeJS/#/editor">here</a>. Note: by the time you read this, CityScope might pose some limitations on new projects (<code class="docutils literal notranslate"><span class="pre">tables</span></code>). Please follow instructions in the link above.
+For this tutorial, we crated one called <code class="docutils literal notranslate"><span class="pre">dungeonmaster</span></code>.</p>
+<p>After creating a table, open the frond end given by the tool and edit the table at least once. Change some blocks, and push those changes to CityIO.</p>
+<p>An indicator will take in data and produce a result. Depending on the type of indicator you are building, the result can be a number, a heatmap, an annotation, or a complex simulation of agents moving around the screen. If you are building a very complex module, your indicator might return all of the above. Each new indicator is built as an subclass of the <a class="reference internal" href="classes.html#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a> class provided in this library. Make sure you define three functions: <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a>, <a class="reference internal" href="classes.html#brix.Indicator.load_module" title="brix.Indicator.load_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.load_module()</span></code></a>, and <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a>. Here’s a barebones example of an indicator:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Indicator</span>
+<span class="k">class</span> <span class="nc">MyIndicator</span><span class="p">(</span><span class="n">Indicator</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Write a description for your indicator here.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                Think of this as your __init__.</span>
+<span class="sd">                Here you will define the properties of your indicator.</span>
+<span class="sd">                Although there are no required properties, be nice and give your indicator a name.</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;My numeric indicator&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indicator_type</span> <span class="o">=</span> <span class="s1">&#39;numeric&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">viz_type</span> <span class="o">=</span> <span class="s1">&#39;radar&#39;</span>
+
+        <span class="k">def</span> <span class="nf">load_module</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                This function is not strictly necessary, but we recommend that you define it if you want to load something from memory. It will make your code more readable.</span>
+<span class="sd">                All data loading actions should go here.</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+                <span class="k">pass</span>
+
+        <span class="k">def</span> <span class="nf">return_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="p">):</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                This is the main course of your indicator.</span>
+<span class="sd">                This function takes in `geogrid_data` and returns the value of your indicator.</span>
+<span class="sd">                The library is flexible enough to handle indicators that return a number or a dictionary.</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+                <span class="k">return</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="let-s-talk-data-input">
+<h2>Let’s talk data (input)<a class="headerlink" href="#let-s-talk-data-input" title="Permalink to this headline">¶</a></h2>
+<p>What is <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code>?
+Every time we create a CityScope table, we define a regularly spaced grid which is overlaid on the city district we’re modelling. These grid cells are the basic unit of analysis for the CityScope modules. Every grid cell has properties such as the <code class="docutils literal notranslate"><span class="pre">Type</span></code> which represents the land use and <code class="docutils literal notranslate"><span class="pre">Height</span></code> which represents the number of floors. These data are dynamic and are updated each time a user interacts with the CityScope table, experimenting with the spatial organisation of land uses and infrastructure. These dynamic data are stored the variable <cite>geogrid_data</cite>. This is a list of ojects: one for each grid cell in the CityScope table. The contents of each object really depends on the specific table you are building for and on the properties assigned to your indicator. There are two options that will control what <cite>geogrid_data</cite> contains which are: <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code>. These two properties are set to <code class="docutils literal notranslate"><span class="pre">False</span></code> by default, but you can change them inside the <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a> function depending on the needs of your indicator.</p>
+<p>To access <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code> you will need to instantiate a <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> object that will handle all communication with the table. Go ahead, take a look at how this object looks like by creating a <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> and linking it to a table:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;dungeonmaster&#39;</span><span class="p">,</span><span class="n">quietly</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>By default, each <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> is set to work quietly in the background. If you wish to get feedback on what your Handler is doing, you can set <code class="docutils literal notranslate"><span class="pre">quietly=False</span></code> when you create your Handler. This is useful for debugging.</p>
+<p>Bear in mind that the endpoint <code class="docutils literal notranslate"><span class="pre">GEOGRIDDATA</span></code> is created only after your first edit to the table. If you just created your table, you need to go to the front end and edit the table at least once for <code class="docutils literal notranslate"><span class="pre">GEOGRIDDATA</span></code> to show up.</p>
+<p>The function <a class="reference internal" href="classes.html#brix.Handler.get_geogrid_data" title="brix.Handler.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_geogrid_data()</span></code></a> accepts to optional keyword arguments <code class="docutils literal notranslate"><span class="pre">include_geometries</span></code> and <code class="docutils literal notranslate"><span class="pre">with_properties</span></code>. These arguments correspond to <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geometry</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.requires_geogrid_props</span></code> parameters defined in the Indicator <code class="docutils literal notranslate"><span class="pre">setup</span></code> function. For example, if <code class="docutils literal notranslate"><span class="pre">requires_geogrid_props=True</span></code> in the setup, and the Indicator is linked to the table, the Handler will know to return <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code> with <code class="docutils literal notranslate"><span class="pre">with_properties=True</span></code>.</p>
+<p>Go ahead and see how <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code> would look like if you set <code class="docutils literal notranslate"><span class="pre">requires_geometry=True</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">(</span><span class="n">include_geometries</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Please note that <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code> behaves very much like a list of dictionaries, but it is not a list. It belongs to the class <a class="reference internal" href="classes.html#brix.GEOGRIDDATA" title="brix.GEOGRIDDATA"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA</span></code></a>, which is an extension of a list to include additional functions and properties related to the table. For example, you can get the meta-properties of the table (such as type definitions, location, etc.) by using <a class="reference internal" href="classes.html#brix.GEOGRIDDATA.get_geogrid_props" title="brix.GEOGRIDDATA.get_geogrid_props"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA.get_geogrid_props()</span></code></a>. This is useful if, for example, you are interested in counting the total number of block types, including those that are not currently on the table. Run the following example to see how <cite>geogrid_props</cite> looks like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
+<span class="n">geogrid_data</span><span class="o">.</span><span class="n">get_geogrid_props</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Depending on the needs of your indicator, you can generate different views of this object. For example, you can use <a class="reference internal" href="classes.html#brix.GEOGRIDDATA.as_df" title="brix.GEOGRIDDATA.as_df"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA.as_df()</span></code></a> to return the pandas.DataFrame version of your object. Similarly, you can use <a class="reference internal" href="classes.html#brix.GEOGRIDDATA.as_graph" title="brix.GEOGRIDDATA.as_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA.as_graph()</span></code></a> to return the networkx.Graph representation of GEOGRIDDATA. The graph representation is the network connecting every cell to its 4 closest neighbors.</p>
+<p>Try seeing your <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code> as a pandas.DataFrame:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
+<span class="n">geogrid_data</span><span class="o">.</span><span class="n">as_df</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Additionally, you can remove non-interactive cells from <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code> by using <a class="reference internal" href="classes.html#brix.GEOGRIDDATA.remove_noninteractive" title="brix.GEOGRIDDATA.remove_noninteractive"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA.remove_noninteractive()</span></code></a> and get the table bounds by using <a class="reference internal" href="classes.html#brix.GEOGRIDDATA.bounds" title="brix.GEOGRIDDATA.bounds"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.GEOGRIDDATA.bounds()</span></code></a>.</p>
+<p>The following example gets a grid, remove all non interactive cells and transforms it to a dataframe:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;dungeonmaster&#39;</span><span class="p">)</span>
+<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
+<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">geogrid_data</span><span class="o">.</span><span class="n">remove_noninteractive</span><span class="p">()</span>
+<span class="n">geogrid_data</span><span class="o">.</span><span class="n">as_df</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="build-and-test-your-indicator-output">
+<h2>Build and test your indicator (output)<a class="headerlink" href="#build-and-test-your-indicator-output" title="Permalink to this headline">¶</a></h2>
+<p>This library ensures that you can focus on what you do best: writing a kick ass <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function that will make everyone’s urban planning life better.</p>
+<p>To recap, an indicator is build by defining at least a <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a> function that takes care of configuring the indicator and a <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> that will calculate the value of the indicator for a given <code class="docutils literal notranslate"><span class="pre">geogrid_data</span></code>.</p>
+<p>Here’s an example of simple <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a> and <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> functions for a numeric indicator:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;My numeric indicator&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indicator_type</span> <span class="o">=</span> <span class="s1">&#39;numeric&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">viz_type</span> <span class="o">=</span> <span class="s1">&#39;radar&#39;</span>
+
+<span class="k">def</span> <span class="nf">return_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">geogrid_data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>To test your <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function while debugging it, you can use the object returned by <a class="reference internal" href="classes.html#brix.Handler.get_geogrid_data" title="brix.Handler.get_geogrid_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.get_geogrid_data()</span></code></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;dungeonmaster&#39;</span><span class="p">)</span>
+<span class="n">geogrid_data</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">get_geogrid_data</span><span class="p">()</span>
+<span class="n">I</span><span class="o">.</span><span class="n">return_indicator</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Brix distinguish between four different types of indicators defined using the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.indicator_type</span></code> defined in <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a>: <code class="docutils literal notranslate"><span class="pre">numeric</span></code>, <code class="docutils literal notranslate"><span class="pre">heatmap</span></code>, <code class="docutils literal notranslate"><span class="pre">textual</span></code>, and <code class="docutils literal notranslate"><span class="pre">hybrid</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">indicator_type='numeric'</span></code> is the default and refers to a simple numeric indicator (e.g. average, density, diversity, etc.). When defining a numeric indicator, there are multiple ways in which the front end can display them (e.g. bar chart, radar plot, etc.). This is controlled by the <code class="xref py py-attr docutils literal notranslate"><span class="pre">brix.Indicator.viz_type</span></code> attribute, also defined in the <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a>. The default value is set to <code class="docutils literal notranslate"><span class="pre">self.viz_type=radar</span></code> which means that unless it is specified otherwise, all numeric indicators will be added to the radar plot. For a <code class="docutils literal notranslate"><span class="pre">numeric</span></code> indicator, the <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function can simply return a number or a list of numbers, all of which will be added to the same front end visualization (e.g. all bar charts, all radar numbers). If you want to have more fine control of where each indicator is displayed, we recommend building your <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function such that it returns a dictionary with the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Social Wellbeing&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s1">&#39;viz_type&#39;</span><span class="p">:</span> <span class="s1">&#39;radar&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Environmental Impact&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;viz_type&#39;</span><span class="p">:</span> <span class="s1">&#39;radar&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Mobility Impact&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;viz_type&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Note that if you define <code class="docutils literal notranslate"><span class="pre">viz_type</span></code> in the return dictionary of <code class="docutils literal notranslate"><span class="pre">return_indicator</span></code>, it will overwrite any default property defined in <a class="reference internal" href="classes.html#brix.Indicator.setup" title="brix.Indicator.setup"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.setup()</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">indicator_type='heatmap'</span></code> refers to a heatmap indicator that will be displayed not in a chart but projected directly on the table (e.g. density, traffic congestion, etc.). For a <code class="docutils literal notranslate"><span class="pre">heatmap</span></code> indicator, the <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function should return a geojson of points with attributes, or a geopandas.GeoDataFrame also with points and attributes. This type of indicator is a bit more complicated to build and will often require knowledge of spatial analytics. See the examples if you are interested.</p>
+<p><code class="docutils literal notranslate"><span class="pre">indicator_type='textual'</span></code> refers to an indicator that is displayed as a text annotation in one of the cells. This can be used to highlight something important about that cell to the front end user. For a <code class="docutils literal notranslate"><span class="pre">textual</span></code> indicator, the <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function should return a list of dictionaries, each with two keys, <code class="docutils literal notranslate"><span class="pre">id</span></code> that identified the cell to annotate, and <code class="docutils literal notranslate"><span class="pre">info</span></code> with a string that will be projected over that cell in the front end. Here’s an example of a list that annotated cell <code class="docutils literal notranslate"><span class="pre">450</span></code> with <code class="docutils literal notranslate"><span class="pre">yes!</span></code> and cell <code class="docutils literal notranslate"><span class="pre">40</span></code> with <code class="docutils literal notranslate"><span class="pre">no!</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">450</span><span class="p">,</span>
+        <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="s2">&quot;yes!&quot;</span>
+<span class="p">},{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+        <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="s2">&quot;no!&quot;</span>
+<span class="p">}]</span>
+</pre></div>
+</div>
+<p>Finally, <code class="docutils literal notranslate"><span class="pre">indicator_type='hybrid'</span></code> is used when building a very complex module that returns information to be displayed in multiple different formats. Think of a complex energy usage simulation that will display the total energy consumed as bar in the bar chart, that will show the energy used by each cell projected on the table as a heatmap, and that might annotate some cells when they do not have enough energy available to them. For a <code class="docutils literal notranslate"><span class="pre">hybrid</span></code> indicators, you have two ways of organization your code. You can define your own <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function, or you can define specific functions for each of the available types of indicators: <a class="reference internal" href="classes.html#brix.Indicator.return_indicator_numeric" title="brix.Indicator.return_indicator_numeric"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator_numeric()</span></code></a>, <a class="reference internal" href="classes.html#brix.Indicator.return_indicator_heatmap" title="brix.Indicator.return_indicator_heatmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator_heatmap()</span></code></a>, and <a class="reference internal" href="classes.html#brix.Indicator.return_indicator_textual" title="brix.Indicator.return_indicator_textual"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator_textual()</span></code></a>. If you do not define a <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> function, brix will run first the heatmap, then the numeric indicator, and finally the textual indicator. If you chose to have tighter control of the order in which the simulation runs, you can also define your own <a class="reference internal" href="classes.html#brix.Indicator.return_indicator" title="brix.Indicator.return_indicator"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Indicator.return_indicator()</span></code></a> by calling these three functions. This function should return a dictionary with three keys: <code class="docutils literal notranslate"><span class="pre">heatmap</span></code>, <code class="docutils literal notranslate"><span class="pre">numeric</span></code>, and <code class="docutils literal notranslate"><span class="pre">textual</span></code>. Not all three keys have to be present. See the example below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">return_indicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geogrid_data</span><span class="p">):</span>
+<span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">out</span><span class="p">[</span><span class="s1">&#39;heatmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_indicator_heatmap</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+<span class="n">out</span><span class="p">[</span><span class="s1">&#39;numeric&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_indicator_numeric</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+<span class="n">out</span><span class="p">[</span><span class="s1">&#39;textual&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_indicator_textual</span><span class="p">(</span><span class="n">geogrid_data</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">out</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="deploy-your-indicator">
+<h2>Deploy your indicator<a class="headerlink" href="#deploy-your-indicator" title="Permalink to this headline">¶</a></h2>
+<p>Finally, once you have build a series of indicators, the right way to deploy them is to use the <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> class. A <a class="reference internal" href="classes.html#brix.Handler" title="brix.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Handler</span></code></a> object should be the go-to connection to the table and will handle all possible exceptions. The two most important methods are <a class="reference internal" href="classes.html#brix.Handler.add_indicators" title="brix.Handler.add_indicators"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.add_indicators()</span></code></a> which takes a list of <a class="reference internal" href="classes.html#brix.Indicator" title="brix.Indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">brix.Indicator</span></code></a> objects and connects them to the table, and <a class="reference internal" href="classes.html#brix.Handler.listen" title="brix.Handler.listen"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Handler.listen()</span></code></a> that is a method that runs continuously waiting for updates in the CityScope table. This method can also creates its own thread, to free up the main thread in case the user needs to connect to other tables (by setting <code class="docutils literal notranslate"><span class="pre">new_thread=True</span></code>). The example below assumes you have already defined indicators named Density, Diversity and Proximity in a file named <code class="docutils literal notranslate"><span class="pre">myindicators.py</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">brix</span> <span class="kn">import</span> <span class="n">Handler</span>
+<span class="kn">from</span> <span class="nn">myindicators</span> <span class="kn">import</span> <span class="n">Density</span><span class="p">,</span> <span class="n">Diversity</span><span class="p">,</span> <span class="n">Proximity</span>
+
+<span class="n">dens</span> <span class="o">=</span> <span class="n">Density</span><span class="p">()</span>
+<span class="n">divs</span> <span class="o">=</span> <span class="n">Diversity</span><span class="p">()</span>
+<span class="n">prox</span> <span class="o">=</span> <span class="n">Proximity</span><span class="p">()</span>
+
+<span class="n">H</span> <span class="o">=</span> <span class="n">Handler</span><span class="p">(</span><span class="s1">&#39;dungeonmaster&#39;</span><span class="p">,</span> <span class="n">quietly</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">H</span><span class="o">.</span><span class="n">add_indicators</span><span class="p">([</span>
+        <span class="n">dens</span><span class="p">,</span>
+        <span class="n">divs</span><span class="p">,</span>
+        <span class="n">prox</span>
+<span class="p">])</span>
+<span class="n">H</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To see the indicators in the handler you can use <code class="docutils literal notranslate"><span class="pre">H.list_indicators()</span></code> to list the indicator names, and use <code class="docutils literal notranslate"><span class="pre">H.return_indicator(&lt;indicator_name&gt;)</span></code> to see the value of the indicator. Finally, the function <code class="docutils literal notranslate"><span class="pre">H.update_package()</span></code> will return the data that will be posted on CityIO.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Documentation for cs-brix library" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, CityScience group at the MIT Media Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
