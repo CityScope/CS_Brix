@@ -7,7 +7,7 @@ Created on Mon Jul 29 18:57:59 2019
 @contributors: crisjf, guadalupebabio
 """
 from .classes import Handler
-from .helpers import deg_to_rad,rad_to_deg, get_timezone_offset
+from .helpers import deg_to_rad, rad_to_deg, get_timezone_offset, hex_to_rgb
 from .functions import normalize_table_name, check_table_name
 
 import pyproj
@@ -158,8 +158,17 @@ class Grid_maker(Handler):
                     cell_type = np.random.choice(types_list)
                     cell['properties']['name'] = cell_type
                 type_props = self.geojson_object['properties']['types'][cell_type]
-                for prop in type_props:
-                    cell['properties'][prop] = type_props[prop]
+                cell['properties']['height'] = type_props['height']
+                type_color = type_props['color']
+                if type(type_color) is str:
+                    cell['properties']['color']  = hex_to_rgb(type_color)
+                else:
+                    cell['properties']['color']  = type_color
+            else:
+                if 'interactive' in cell['properties'].keys():
+                    del cell['properties']['interactive']
+                cell['properties']['color'] = [0,0,0,0]
+                cell['properties']['height'] = 0
 
     def choose_color(self,i,n):
         '''
@@ -323,6 +332,7 @@ class Grid_maker(Handler):
                 print(r.status_code)
             self.reset_geogrid_data()
             self.clear_endpoints()
+            self.center_grid_view()
             if not self.quietly:
                 print(self.front_end_url)
         else:

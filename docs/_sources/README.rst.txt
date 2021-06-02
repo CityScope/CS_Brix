@@ -7,5 +7,5 @@ Please note that `brix` is still being developed, which is why some features mig
 
 .. include:: introduction.rst
 
-.. include:: tutorial.rst
+.. include:: getting_started.rst
 
