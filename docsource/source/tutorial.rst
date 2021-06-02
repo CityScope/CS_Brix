@@ -118,7 +118,6 @@ Alternatively, you can use `poly` as an argument to :func:`brix.grid_from_poly`.
 	G.edit_types(['Type 1','Type 2','Type 3'])
 
 
-
 Testing your module
 -------------------
 
