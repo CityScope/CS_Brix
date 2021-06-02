@@ -22,6 +22,7 @@ import traceback
 import matplotlib
 from vincenty import vincenty
 from warnings import warn
+from shapely.geometry import shape
 
 class Grid(Handler):
     """
@@ -152,12 +153,13 @@ class Grid(Handler):
         types_list = list(self.geojson_object['properties']['types'].keys())
         for cell in self.geojson_object['features']:
             cell_type = cell['properties']['name']
-            if cell_type not in types_list:
-                cell_type = np.random.choice(types_list)
-                cell['properties']['name'] = cell_type
-            type_props = self.geojson_object['properties']['types'][cell_type]
-            for prop in type_props:
-                cell['properties'][prop] = type_props[prop]
+            if cell_type is not None:
+                if cell_type not in types_list:
+                    cell_type = np.random.choice(types_list)
+                    cell['properties']['name'] = cell_type
+                type_props = self.geojson_object['properties']['types'][cell_type]
+                for prop in type_props:
+                    cell['properties'][prop] = type_props[prop]
 
     def choose_color(self,i,n):
         '''
@@ -349,10 +351,31 @@ class Grid(Handler):
         else:
             raise NameError(f"Wrong type definition, pass dict or list, object passed was {type(types)}")
 
+    def grid_types(self):
+        return self.geojson_object['properties']['types']
+
+    def set_noninteractive(self,poly):
+        '''
+        Sets cells that fall outside of polygon as non interactive.
+        
+        Parameters
+        ----------
+        poly: shapely Polygon
+            Polygon bounding the interactive part of the grid.
+        '''
+        if self.geojson_object is None:
+            self.set_grid_geojson()
+        for cell in self.geojson_object['features']:
+            cell_shape = shape(cell['geometry'])
+            if not cell_shape.centroid.within(poly):
+                cell['properties']['name'] = None
+                cell['properties']['color'] = [0,0,0,0]
+                cell['properties'].pop('interactive',None)
 
 def grid_from_poly(table_name,poly):
     '''
     Creates a :class:`brix.Grid` object based on the given polygon.
+    It sets cells that fall outside the polygon as non-interactive.
 
     Parameters
     ----------
@@ -399,4 +422,6 @@ def grid_from_poly(table_name,poly):
         ncols = round(dist_horizontal / cell_side) ##
 
     G = Grid(table_name, top_left_lat, top_left_lon, rotation=rotation, cell_size=cell_size, nrows=nrows, ncols=ncols)
+    G.set_noninteractive(poly)
+
     return G
