@@ -181,20 +181,24 @@ class GEOGRIDDATA(list):
 		self.check_type_validity()
 		GEOGRID = self.GEOGRID
 		for cell in self:
-			if 'color' in cell.keys():
-				current_color = cell['color']
-			type_color = GEOGRID['properties']['types'][cell['name']]['color']
-			if isinstance(type_color,str):
-				h = type_color.replace('#','')
-				color = list(int(h[i:i+2], 16) for i in (0, 2, 4))
-			elif isinstance(type_color,list):
-				color = type_color[:]
-			if len(current_color)==4:
-				if len(color)==4: # replace type transparency
-					color[3] = current_color[-1]
-				else:
-					color.append(current_color[-1]) #used to handle user-defined transparencies
-			cell['color'] = color
+			cell_type = cell['name']
+			if cell_type!='None':
+				if 'color' in cell.keys():
+					current_color = cell['color']
+				type_color = GEOGRID['properties']['types'][cell_type]['color']
+				if isinstance(type_color,str):
+					h = type_color.replace('#','')
+					color = list(int(h[i:i+2], 16) for i in (0, 2, 4))
+				elif isinstance(type_color,list):
+					color = type_color[:]
+				if len(current_color)==4:
+					if len(color)==4: # replace type transparency
+						color[3] = current_color[-1]
+					else:
+						color.append(current_color[-1]) #used to handle user-defined transparencies
+				cell['color'] = color
+			else:
+				cell['color'] = [0,0,0,0]
 
 	def remap_interactive(self):
 		'''
@@ -205,13 +209,16 @@ class GEOGRIDDATA(list):
 			raise NameError('GEOGRIDDATA object does not have GEOGRID attribute.')
 		GEOGRID = self.GEOGRID
 		for cell in self:
-			h = GEOGRID['properties']['types'][cell['name']]
-			if 'interactive' in h.keys():
-				cell['interactive'] = h['interactive']
-			else:
-				if 'interactive' in cell.keys():
-					del cell['interactive']
-
+			cell_type = cell['name']
+			if cell_type!='None':
+				h = GEOGRID['properties']['types'][cell_type]
+				if 'interactive' in h.keys():
+					cell['interactive'] = h['interactive']
+				else:
+					if 'interactive' in cell.keys():
+						del cell['interactive']
+			elif 'interactive' in cell.keys():
+				del cell['interactive']
 
 	def as_df(self,include_geometries=None):
 		'''
