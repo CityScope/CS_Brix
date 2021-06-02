@@ -114,7 +114,7 @@ class GEOGRIDDATA(list):
 		'''
 		Returns set with all types defined in GEOGRID.
 		'''
-		return set(self.get_geogrid_props()['types'])
+		return set(self.get_geogrid_props()['types'])|set(['None'])
 
 	def number_of_types(self):
 		return len(self.get_type_set())
