@@ -114,7 +114,7 @@ class GEOGRIDDATA(list):
 		'''
 		Returns set with all types defined in GEOGRID.
 		'''
-		return set(self.get_geogrid_props()['types'])
+		return set(self.get_geogrid_props()['types'])|set(['None'])
 
 	def number_of_types(self):
 		return len(self.get_type_set())
@@ -181,13 +181,24 @@ class GEOGRIDDATA(list):
 		self.check_type_validity()
 		GEOGRID = self.GEOGRID
 		for cell in self:
-			if 'color' in cell.keys():
-				current_color = cell['color']
-			h = GEOGRID['properties']['types'][cell['name']]['color'].replace('#','')
-			color = list(int(h[i:i+2], 16) for i in (0, 2, 4))
-			if len(current_color)==4:
-				color.append(current_color[-1]) #used to handle user-defined transparencies
-			cell['color'] = color
+			cell_type = cell['name']
+			if cell_type!='None':
+				if 'color' in cell.keys():
+					current_color = cell['color']
+				type_color = GEOGRID['properties']['types'][cell_type]['color']
+				if isinstance(type_color,str):
+					h = type_color.replace('#','')
+					color = list(int(h[i:i+2], 16) for i in (0, 2, 4))
+				elif isinstance(type_color,list):
+					color = type_color[:]
+				if len(current_color)==4:
+					if len(color)==4: # replace type transparency
+						color[3] = current_color[-1]
+					else:
+						color.append(current_color[-1]) #used to handle user-defined transparencies
+				cell['color'] = color
+			else:
+				cell['color'] = [0,0,0,0]
 
 	def remap_interactive(self):
 		'''
@@ -198,13 +209,16 @@ class GEOGRIDDATA(list):
 			raise NameError('GEOGRIDDATA object does not have GEOGRID attribute.')
 		GEOGRID = self.GEOGRID
 		for cell in self:
-			h = GEOGRID['properties']['types'][cell['name']]
-			if 'interactive' in h.keys():
-				cell['interactive'] = h['interactive']
-			else:
-				if 'interactive' in cell.keys():
-					del cell['interactive']
-
+			cell_type = cell['name']
+			if cell_type!='None':
+				h = GEOGRID['properties']['types'][cell_type]
+				if 'interactive' in h.keys():
+					cell['interactive'] = h['interactive']
+				else:
+					if 'interactive' in cell.keys():
+						del cell['interactive']
+			elif 'interactive' in cell.keys():
+				del cell['interactive']
 
 	def as_df(self,include_geometries=None):
 		'''
@@ -413,7 +427,16 @@ class Handler(Thread):
 		self.indicators = {}
 		self.update_geogrid_data_functions = []
 		self.grid_hash_id = None
-		if not shell_mode:
+
+		self.shell_mode = shell_mode
+
+		if not self.shell_mode:
+			if not self.is_table():
+				if not self.quietly:
+					print('Table does not exist, setting Handler to shell_mode')
+				warn('Table does not exist, setting Handler to shell_mode')
+				self.shell_mode = True
+		if not self.shell_mode:
 			self.grid_hash_id = self.get_grid_hash()
 
 		self.previous_indicators = None
@@ -426,6 +449,48 @@ class Handler(Thread):
 		self.classification_list = ['LBCS','NAICS']
 
 		self.OSM_data = {}
+
+	def is_table(self):
+		'''
+		Checks it table exists by getting the base url.
+
+		Returns
+		-------
+		self.is_table : boolean
+			True if table exists.
+		'''
+		table_list_url = urljoin(self.remote_host,'api/tables/list')
+		r = self._get_url(table_list_url)
+		if r.status_code!=200:
+			raise NameError(f'Unable to retrieve list of tables: status code ={r.status_code}')
+		else:
+			table_list = [t.strip('/').split('/')[-1] for t in r.json()]
+			if self.table_name in table_list:
+				return True
+			else:
+				return False
+
+	def delete_table(self):
+		'''
+		Deletes table if it exists.
+		Will prompt user to make sure this function was not run by mistake.
+		'''
+		if self.is_table():
+			delete_table = input(f'Are you sure you want to delete {self.table_name}?')
+			delete_table = (delete_table.lower().strip()[0] == 'y')
+			if delete_table:
+				r = requests.delete(self.cityIO_post_url)
+				if r.status_code==200:
+					if not self.quietly:
+						print(f'{self.table_name} deleted')
+					self.is_table = None
+				else:
+					warn(f'Something went wrong, status_code:{r.status_code}')
+			else:
+				if not self.quietly:
+					print('Table not deleted')
+		else:
+			print('Table does not exist')
 
 	def sleep_time(self):
 		'''
@@ -481,7 +546,8 @@ class Handler(Thread):
 		return bounds
 
 	def check_table(self,return_value=False):
-		'''Prints the front end url for the table. 
+		'''
+		Prints the front end url for the table. 
 
 		Parameters
 		----------
@@ -1251,7 +1317,7 @@ class Handler(Thread):
 
 		return geogrid_data
 
-	def _get_url(self,url,params=None):
+	def _get_url(self,url,params=None,raise_warning=True):
 		attempts = 0
 		success = False
 		while (attempts < self.nAttempts)&(not success):
@@ -1263,7 +1329,8 @@ class Handler(Thread):
 			else:
 				attempts+=1
 		if not success:
-			warn('FAILED TO RETRIEVE URL: '+url)
+			if raise_warning:
+				warn('FAILED TO RETRIEVE URL: '+url)
 		return r
 
 	def get_geogrid_data(self,include_geometries=False,with_properties=False):
