@@ -424,6 +424,7 @@ def grid_from_poly(table_name,poly,ncells=20):
         ncols = round(dist_horizontal / cell_side) ##
 
     G = Grid(table_name, top_left_lat, top_left_lon, rotation=rotation, cell_size=cell_size, nrows=nrows, ncols=ncols)
+    G.set_grid_geojson()
     G.set_noninteractive(poly)
 
     return G
