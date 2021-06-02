@@ -332,6 +332,7 @@ class Grid_maker(Handler):
                 print(r.status_code)
             self.reset_geogrid_data()
             self.clear_endpoints()
+            self.center_grid_view()
             if not self.quietly:
                 print(self.front_end_url)
         else:
