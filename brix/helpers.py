@@ -32,6 +32,7 @@ def is_number(s):
 		return False
 
 def hex_to_rgb(h):
+	h = h.replace('#','')
 	return list(int(h[i:i+2], 16) for i in (0, 2, 4))
 
 def get_timezone_offset(lat, lng):
