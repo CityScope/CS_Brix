@@ -15,13 +15,18 @@ except:
         "shapely>=1.6.2",
         "geopandas>=0.6.2",
         "geopy>=1.20.0",
-        "networkx>=2.4"
+        "networkx>=2.4",
+        "matplotlib>=3.0.3",
+        "timezonefinder>=5.2.0",
+        "pytz>=2021.1",
+        "vincenty>=0.1.4",
+        "osmnx>=1.1.1"
     ]
 
 
 setuptools.setup(
     name="cs-brix",
-    version="0.0.9",
+    version="0.0.10",
     license='GNU General Public License v3.0 only (GPL-3.0-only)',
     author="CityScience MIT",
     author_email="csadmin@media.mit.edu",
@@ -29,7 +34,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/CityScope/CS_Brix",
-    download_url = 'https://github.com/CityScope/CS_Brix/archive/v_0.0.9.tar.gz',
+    download_url = 'https://github.com/CityScope/CS_Brix/archive/v_0.0.10.tar.gz',
     packages=setuptools.find_packages(),
     install_requires=INSTALL_REQUIRES,
     classifiers=[
