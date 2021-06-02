@@ -24,7 +24,7 @@ from vincenty import vincenty
 from warnings import warn
 from shapely.geometry import shape
 
-class Grid(Handler):
+class Grid_maker(Handler):
     """
     Takes the properties of the grid and using the Haversine formula, 
     computes the location of the top-right corner. Then projects
@@ -70,7 +70,7 @@ class Grid(Handler):
         else:
             crs = f"EPSG:{crs_epsg}"
 
-        super(Grid, self).__init__(
+        super(Grid_maker, self).__init__(
                 table_name, 
                 quietly = quietly, 
                 shell_mode = True
@@ -223,7 +223,7 @@ class Grid(Handler):
 
     def get_grid_geojson(self):
         '''
-        Returns the object created with :func:`brix.Grid.set_grid_geojson`.
+        Returns the object created with :func:`brix.Grid_maker.set_grid_geojson`.
         If the object has not been created, it will created using the default properties.
 
         Returns
@@ -240,7 +240,7 @@ class Grid(Handler):
         '''
         Takes the pre-computed locations of the top-left corner of every grid cell and creates a corresponding Multi-Polygon geojson object.
         Does not return the object, but saves it in object.
-        Use :func:`brix.Grid.get_grid_geojson` to access it
+        Use :func:`brix.Grid_maker.get_grid_geojson` to access it
 
 
         Parameters
@@ -374,7 +374,7 @@ class Grid(Handler):
 
 def grid_from_poly(table_name,poly,ncells=20):
     '''
-    Creates a :class:`brix.Grid` object based on the given polygon.
+    Creates a :class:`brix.Grid_maker` object based on the given polygon.
     It sets cells that fall outside the polygon as non-interactive.
 
     Parameters
@@ -389,8 +389,8 @@ def grid_from_poly(table_name,poly,ncells=20):
 
     Returns
     -------
-    G: :class:`brix.Grid`
-        Grid object with properties inferrred from polygon.
+    G: :class:`brix.Grid_maker`
+        Grid_maker object with properties inferrred from polygon.
     '''
 
     rotation = 0
@@ -423,7 +423,7 @@ def grid_from_poly(table_name,poly,ncells=20):
         cell_size = cell_side #m ##
         ncols = round(dist_horizontal / cell_side) ##
 
-    G = Grid(table_name, top_left_lat, top_left_lon, rotation=rotation, cell_size=cell_size, nrows=nrows, ncols=ncols)
+    G = Grid_maker(table_name, top_left_lat, top_left_lon, rotation=rotation, cell_size=cell_size, nrows=nrows, ncols=ncols)
     G.set_grid_geojson()
     G.set_noninteractive(poly)
 
