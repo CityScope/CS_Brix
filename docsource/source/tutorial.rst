@@ -45,30 +45,30 @@ The updates triggered by :func:`brix.Handler.listen` follow the following order:
 Creating a table from python
 ----------------------------
 
-`Brix` provides a class for creating spatial grids for CityScope projects: :class:`brix.Grid` a subclass of :class:`brix.Handler`.
+`Brix` provides a class for creating spatial grids for CityScope projects: :class:`brix.Grid_maker` a subclass of :class:`brix.Handler`.
 
 For most use cases, you will create your table using the web-app editor found `here <https://cityscope.media.mit.edu/CS_cityscopeJS/#/editor>`_. For more complex projects, you might need to create your own table from an existing dataset. For example, you might want to select the grid area using a polygon defined in a shapefile. The tools we highlight here can be use for this purpose.
 
-The first step is to instantiate the class by defining the location of your table and its name. The lat,lon provided to the :class:`brix.Grid` constructor correspond to the top left corner of the grid (North-West).
+The first step is to instantiate the class by defining the location of your table and its name. The lat,lon provided to the :class:`brix.Grid_maker` constructor correspond to the top left corner of the grid (North-West).
 
 ::
 
-	from brix import Grid
+	from brix import Grid_maker
 	table_name = 'dungeonmaster'
 	lat,lon = 42.361875, -71.105713
-	G = Grid(table_name, lat, lon)
+	G = Grid_maker(table_name, lat, lon)
 
-If the table already exists, you can either use :func:`brix.Handler.delete_table` to delete it or wait to be prompted if you want to rewrite it. You can check if the table exists by using :func:`brix.Handler.is_table`. Please note that since :class:`brix.Grid` is a subclass of :class:`brix.Handler`, most functions available for a :class:`brix.Handler` object are also available for a :class:`brix.Grid` object. The table constructor also allows you to specify the `cell_size`, the `nrows` and `ncols`, as well as other parameters.
+If the table already exists, you can either use :func:`brix.Handler.delete_table` to delete it or wait to be prompted if you want to rewrite it. You can check if the table exists by using :func:`brix.Handler.is_table`. Please note that since :class:`brix.Grid_maker` is a subclass of :class:`brix.Handler`, most functions available for a :class:`brix.Handler` object are also available for a :class:`brix.Grid_maker` object. The table constructor also allows you to specify the `cell_size`, the `nrows` and `ncols`, as well as other parameters.
 
-Once the grid maker object has been instatiated, we set the grid by running :func:`brix.Grid.set_grid_geojson`:
+Once the grid maker object has been instatiated, we set the grid by running :func:`brix.Grid_maker.set_grid_geojson`:
 
 ::
 
 	G.set_grid_geojson()
 
-This will create the geojson that will be posted to CityIO to create the table. You can check the object by using :func:`brix.Grid.get_grid_geojson`.
+This will create the geojson that will be posted to CityIO to create the table. You can check the object by using :func:`brix.Grid_maker.get_grid_geojson`.
 
-The next step is to define the cell types that the user will be able to choose frorm. Defining the necessary types and the properties of each type is a very complex process that involves data collection and analysis as well as community engagement and simulation that is beyond the scope of this tutorial. The default table created with the Grid constructor only contains a simple type called `Default`. To see this, you can use :func:`brix.Grid.grid_types`. If you wish to change this, you can use :func:`brix.Grid.edit_types`. This function will either take a json-like object (dict of dicts) with the name of the type as the key, or a list of names of types that will be automatically completed with default values. Once the types have been defined, they can be expressed in the following way, adding as many properties as needed by your table:
+The next step is to define the cell types that the user will be able to choose frorm. Defining the necessary types and the properties of each type is a very complex process that involves data collection and analysis as well as community engagement and simulation that is beyond the scope of this tutorial. The default table created with the Grid constructor only contains a simple type called `Default`. To see this, you can use :func:`brix.Grid_maker.grid_types`. If you wish to change this, you can use :func:`brix.Grid_maker.edit_types`. This function will either take a json-like object (dict of dicts) with the name of the type as the key, or a list of names of types that will be automatically completed with default values. Once the types have been defined, they can be expressed in the following way, adding as many properties as needed by your table:
 
 ::
 
@@ -90,13 +90,13 @@ The following line of code replaces the `Default` type by there other cell types
 
 	G.edit_types(['Type 1','Type 2','Type 3'])
 
-For most applications, you will want to turn off some of the cells and make them non-interactive. Usually, this will involve a shapefile or a geojson that contains the polygon that defines the interactive part of the table. If you have a Shapely polygon stored in `poly` you can set the non-interactive cells by using :func:`brix.Grid.set_noninteractive`:
+For most applications, you will want to turn off some of the cells and make them non-interactive. Usually, this will involve a shapefile or a geojson that contains the polygon that defines the interactive part of the table. If you have a Shapely polygon stored in `poly` you can set the non-interactive cells by using :func:`brix.Grid_maker.set_noninteractive`:
 
 ::
 
 	G.set_noninteractive(poly)
 
-The final step is to commit the grid to CityIO. Use :func:`brix.Grid.commit_grid`:
+The final step is to commit the grid to CityIO. Use :func:`brix.Grid_maker.commit_grid`:
 
 ::
 
@@ -106,10 +106,10 @@ Putting it all together:
 
 ::
 
-	from brix import Grid
+	from brix import Grid_maker
 	table_name = 'dungeonmaster'
 	lat,lon = 42.361875, -71.105713
-	G = Grid(table_name, lat, lon)
+	G = Grid_maker(table_name, lat, lon)
 	G.set_grid_geojson()
 	G.edit_types(['Type 1','Type 2','Type 3'])
 	G.set_noninteractive(poly)
@@ -119,7 +119,7 @@ Alternatively, you can use `poly` as an argument to :func:`brix.grid_from_poly`.
 
 ::
 
-	from brix import Grid, grid_from_poly
+	from brix import Grid_maker, grid_from_poly
 	table_name = 'dungeonmaster'
 	G = grid_from_poly(table_name, poly)
 	G.edit_types(['Type 1','Type 2','Type 3'])
