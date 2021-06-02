@@ -153,7 +153,7 @@ class Grid(Handler):
         types_list = list(self.geojson_object['properties']['types'].keys())
         for cell in self.geojson_object['features']:
             cell_type = cell['properties']['name']
-            if cell_type is not None:
+            if cell_type != 'None':
                 if cell_type not in types_list:
                     cell_type = np.random.choice(types_list)
                     cell['properties']['name'] = cell_type
@@ -368,11 +368,11 @@ class Grid(Handler):
         for cell in self.geojson_object['features']:
             cell_shape = shape(cell['geometry'])
             if not cell_shape.centroid.within(poly):
-                cell['properties']['name'] = None
+                cell['properties']['name'] = 'None'
                 cell['properties']['color'] = [0,0,0,0]
                 cell['properties'].pop('interactive',None)
 
-def grid_from_poly(table_name,poly):
+def grid_from_poly(table_name,poly,ncells=20):
     '''
     Creates a :class:`brix.Grid` object based on the given polygon.
     It sets cells that fall outside the polygon as non-interactive.
@@ -384,6 +384,8 @@ def grid_from_poly(table_name,poly):
         It will overwrite it if it exists.
     poly: shapely.Polygon
         Polygon of grid bounds. 
+    ncells: int, defaults to 20
+        Number of cells in the longest side.
 
     Returns
     -------
@@ -411,12 +413,12 @@ def grid_from_poly(table_name,poly):
     dist_vertical = vincenty(top_left, bottom_left)*1000 #in m
 
     if dist_horizontal > dist_vertical:
-        ncols = 20 ##
+        ncols = ncells ##
         cell_side = round(dist_horizontal / ncols)
         cell_size = cell_side #m ##
         nrows = round(dist_vertical / cell_side) ##
     else:
-        nrows = 20 ##
+        nrows = ncells ##
         cell_side = round(dist_vertical / nrows)
         cell_size = cell_side #m ##
         ncols = round(dist_horizontal / cell_side) ##
