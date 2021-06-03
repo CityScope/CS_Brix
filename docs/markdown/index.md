@@ -75,6 +75,9 @@ pip install cs-brix
     * User class
 
 
+    * Grid maker class
+
+
 * Functions
 
 

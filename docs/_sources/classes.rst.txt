@@ -45,3 +45,10 @@ User class
     :members:
     :undoc-members:
 
+Grid maker class
+----------------
+
+.. autoclass:: brix.Grid_maker
+    :members:
+    :undoc-members:
+

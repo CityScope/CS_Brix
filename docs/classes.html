@@ -95,6 +95,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#geogriddata-class">GEOGRIDDATA class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#indicator-sub-classes">Indicator sub-classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-class">User class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#grid-maker-class">Grid maker class</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
@@ -1454,6 +1455,173 @@ There is a small chance that the user will reset the grid to its original settin
 <dl class="method">
 <dt id="brix.User.user_status">
 <code class="sig-name descname">user_status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/test_tools.html#User.user_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.User.user_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="grid-maker-class">
+<h2>Grid maker class<a class="headerlink" href="#grid-maker-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="brix.Grid_maker">
+<em class="property">class </em><code class="sig-prename descclassname">brix.</code><code class="sig-name descname">Grid_maker</code><span class="sig-paren">(</span><em class="sig-param">table_name</em>, <em class="sig-param">top_left_lat</em>, <em class="sig-param">top_left_lon</em>, <em class="sig-param">cell_size=100</em>, <em class="sig-param">nrows=20</em>, <em class="sig-param">ncols=20</em>, <em class="sig-param">rotation=0</em>, <em class="sig-param">crs_epsg=None</em>, <em class="sig-param">quietly=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the properties of the grid and using the Haversine formula,
+computes the location of the top-right corner. Then projects
+to spatial coordinates in order to find the locations of the rest of
+the grid cells</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_name</strong> (<em>str</em>) – Name of table to create.
+It will overwrite it if it exists.</p></li>
+<li><p><strong>top_left_lat</strong> (<em>float</em>) – Latitude of top left corner of grid</p></li>
+<li><p><strong>top_left_lon</strong> (<em>float</em>) – Longitude of top left corner of grid</p></li>
+<li><p><strong>cell_size</strong> (<em>float</em><em>, </em><em>defaults to 100</em>) – Lenght in meters of the side of each cell.</p></li>
+<li><p><strong>nrows</strong> (<em>int</em><em>, </em><em>defaults to 20</em>) – Number of rows</p></li>
+<li><p><strong>ncols</strong> (<em>int</em><em>, </em><em>defaults to 20</em>) – Number of columns</p></li>
+<li><p><strong>rotation</strong> (<em>int</em><em>, </em><em>defaults to 0</em>) – Roation of the grid.</p></li>
+<li><p><strong>crs_epsg</strong> (<em>str</em>) – EPSG code for the desired projection.
+Do not include ‘EPSG’
+if crs_epsg== None, the projection will be estimated based on the longitude</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="brix.Grid_maker.choose_color">
+<code class="sig-name descname">choose_color</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.choose_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.choose_color" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses matplotlib tab10 and tab20 color palettes to generate a color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> (<em>int</em>) – Index of color (e.g. 0,1,2,3,…,n)</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – Size of palette</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>color</strong> – RGB code for color</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="brix.Grid_maker.color_palettes">
+<code class="sig-name descname">color_palettes</code><em class="property"> = {10: 'tab10', 20: 'tab20'}</em><a class="headerlink" href="#brix.Grid_maker.color_palettes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.commit_grid">
+<code class="sig-name descname">commit_grid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.commit_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.commit_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commits the geogrid to create the new table.
+This will reset GEOGRIDDATA and clear all indicator endpoints if the table alread existed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.edit_types">
+<code class="sig-name descname">edit_types</code><span class="sig-paren">(</span><em class="sig-param">types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.edit_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.edit_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes the default types for user defined types.
+If the GEOGRID object returned has not been created, it will created using the default properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>types</strong> (<em>dict</em><em> or </em><em>list</em>) – Object with new type definitions.
+When passing a dict, each type name is passed as a key and values are dicts with the properties of each type.
+When passing a list, only passes the names of the types, other baseline properties will be generated by default.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.generate_color">
+<code class="sig-name descname">generate_color</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.generate_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.generate_color" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses default color palette to generate colors for all types that do not have a color defined.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.generate_geogriddata">
+<code class="sig-name descname">generate_geogriddata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.generate_geogriddata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.generate_geogriddata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures that all cells point to a valid cell type in the features endpoint.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.generate_height">
+<code class="sig-name descname">generate_height</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.generate_height"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.generate_height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds height zero to types missing height</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.generate_interactive">
+<code class="sig-name descname">generate_interactive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.generate_interactive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.generate_interactive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the interactive=Web property when missing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.generate_missing">
+<code class="sig-name descname">generate_missing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.generate_missing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.generate_missing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to generate missing necessary properties: color and height</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.get_grid_geojson">
+<code class="sig-name descname">get_grid_geojson</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.get_grid_geojson"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.get_grid_geojson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object created with <a class="reference internal" href="#brix.Grid_maker.set_grid_geojson" title="brix.Grid_maker.set_grid_geojson"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Grid_maker.set_grid_geojson()</span></code></a>.
+If the object has not been created, it will created using the default properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>geogrid</strong> – Object to be posted to GEOGRID endpoint to create table.
+See <code class="xref py py-func docutils literal notranslate"><span class="pre">brix.commit_grid()</span></code></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.grid_types">
+<code class="sig-name descname">grid_types</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.grid_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.grid_types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the whole grid in blue.
+If some cells are maked as interactive, they will be plotted in red.
+Useful to ensure the correct behavior.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.set_grid_geojson">
+<code class="sig-name descname">set_grid_geojson</code><span class="sig-paren">(</span><em class="sig-param">add_properties={}</em>, <em class="sig-param">include_global_properties=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.set_grid_geojson"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.set_grid_geojson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the pre-computed locations of the top-left corner of every grid cell and creates a corresponding Multi-Polygon geojson object.
+Does not return the object, but saves it in object.
+Use <a class="reference internal" href="#brix.Grid_maker.get_grid_geojson" title="brix.Grid_maker.get_grid_geojson"><code class="xref py py-func docutils literal notranslate"><span class="pre">brix.Grid_maker.get_grid_geojson()</span></code></a> to access it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>add_properties</strong> (<em>dict</em><em> (</em><em>optional</em><em>)</em>) – Properties of each type.
+Currently not supported</p></li>
+<li><p><strong>include_global_properties</strong> (Boolean, defaults to <cite>True</cite>) – If <cite>True</cite> it will add global properties to each cell.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="brix.Grid_maker.set_noninteractive">
+<code class="sig-name descname">set_noninteractive</code><span class="sig-paren">(</span><em class="sig-param">poly</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/brix/grid_maker.html#Grid_maker.set_noninteractive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brix.Grid_maker.set_noninteractive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets cells that fall outside of polygon as non interactive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>poly</strong> (<em>shapely Polygon</em>) – Polygon bounding the interactive part of the grid.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="brix.Grid_maker.wgs">
+<code class="sig-name descname">wgs</code><em class="property"> = &lt;Other Coordinate Operation Transformer: longlat&gt; Description: PROJ-based coordinate operation Area of Use: - undefined</em><a class="headerlink" href="#brix.Grid_maker.wgs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

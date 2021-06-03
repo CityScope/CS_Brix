@@ -1,0 +1,644 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>brix.grid_maker &mdash; cs-brix 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cs-brix
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../classes.html">Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cs-brix</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>brix.grid_maker</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for brix.grid_maker</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Mon Jul 29 18:57:59 2019</span>
+
+<span class="sd">@author: doorleyr</span>
+<span class="sd">@contributors: crisjf, guadalupebabio</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.classes</span> <span class="kn">import</span> <span class="n">Handler</span>
+<span class="kn">from</span> <span class="nn">.helpers</span> <span class="kn">import</span> <span class="n">deg_to_rad</span><span class="p">,</span> <span class="n">rad_to_deg</span><span class="p">,</span> <span class="n">get_timezone_offset</span><span class="p">,</span> <span class="n">hex_to_rgb</span>
+<span class="kn">from</span> <span class="nn">.functions</span> <span class="kn">import</span> <span class="n">normalize_table_name</span><span class="p">,</span> <span class="n">check_table_name</span>
+
+<span class="kn">import</span> <span class="nn">pyproj</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.path</span> <span class="k">as</span> <span class="nn">mplPath</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">from</span> <span class="nn">vincenty</span> <span class="kn">import</span> <span class="n">vincenty</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">shape</span>
+
+<div class="viewcode-block" id="Grid_maker"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker">[docs]</a><span class="k">class</span> <span class="nc">Grid_maker</span><span class="p">(</span><span class="n">Handler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes the properties of the grid and using the Haversine formula, </span>
+<span class="sd">    computes the location of the top-right corner. Then projects</span>
+<span class="sd">    to spatial coordinates in order to find the locations of the rest of </span>
+<span class="sd">    the grid cells</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    table_name: str</span>
+<span class="sd">        Name of table to create.</span>
+<span class="sd">        It will overwrite it if it exists.</span>
+<span class="sd">    top_left_lat: float</span>
+<span class="sd">        Latitude of top left corner of grid</span>
+<span class="sd">    top_left_lon: float</span>
+<span class="sd">        Longitude of top left corner of grid</span>
+<span class="sd">    cell_size: float, defaults to 100</span>
+<span class="sd">        Lenght in meters of the side of each cell.</span>
+<span class="sd">    nrows: int, defaults to 20</span>
+<span class="sd">        Number of rows</span>
+<span class="sd">    ncols: int, defaults to 20</span>
+<span class="sd">        Number of columns</span>
+<span class="sd">    rotation: int, defaults to 0</span>
+<span class="sd">        Roation of the grid.</span>
+<span class="sd">    crs_epsg: str</span>
+<span class="sd">        EPSG code for the desired projection.</span>
+<span class="sd">        Do not include &#39;EPSG&#39;</span>
+<span class="sd">        if crs_epsg== None, the projection will be estimated based on the longitude</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">color_palettes</span> <span class="o">=</span> <span class="p">{</span><span class="mi">10</span><span class="p">:</span><span class="s1">&#39;tab10&#39;</span><span class="p">,</span><span class="mi">20</span><span class="p">:</span><span class="s1">&#39;tab20&#39;</span><span class="p">}</span>
+    <span class="n">wgs</span><span class="o">=</span><span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">top_left_lat</span><span class="p">,</span> <span class="n">top_left_lon</span><span class="p">,</span> 
+                 <span class="n">cell_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">crs_epsg</span><span class="o">=</span><span class="kc">None</span> <span class="p">,</span><span class="n">quietly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_table_name</span><span class="p">(</span><span class="n">table_name</span><span class="p">):</span>
+            <span class="n">new_table_name</span> <span class="o">=</span> <span class="n">normalize_table_name</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">quietly</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Incorrect table name &quot;</span><span class="si">{table_name}</span><span class="s1">&quot;, using &quot;</span><span class="si">{new_table_name}</span><span class="s1">&quot; instead&#39;</span><span class="p">)</span>
+            <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Incorrect table name &quot;</span><span class="si">{table_name}</span><span class="s1">&quot;, using &quot;</span><span class="si">{new_table_name}</span><span class="s1">&quot; instead&#39;</span><span class="p">)</span>
+            <span class="n">table_name</span> <span class="o">=</span> <span class="n">new_table_name</span>
+
+        <span class="k">if</span> <span class="n">crs_epsg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">utm_zone</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">top_left_lon</span> <span class="o">+</span> <span class="mi">180</span><span class="p">)</span> <span class="o">/</span> <span class="mi">6</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;+proj=utm +zone=</span><span class="si">{utm_zone}</span><span class="s2"> +ellps=WGS84 +datum=WGS84 +units=m +no_defs&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;EPSG:</span><span class="si">{crs_epsg}</span><span class="s2">&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Grid_maker</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+                <span class="n">table_name</span><span class="p">,</span> 
+                <span class="n">quietly</span> <span class="o">=</span> <span class="n">quietly</span><span class="p">,</span> 
+                <span class="n">shell_mode</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_table</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Table </span><span class="si">{self.table_name}</span><span class="s1"> already exists&#39;</span><span class="p">)</span>
+            <span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Table </span><span class="si">{self.table_name}</span><span class="s1"> already exists&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Calculating initial coordinates of each cell&#39;</span><span class="p">)</span>
+        <span class="n">EARTH_RADIUS_M</span><span class="o">=</span><span class="mf">6.371e6</span>
+        <span class="n">top_left_lon_lat</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">top_left_lon</span><span class="p">,</span> <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">top_left_lat</span><span class="p">}</span>
+        <span class="n">bearing</span><span class="o">=</span><span class="p">(</span><span class="mi">90</span><span class="o">-</span><span class="n">rotation</span><span class="o">+</span><span class="mi">360</span><span class="p">)</span><span class="o">%</span><span class="mi">360</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="o">=</span><span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
+        <span class="n">cell_size</span><span class="o">=</span><span class="n">cell_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span>
+        <span class="n">Ad</span><span class="o">=</span><span class="p">(</span><span class="n">cell_size</span><span class="o">*</span><span class="n">ncols</span><span class="p">)</span><span class="o">/</span><span class="n">EARTH_RADIUS_M</span>
+        <span class="n">la1</span><span class="o">=</span><span class="n">deg_to_rad</span><span class="p">(</span><span class="n">top_left_lon_lat</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">])</span>
+        <span class="n">lo1</span><span class="o">=</span><span class="n">deg_to_rad</span><span class="p">(</span><span class="n">top_left_lon_lat</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+        <span class="n">bearing_rad</span><span class="o">=</span><span class="n">deg_to_rad</span><span class="p">(</span><span class="n">bearing</span><span class="p">)</span>
+        <span class="n">la2</span><span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">asin</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">la1</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">Ad</span><span class="p">)</span>  <span class="o">+</span> 
+                          <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">la1</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Ad</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">bearing_rad</span><span class="p">))</span>
+        <span class="n">lo2</span><span class="o">=</span> <span class="n">lo1</span><span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">bearing_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Ad</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">la1</span><span class="p">),</span>
+                             <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">Ad</span><span class="p">)</span><span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">la1</span><span class="p">)</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">la2</span><span class="p">))</span>
+        <span class="n">top_right_lon_lat</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">rad_to_deg</span><span class="p">(</span><span class="n">lo2</span><span class="p">),</span> <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">rad_to_deg</span><span class="p">(</span><span class="n">la2</span><span class="p">)}</span>        
+        <span class="n">top_left_xy</span><span class="o">=</span><span class="n">pyproj</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wgs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="p">,</span> 
+                                     <span class="n">top_left_lon_lat</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">],</span><span class="n">top_left_lon_lat</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+        <span class="n">top_right_xy</span><span class="o">=</span><span class="n">pyproj</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wgs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="p">,</span> 
+                                      <span class="n">top_right_lon_lat</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">],</span><span class="n">top_right_lon_lat</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+        <span class="c1"># now we have the top two points in a spatial system, </span>
+        <span class="c1"># we can calculate the rest of the points</span>
+        <span class="n">dydx</span><span class="o">=</span><span class="p">(</span><span class="n">top_right_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">top_left_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">top_right_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">top_left_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">theta</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">((</span><span class="n">dydx</span><span class="p">))</span>
+        <span class="n">cosTheta</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">sinTheta</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">x_unRot</span><span class="o">=</span><span class="p">[</span><span class="n">j</span><span class="o">*</span><span class="n">cell_size</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrows</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncols</span><span class="p">)]</span>
+        <span class="n">y_unRot</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="o">*</span><span class="n">cell_size</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrows</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncols</span><span class="p">)]</span>
+        <span class="c1"># use the rotation matrix to rotate around the origin</span>
+        <span class="n">x_rot</span><span class="o">=</span><span class="p">[</span><span class="n">x_unRot</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">cosTheta</span> <span class="o">-</span><span class="n">y_unRot</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">sinTheta</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_unRot</span><span class="p">))]</span>
+        <span class="n">y_rot</span><span class="o">=</span><span class="p">[</span><span class="n">x_unRot</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">sinTheta</span> <span class="o">+</span><span class="n">y_unRot</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">cosTheta</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_unRot</span><span class="p">))]</span>
+        <span class="n">x_rot_trans</span><span class="o">=</span><span class="p">[</span><span class="n">top_left_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">x_rot</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_rot</span><span class="p">))]</span>
+        <span class="n">y_rot_trans</span><span class="o">=</span><span class="p">[</span><span class="n">top_left_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">y_rot</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_rot</span><span class="p">))]</span>
+        <span class="n">lat_grid</span><span class="p">,</span> <span class="n">lon_grid</span><span class="o">=</span><span class="n">pyproj</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">wgs</span><span class="p">,</span><span class="n">x_rot_trans</span><span class="p">,</span> <span class="n">y_rot_trans</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Defining properties and headers&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="o">=</span><span class="p">[[</span><span class="n">lon_grid</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">lat_grid</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lon_grid</span><span class="p">))]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_xy</span><span class="o">=</span><span class="p">[[</span><span class="n">x_rot_trans</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">y_rot_trans</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_rot_trans</span><span class="p">))]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> 
+                        <span class="s1">&#39;interactive&#39;</span><span class="p">:</span> <span class="s2">&quot;Web&quot;</span><span class="p">,</span>
+                        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s2">&quot;test&quot;</span><span class="p">}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tz</span> <span class="o">=</span> <span class="n">get_timezone_offset</span><span class="p">(</span><span class="n">top_left_lat</span><span class="p">,</span><span class="n">top_left_lon</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Could not set timezone.&#39;</span><span class="p">)</span>
+            <span class="n">warn</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="n">tz</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;cellSize&#39;</span><span class="p">:</span> <span class="n">cell_size</span><span class="p">,</span>
+            <span class="s1">&#39;latitude&#39;</span><span class="p">:</span> <span class="n">top_left_lat</span><span class="p">,</span>
+            <span class="s1">&#39;longitude&#39;</span><span class="p">:</span> <span class="n">top_left_lon</span><span class="p">,</span>
+            <span class="s1">&#39;ncols&#39;</span><span class="p">:</span> <span class="n">ncols</span><span class="p">,</span>
+            <span class="s1">&#39;nrows&#39;</span><span class="p">:</span> <span class="n">nrows</span><span class="p">,</span>
+            <span class="s1">&#39;projection&#39;</span><span class="p">:</span> <span class="s1">&#39;+proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +ellps=GRS80 +datum=NAD83 +units=m +no_def&#39;</span><span class="p">,</span> <span class="c1">#not sure from where?</span>
+            <span class="s1">&#39;rotation&#39;</span><span class="p">:</span> <span class="n">rotation</span><span class="p">,</span>
+            <span class="s1">&#39;tableName&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">table_name</span><span class="p">,</span>
+            <span class="s1">&#39;tz&#39;</span><span class="p">:</span> <span class="n">tz</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Grid_maker.generate_geogriddata"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.generate_geogriddata">[docs]</a>    <span class="k">def</span> <span class="nf">generate_geogriddata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Ensures that all cells point to a valid cell type in the features endpoint.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">types_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;features&#39;</span><span class="p">]:</span>
+            <span class="n">cell_type</span> <span class="o">=</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">cell_type</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cell_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">types_list</span><span class="p">:</span>
+                    <span class="n">cell_type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">types_list</span><span class="p">)</span>
+                    <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_type</span>
+                <span class="n">type_props</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">cell_type</span><span class="p">]</span>
+                <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_props</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span>
+                <span class="n">type_color</span> <span class="o">=</span> <span class="n">type_props</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">type_color</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+                    <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">hex_to_rgb</span><span class="p">(</span><span class="n">type_color</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">type_color</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;interactive&#39;</span> <span class="ow">in</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">del</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;interactive&#39;</span><span class="p">]</span>
+                <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="Grid_maker.choose_color"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.choose_color">[docs]</a>    <span class="k">def</span> <span class="nf">choose_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Uses matplotlib tab10 and tab20 color palettes to generate a color.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        i: int</span>
+<span class="sd">            Index of color (e.g. 0,1,2,3,...,n)</span>
+<span class="sd">        n: int</span>
+<span class="sd">            Size of palette</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        color: list</span>
+<span class="sd">            RGB code for color</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">n</span><span class="o">&lt;=</span><span class="mi">10</span><span class="p">:</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;tab10&#39;</span><span class="p">)</span>
+            <span class="n">mod</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;tab20&#39;</span><span class="p">)</span>
+            <span class="n">mod</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="o">*</span><span class="mi">255</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cmap</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="n">mod</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="Grid_maker.generate_color"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.generate_color">[docs]</a>    <span class="k">def</span> <span class="nf">generate_color</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Uses default color palette to generate colors for all types that do not have a color defined.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">types_missing_color</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_geojson</span><span class="p">()[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;color&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_geojson</span><span class="p">()[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">types_missing_color</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">types_missing_color</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">choose_color</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Grid_maker.generate_height"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.generate_height">[docs]</a>    <span class="k">def</span> <span class="nf">generate_height</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Adds height zero to types missing height</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_geojson</span><span class="p">()[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s1">&#39;height&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="Grid_maker.generate_interactive"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.generate_interactive">[docs]</a>    <span class="k">def</span> <span class="nf">generate_interactive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Adds the interactive=Web property when missing</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_geojson</span><span class="p">()[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s1">&#39;interactive&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s1">&#39;interactive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Web&#39;</span></div>
+
+<div class="viewcode-block" id="Grid_maker.generate_missing"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.generate_missing">[docs]</a>    <span class="k">def</span> <span class="nf">generate_missing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Wrapper to generate missing necessary properties: color and height</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_color</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_height</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_interactive</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_geogriddata</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Grid_maker.get_grid_geojson"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.get_grid_geojson">[docs]</a>    <span class="k">def</span> <span class="nf">get_grid_geojson</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns the object created with :func:`brix.Grid_maker.set_grid_geojson`.</span>
+<span class="sd">        If the object has not been created, it will created using the default properties.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        geogrid: dict</span>
+<span class="sd">            Object to be posted to GEOGRID endpoint to create table. </span>
+<span class="sd">            See :func:`brix.commit_grid`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_grid_geojson</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span></div>
+
+<div class="viewcode-block" id="Grid_maker.set_grid_geojson"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.set_grid_geojson">[docs]</a>    <span class="k">def</span> <span class="nf">set_grid_geojson</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">add_properties</span><span class="o">=</span><span class="p">{},</span> <span class="n">include_global_properties</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Takes the pre-computed locations of the top-left corner of every grid cell and creates a corresponding Multi-Polygon geojson object.</span>
+<span class="sd">        Does not return the object, but saves it in object.</span>
+<span class="sd">        Use :func:`brix.Grid_maker.get_grid_geojson` to access it</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        add_properties: dict (optional)</span>
+<span class="sd">            Properties of each type.</span>
+<span class="sd">            Currently not supported</span>
+<span class="sd">        include_global_properties: Boolean, defaults to `True`</span>
+<span class="sd">            If `True` it will add global properties to each cell. </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Generating grid geojson&#39;</span><span class="p">)</span>
+        <span class="n">dLLdCol</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> 
+                         <span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">dLLdRow</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ncols</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> 
+                       <span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ncols</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">features</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">):</span>
+            <span class="n">coords</span><span class="o">=</span><span class="p">[</span><span class="n">g</span><span class="p">,</span> 
+                    <span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">dLLdRow</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">dLLdRow</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                    <span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">dLLdCol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">dLLdRow</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span>
+                     <span class="n">dLLdCol</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">dLLdRow</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+                    <span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">dLLdCol</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">dLLdCol</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> 
+                    <span class="n">g</span><span class="p">]</span>
+            <span class="n">properties</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">properties</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+            <span class="n">properties</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="c1"># for p in self.properties:</span>
+            <span class="c1">#     properties[p]=self.properties[p][i]</span>
+            <span class="c1"># for p in add_properties:</span>
+            <span class="c1">#     properties[p]=add_properties[p][i]</span>
+            <span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Feature&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;geometry&#39;</span><span class="p">:{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Polygon&#39;</span><span class="p">,</span> <span class="s1">&#39;coordinates&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">coords</span><span class="p">]},</span>
+                             <span class="s1">&#39;properties&#39;</span><span class="p">:</span> <span class="n">properties</span><span class="p">})</span>
+        <span class="n">geojson_object</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;FeatureCollection&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;features&#39;</span><span class="p">:</span> <span class="n">features</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">include_global_properties</span><span class="p">:</span>
+            <span class="n">type_attributes</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;LBCS&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;proportion&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;use&#39;</span><span class="p">:{}}],</span>
+                <span class="s1">&#39;NAICS&#39;</span><span class="p">:[{</span><span class="s1">&#39;proportion&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;use&#39;</span><span class="p">:{}}],</span>
+                <span class="s1">&#39;color&#39;</span><span class="p">:[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">&#39;interactive&#39;</span><span class="p">:</span> <span class="s2">&quot;Web&quot;</span><span class="p">,</span> 
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;tableData&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+              <span class="p">}</span>
+            <span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">{</span> 
+                <span class="s1">&#39;geogrid_to_tui_mapping&#39;</span><span class="p">:</span> <span class="p">{</span> <span class="p">},</span>
+                <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">,</span>
+                <span class="s1">&#39;types&#39;</span> <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Default&#39;</span><span class="p">:</span> <span class="n">type_attributes</span><span class="p">}</span>
+            <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span> <span class="o">=</span> <span class="n">geojson_object</span></div>
+    
+<div class="viewcode-block" id="Grid_maker.plot"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Plots the whole grid in blue. </span>
+<span class="sd">        If some cells are maked as interactive, they will be plotted in red.</span>
+<span class="sd">        Useful to ensure the correct behavior. </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">],</span> 
+            <span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_coords_ll</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Grid_maker.commit_grid"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.commit_grid">[docs]</a>    <span class="k">def</span> <span class="nf">commit_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Commits the geogrid to create the new table.</span>
+<span class="sd">        This will reset GEOGRIDDATA and clear all indicator endpoints if the table alread existed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">post_table</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_table</span><span class="p">():</span>
+            <span class="n">post_table</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Table exists, do you want to overwrite it?&#39;</span><span class="p">)</span>
+            <span class="n">post_table</span> <span class="o">=</span> <span class="p">(</span><span class="n">post_table</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">post_table</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generate_missing</span><span class="p">()</span>
+            <span class="n">geogrid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grid_geojson</span><span class="p">()</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cityIO_post_url</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s1">&#39;GEOGRID&#39;</span><span class="p">:</span><span class="n">geogrid</span><span class="p">}),</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">post_headers</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Geogrid posted to:&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reset_geogrid_data</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_endpoints</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">center_grid_view</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">front_end_url</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quietly</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Table not overwritten&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Grid_maker.edit_types"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.edit_types">[docs]</a>    <span class="k">def</span> <span class="nf">edit_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">types</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Changes the default types for user defined types.</span>
+<span class="sd">        If the GEOGRID object returned has not been created, it will created using the default properties.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        types: dict or list</span>
+<span class="sd">            Object with new type definitions.</span>
+<span class="sd">            When passing a dict, each type name is passed as a key and values are dicts with the properties of each type. </span>
+<span class="sd">            When passing a list, only passes the names of the types, other baseline properties will be generated by default.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_grid_geojson</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">types</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">types</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">types</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:{}</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">types</span><span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generate_missing</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Wrong type definition, pass dict or list, object passed was {type(types)}&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Grid_maker.grid_types"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.grid_types">[docs]</a>    <span class="k">def</span> <span class="nf">grid_types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;types&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Grid_maker.set_noninteractive"><a class="viewcode-back" href="../../classes.html#brix.Grid_maker.set_noninteractive">[docs]</a>    <span class="k">def</span> <span class="nf">set_noninteractive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">poly</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Sets cells that fall outside of polygon as non interactive.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        poly: shapely Polygon</span>
+<span class="sd">            Polygon bounding the interactive part of the grid.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_grid_geojson</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">geojson_object</span><span class="p">[</span><span class="s1">&#39;features&#39;</span><span class="p">]:</span>
+            <span class="n">cell_shape</span> <span class="o">=</span> <span class="n">shape</span><span class="p">(</span><span class="n">cell</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cell_shape</span><span class="o">.</span><span class="n">centroid</span><span class="o">.</span><span class="n">within</span><span class="p">(</span><span class="n">poly</span><span class="p">):</span>
+                <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+                <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;interactive&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span></div></div>
+
+<span class="k">def</span> <span class="nf">grid_from_poly</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span><span class="n">poly</span><span class="p">,</span><span class="n">ncells</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Creates a :class:`brix.Grid_maker` object based on the given polygon.</span>
+<span class="sd">    It sets cells that fall outside the polygon as non-interactive.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    table_name: str</span>
+<span class="sd">        Name of table to create.</span>
+<span class="sd">        It will overwrite it if it exists.</span>
+<span class="sd">    poly: shapely.Polygon</span>
+<span class="sd">        Polygon of grid bounds. </span>
+<span class="sd">    ncells: int, defaults to 20</span>
+<span class="sd">        Number of cells in the longest side.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    G: :class:`brix.Grid_maker`</span>
+<span class="sd">        Grid_maker object with properties inferrred from polygon.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">rotation</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">corner_bbox</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">bounds</span> <span class="c1">#lower left corner and upper right corner</span>
+
+    <span class="c1">## DEFINE PARAMETS OF THE GRID ##</span>
+    <span class="n">top_left_lat</span> <span class="o">=</span> <span class="n">corner_bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="c1">## #42.3664655 </span>
+    <span class="n">top_left_lon</span> <span class="o">=</span> <span class="n">corner_bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1">## #-71.0854323</span>
+    <span class="n">top_left</span> <span class="o">=</span> <span class="p">(</span><span class="n">top_left_lat</span><span class="p">,</span><span class="n">top_left_lon</span><span class="p">)</span>
+
+    <span class="n">top_right_lat</span> <span class="o">=</span> <span class="n">corner_bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">top_right_lon</span> <span class="o">=</span> <span class="n">corner_bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">top_right</span> <span class="o">=</span> <span class="p">(</span><span class="n">top_right_lat</span><span class="p">,</span><span class="n">top_right_lon</span><span class="p">)</span>
+
+    <span class="n">bottom_left_lat</span> <span class="o">=</span> <span class="n">corner_bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">bottom_left_lon</span> <span class="o">=</span> <span class="n">corner_bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">bottom_left</span> <span class="o">=</span> <span class="p">(</span><span class="n">bottom_left_lat</span><span class="p">,</span><span class="n">bottom_left_lon</span><span class="p">)</span>
+
+    <span class="n">dist_horizontal</span> <span class="o">=</span> <span class="n">vincenty</span><span class="p">(</span><span class="n">top_left</span><span class="p">,</span> <span class="n">top_right</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span> <span class="c1">#in m</span>
+    <span class="n">dist_vertical</span> <span class="o">=</span> <span class="n">vincenty</span><span class="p">(</span><span class="n">top_left</span><span class="p">,</span> <span class="n">bottom_left</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span> <span class="c1">#in m</span>
+
+    <span class="k">if</span> <span class="n">dist_horizontal</span> <span class="o">&gt;</span> <span class="n">dist_vertical</span><span class="p">:</span>
+        <span class="n">ncols</span> <span class="o">=</span> <span class="n">ncells</span> <span class="c1">##</span>
+        <span class="n">cell_side</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">dist_horizontal</span> <span class="o">/</span> <span class="n">ncols</span><span class="p">)</span>
+        <span class="n">cell_size</span> <span class="o">=</span> <span class="n">cell_side</span> <span class="c1">#m ##</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">dist_vertical</span> <span class="o">/</span> <span class="n">cell_side</span><span class="p">)</span> <span class="c1">##</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="n">ncells</span> <span class="c1">##</span>
+        <span class="n">cell_side</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">dist_vertical</span> <span class="o">/</span> <span class="n">nrows</span><span class="p">)</span>
+        <span class="n">cell_size</span> <span class="o">=</span> <span class="n">cell_side</span> <span class="c1">#m ##</span>
+        <span class="n">ncols</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">dist_horizontal</span> <span class="o">/</span> <span class="n">cell_side</span><span class="p">)</span> <span class="c1">##</span>
+
+    <span class="n">G</span> <span class="o">=</span> <span class="n">Grid_maker</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">top_left_lat</span><span class="p">,</span> <span class="n">top_left_lon</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="n">rotation</span><span class="p">,</span> <span class="n">cell_size</span><span class="o">=</span><span class="n">cell_size</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">)</span>
+    <span class="n">G</span><span class="o">.</span><span class="n">set_grid_geojson</span><span class="p">()</span>
+    <span class="n">G</span><span class="o">.</span><span class="n">set_noninteractive</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">G</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, CityScience group at the MIT Media Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
