@@ -61,7 +61,7 @@ def list_tables():
 	table_list: list
 		List of table names (strings).
 	'''
-	table_list_url = urljoin(Handler.remote_host,'api/tables/list')
+	table_list_url = urljoin(Handler.host,'api/tables/list')
 	r = requests.get(table_list_url)
 	if r.status_code!=200:
 		raise NameError(f'Unable to retrieve list of tables: status code ={r.status_code}')
